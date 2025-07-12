@@ -1,0 +1,325 @@
+[
+    {
+        "name": "alsa-lib",
+        "repository": "https://github.com/alsa-project/alsa-lib",
+        "description": "Advanced Linux Sound Architecture (ALSA) library providing audio and MIDI functionality",
+        "mirror_on_github": "https://github.com/alsa-project/alsa-lib"
+    },
+    {
+        "name": "android-hardware-intel-audio",
+        "repository": "https://github.com/intel/android-hardware-intel-audio",
+        "description": "Intel-specific Android audio Hardware Abstraction Layer (HAL) implementation",
+        "mirror_on_github": "https://github.com/intel/android-hardware-intel-audio"
+    },
+    {
+        "name": "android-hardware-qcom-audio-caf",
+        "repository": "https://github.com/LineageOS/android_hardware_qcom_audio",
+        "description": "Qualcomm-specific Android audio HAL implementation for LineageOS",
+        "mirror_on_github": "https://github.com/LineageOS/android_hardware_qcom_audio"
+    },
+    {
+        "name": "android_system_core",
+        "repository": "https://android.googlesource.com/platform/system/core",
+        "description": "Core system components and utilities of the Android platform",
+        "mirror_on_github": "https://github.com/aosp-mirror/platform_system_core"
+    },
+    {
+        "name": "android_system_media",
+        "repository": "https://android.googlesource.com/platform/system/media",
+        "description": "Android media system components including audio policies and effects",
+        "mirror_on_github": "https://github.com/aosp-mirror/platform_system_media"
+    },
+    {
+        "name": "asn1c",
+        "repository": "https://github.com/vlm/asn1c",
+        "description": "ASN.1 compiler targeting C/C++, converts ASN.1 specifications into C source code",
+        "mirror_on_github": "https://github.com/vlm/asn1c"
+    },
+    {
+        "name": "audio_route",
+        "repository": "https://github.com/tinyalsa/audio_route",
+        "description": "Audio routing library for Android using TinyALSA",
+        "mirror_on_github": "https://github.com/tinyalsa/audio_route"
+    },
+    {
+        "name": "audio_utils",
+        "repository": "https://android.googlesource.com/platform/system/media/audio_utils",
+        "description": "Android audio utility libraries and tools",
+        "mirror_on_github": "https://github.com/aosp-mirror/platform_system_media"
+    },
+    {
+        "name": "bash",
+        "repository": "https://git.savannah.gnu.org/git/bash.git",
+        "description": "GNU Bourne Again Shell, a powerful command-line interpreter",
+        "mirror_on_github": "https://github.com/mirror/bash"
+    },
+    {
+        "name": "binutils",
+        "repository": "https://sourceware.org/git/binutils-gdb.git",
+        "description": "Collection of binary tools for manipulating object files and assembling/disassembling",
+        "mirror_on_github": "https://github.com/bminor/binutils-gdb"
+    },
+    {
+        "name": "bluez",
+        "repository": "https://git.kernel.org/pub/scm/bluetooth/bluez.git",
+        "description": "Official Linux Bluetooth protocol stack",
+        "mirror_on_github": "https://github.com/bluez/bluez"
+    },
+    {
+        "name": "busybox",
+        "repository": "https://git.busybox.net/busybox/",
+        "description": "Suite of lightweight Unix utilities in a single binary",
+        "mirror_on_github": "https://github.com/mirror/busybox"
+    },
+    {
+        "name": "bzip2",
+        "repository": "https://sourceware.org/git/bzip2.git",
+        "description": "High-quality data compression program",
+        "mirror_on_github": "https://github.com/libarchive/bzip2"
+    },
+    {
+        "name": "ca-certificates",
+        "repository": "https://salsa.debian.org/debian/ca-certificates",
+        "description": "Common CA certificates for SSL/TLS trusted by Debian-based systems",
+        "mirror_on_github": null
+    },
+    {
+        "name": "chrony",
+        "repository": "https://git.tuxfamily.org/chrony/chrony.git",
+        "description": "Versatile implementation of Network Time Protocol (NTP)",
+        "mirror_on_github": null
+    },
+    {
+        "name": "cjson",
+        "repository": "https://github.com/DaveGamble/cJSON",
+        "description": "Lightweight JSON parser and formatter in C",
+        "mirror_on_github": "https://github.com/DaveGamble/cJSON"
+    },
+    {
+        "name": "conntrack-tools",
+        "repository": "https://git.netfilter.org/conntrack-tools/",
+        "description": "Tools for managing Linux kernel connection tracking system",
+        "mirror_on_github": null
+    },
+    {
+        "name": "coreutils",
+        "repository": "https://git.savannah.gnu.org/git/coreutils.git",
+        "description": "GNU core utilities, basic file, shell and text manipulation utilities",
+        "mirror_on_github": "https://github.com/mirror/coreutils"
+    },
+    {
+        "name": "cryptsetup",
+        "repository": "https://gitlab.com/cryptsetup/cryptsetup",
+        "description": "Disk encryption setup tool using dm-crypt kernel module",
+        "mirror_on_github": "https://github.com/mirror/cryptsetup"
+    },
+    {
+        "name": "curl",
+        "repository": "https://github.com/curl/curl",
+        "description": "Command line tool and library for transferring data with URLs",
+        "mirror_on_github": "https://github.com/curl/curl"
+    },
+    {
+        "name": "cyassl",
+        "repository": "https://github.com/wolfSSL/wolfssl",
+        "description": "Lightweight SSL/TLS library targeting embedded systems",
+        "mirror_on_github": "https://github.com/wolfSSL/wolfssl"
+    },
+    {
+        "name": "dhcpcd",
+        "repository": "https://github.com/rsmarples/dhcpcd",
+        "description": "DHCP client daemon that provides IPv4 and IPv6 configuration",
+        "mirror_on_github": "https://github.com/rsmarples/dhcpcd"
+    },
+    {
+        "name": "dnsmasq",
+        "repository": "http://thekelleys.org.uk/git/dnsmasq.git",
+        "description": "Lightweight DNS forwarder and DHCP server",
+        "mirror_on_github": "https://github.com/mirror/dnsmasq"
+    },
+    {
+        "name": "e2fsprogs",
+        "repository": "https://git.kernel.org/pub/scm/fs/ext2/e2fsprogs.git",
+        "description": "Utilities for managing ext2/ext3/ext4 filesystems",
+        "mirror_on_github": "https://github.com/tytso/e2fsprogs"
+    },
+    {
+        "name": "ebtables",
+        "repository": "https://git.kernel.org/pub/scm/linux/kernel/git/ebtables/ebtables.git",
+        "description": "Ethernet bridge frame table administration tool",
+        "mirror_on_github": null
+    },
+    {
+        "name": "ethtool",
+        "repository": "https://git.kernel.org/pub/scm/network/ethtool/ethtool.git",
+        "description": "Utility for controlling network drivers and hardware",
+        "mirror_on_github": null
+    },
+    {
+        "name": "garden-app",
+        "repository": "https://github.com/cloudfoundry-attic/garden-app",
+        "description": "Cloud Foundry container management application",
+        "mirror_on_github": "https://github.com/cloudfoundry-attic/garden-app"
+    },
+    {
+        "name": "gdb",
+        "repository": "https://sourceware.org/git/binutils-gdb.git",
+        "description": "GNU Debugger for debugging programs",
+        "mirror_on_github": "https://github.com/bminor/binutils-gdb"
+    },
+    {
+        "name": "glib",
+        "repository": "https://gitlab.gnome.org/GNOME/glib.git",
+        "description": "Low-level core library for GNOME project",
+        "mirror_on_github": "https://github.com/GNOME/glib"
+    },
+    {
+        "name": "glibc",
+        "repository": "https://sourceware.org/git/glibc.git",
+        "description": "GNU C Library, the core C library used by Linux systems",
+        "mirror_on_github": "https://github.com/bminor/glibc"
+    },
+    {
+        "name": "gmp",
+        "repository": "https://gmplib.org/repo/gmp/",
+        "description": "GNU Multiple Precision Arithmetic Library",
+        "mirror_on_github": null
+    },
+    {
+        "name": "gnulib",
+        "repository": "https://git.savannah.gnu.org/git/gnulib.git",
+        "description": "GNU portability library for common GNU package functionality",
+        "mirror_on_github": "https://github.com/mirror/gnulib"
+    },
+    {
+        "name": "gnutls",
+        "repository": "https://gitlab.com/gnutls/gnutls.git",
+        "description": "Library implementing SSL, TLS and DTLS protocols",
+        "mirror_on_github": "https://github.com/gnutls/gnutls"
+    },
+    {
+        "name": "hostapd",
+        "repository": "https://w1.fi/cgit/hostap.git",
+        "description": "User space daemon for WiFi access point and authentication servers",
+        "mirror_on_github": null
+    },
+    {
+        "name": "iniparser",
+        "repository": "https://github.com/ndevilla/iniparser",
+        "description": "Stand-alone ini file parsing library",
+        "mirror_on_github": "https://github.com/ndevilla/iniparser"
+    },
+    {
+        "name": "iperf3",
+        "repository": "https://github.com/esnet/iperf",
+        "description": "Network performance measurement tool",
+        "mirror_on_github": "https://github.com/esnet/iperf"
+    },
+    {
+        "name": "iproute2",
+        "repository": "https://git.kernel.org/pub/scm/network/iproute2/iproute2.git",
+        "description": "Collection of utilities for controlling TCP/IP networking and traffic control",
+        "mirror_on_github": "https://github.com/shemminger/iproute2"
+    },
+    {
+        "name": "ipset",
+        "repository": "https://git.netfilter.org/ipset/",
+        "description": "Administration tool for IP sets in Linux kernel",
+        "mirror_on_github": null
+    },
+    {
+        "name": "iptables",
+        "repository": "https://git.netfilter.org/iptables/",
+        "description": "Linux kernel packet control tool for IPv4/IPv6 firewall",
+        "mirror_on_github": null
+    },
+    {
+        "name": "iputils",
+        "repository": "https://github.com/iputils/iputils",
+        "description": "Set of small useful utilities for Linux networking",
+        "mirror_on_github": "https://github.com/iputils/iputils"
+    },
+    {
+        "name": "iw",
+        "repository": "https://git.kernel.org/pub/scm/linux/kernel/git/jberg/iw.git",
+        "description": "nl80211 based CLI configuration utility for wireless devices",
+        "mirror_on_github": null
+    },
+    {
+        "name": "json-c",
+        "repository": "https://github.com/json-c/json-c",
+        "description": "JSON implementation in C for parsing and manipulating JSON data",
+        "mirror_on_github": "https://github.com/json-c/json-c"
+    },
+    {
+        "name": "kbd",
+        "repository": "https://git.kernel.org/pub/scm/linux/kernel/git/legion/kbd.git",
+        "description": "Linux keyboard utilities and keytable files",
+        "mirror_on_github": null
+    },
+    {
+        "name": "kmod",
+        "repository": "https://git.kernel.org/pub/scm/utils/kernel/kmod/kmod.git",
+        "description": "Linux kernel module handling utilities",
+        "mirror_on_github": null
+    },
+    {
+        "name": "libattr",
+        "repository": "https://git.kernel.org/pub/scm/libs/attr/attr.git",
+        "description": "Library for manipulating filesystem extended attributes",
+        "mirror_on_github": null
+    },
+    {
+        "name": "libcap",
+        "repository": "https://git.kernel.org/pub/scm/libs/libcap/libcap.git",
+        "description": "Library for getting and setting POSIX.1e capabilities",
+        "mirror_on_github": null
+    },
+    {
+        "name": "libexpat",
+        "repository": "https://github.com/libexpat/libexpat",
+        "description": "XML parsing library written in C",
+        "mirror_on_github": "https://github.com/libexpat/libexpat"
+    },
+    {
+        "name": "libffi",
+        "repository": "https://github.com/libffi/libffi",
+        "description": "Portable Foreign Function Interface Library",
+        "mirror_on_github": "https://github.com/libffi/libffi"
+    },
+    {
+        "name": "libgcrypt",
+        "repository": "https://git.gnupg.org/cgi-bin/gitweb.cgi?p=libgcrypt.git",
+        "description": "General purpose cryptographic library based on GnuPG",
+        "mirror_on_github": "https://github.com/gpg/libgcrypt"
+    },
+    {
+        "name": "libgpg-error",
+        "repository": "https://git.gnupg.org/cgi-bin/gitweb.cgi?p=libgpg-error.git",
+        "description": "Library defining common error values for GnuPG components",
+        "mirror_on_github": "https://github.com/gpg/libgpg-error"
+    },
+    {
+        "name": "libhardware",
+        "repository": "https://android.googlesource.com/platform/hardware/libhardware",
+        "description": "Android Hardware Abstraction Layer (HAL) interface library",
+        "mirror_on_github": "https://github.com/aosp-mirror/platform_hardware_libhardware"
+    },
+    {
+        "name": "libidn",
+        "repository": "https://gitlab.com/libidn/libidn.git",
+        "description": "Library for handling Internationalized Domain Names (IDN)",
+        "mirror_on_github": "https://github.com/mirror/libidn"
+    },
+    {
+        "name": "liblog",
+        "repository": "https://android.googlesource.com/platform/system/logging/liblog",
+        "description": "Android logging library for system components",
+        "mirror_on_github": "https://github.com/aosp-mirror/platform_system_logging"},
+    {
+        "name": "tinycompress",
+        "repository": "https://git.alsa-project.org/?p=tinycompress.git",
+        "description": "The Advanced Linux Sound Architecture (ALSA) - tinycompress",
+        "mirror_on_github": "https://github.com/alsa-project/tinycompress"
+    }
+]

@@ -1,0 +1,32 @@
+{
+    "libalsautils.so": [
+        "android_platform_media"
+    ],
+    "libaudioutils.so": [
+        "android_platform_media"
+    ],
+     "libaudioroute.so": [
+        "android_platform_media"
+    ],
+    "libaudioeffects": [
+        "android_platform_media"
+    ],
+    "libaudioroute_defaults": [
+        "android_platform_media"
+    ],
+    "libcamera_metadata": [
+        "android_platform_media"
+    ],
+    "libradio_metadata": [
+        "android_platform_media"
+    ],
+    "libaudio_system_headers": [
+        "android_platform_media"
+    ],
+    "crecord": [
+        "tinycompress"
+    ],
+    "cplay": [
+        "tinycompress"
+    ]
+}

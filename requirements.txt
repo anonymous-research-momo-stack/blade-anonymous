@@ -19,3 +19,5 @@ openai
 sqlalchemy
 pylance
 ddgs
+pgvector
+duckduckgo-search

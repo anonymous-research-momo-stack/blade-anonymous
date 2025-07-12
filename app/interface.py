@@ -1,7 +1,10 @@
 import dataclasses
 from dataclasses import asdict, fields
 from dataclasses import dataclass
-from typing import Dict, Type, Any, List
+from typing import Dict, Type, Any
+from typing import List
+
+from pydantic import BaseModel, Field
 
 
 @dataclass
@@ -38,8 +41,42 @@ class Serializable:
         return cls(**init_args)
 
 
+
+
+class LibraryInformation(BaseModel):
+    """
+    Agent answer format
+    """
+    name: str = Field(
+        description="the name of the third-party library.",
+    )
+    description: str = Field(
+        description="a concise description of the third-party library.",
+    )
+
+
+
+class BinaryInformation(BaseModel):
+    """
+    Agent answer format
+    """
+    name: str = Field(
+        description="the name of this binary.",
+    )
+    description: str = Field(
+        description="the description of the binary, including what it may be, which library may compile it, and what is the main function of it, and any other information you think it is useful to know this binary.",
+    )
+    source_library: LibraryInformation = Field(
+        description="the information of the library which may compile this binary.",
+    )
+
+
+
 @dataclass
 class TargetBinary(Serializable):
+    """
+    the input binary
+    """
     # name
     binary_name: str
 
@@ -53,13 +90,17 @@ class TargetBinary(Serializable):
     # strings
     strings: List[str] = dataclasses.field(default_factory=list)
 
+    # Binary Information
+    information: BinaryInformation = None
 
 
 
 
 @dataclass
 class Library(Serializable):
-
+    """
+    the output library
+    """
     # name
     name: str
 
@@ -69,9 +110,6 @@ class Library(Serializable):
 
     # match information
     matched_strings: List[str] = dataclasses.field(default_factory=list)
-
-
-
 
 
 

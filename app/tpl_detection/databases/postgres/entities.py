@@ -179,7 +179,7 @@ def create_all_tables():
     # 创建数据库引擎
 
     engine = create_engine(
-        url=f"postgresql+psycopg2://{settings.POSTGRES_USERNAME}:{settings.POSTGRES_PASSWORD}@{settings.POSTGRES_HOST}:{settings.POSTGRES_PORT}/{settings.DATABASE}",
+        url=settings.MAIN_DATABASE_URL,
         echo=False,
         pool_pre_ping=True,
         pool_size=20,

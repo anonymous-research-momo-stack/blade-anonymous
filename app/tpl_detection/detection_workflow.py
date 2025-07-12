@@ -1,4 +1,8 @@
-from app.interface import TargetBinary
+from typing import List
+
+from app.config import settings
+from app.interface import TargetBinary, Library
+from app.tpl_detection.agent_analysis.binary_analyzer import BinaryAnalyzer
 from app.tpl_detection.feature_matching.feature_matching_detector import FeatureMatchingDetector
 from app.tpl_detection.file_preparation.file_preprocessor import FilePreprocessor
 
@@ -26,6 +30,9 @@ class DetectionWorkflow:
             min_match_feature_num=min_match_num,
             min_effective_string_length=min_effective_string_length
         )
+        self.binary_analyzer = BinaryAnalyzer(
+            knowledge_json_path=settings.KNOWLEDGE_FILE_PATH
+        )
 
     def run(self, file_path):
         """
@@ -34,16 +41,22 @@ class DetectionWorkflow:
         # 1. Prepare File
         root_path, target_binary_files = self.file_preprocessor.prepare_target_files(file_path)
 
-        # 2. Run Detection
+        # 2. Run Feature Matching Detection
         detection_results = []
         for target_binary in target_binary_files:
-            detection_result = self._run_detection(root_path, target_binary)
-            detection_results.append(detection_result)
+            libraries = self._run_tpl_detection(root_path, target_binary)
+            detection_results.append((target_binary, libraries))
+
+
+        # 3. Run Agent Analysis
+        # TODO: Analyze the Context
+        for target_binary, libraries in detection_results:
+            self._run_agent_analysis(root_path, target_binary, libraries)
 
         # 3. Return Results
         return detection_results
 
-    def _run_detection(self, root_path, target_binary: TargetBinary):
+    def _run_tpl_detection(self, root_path, target_binary: TargetBinary)-> List[Library]:
         """
         Run the detection on the prepared files.
         """
@@ -51,16 +64,24 @@ class DetectionWorkflow:
         candidate_libraries = self.feature_matching_detector.detect(
             target_binary=target_binary
         )
-        
-        # 构建检测结果
-        detection_result = {
-            'binary_name': target_binary.binary_name,
-            'binary_path': target_binary.absolute_path,
-            'candidate_libraries': candidate_libraries,  # Library接口类型列表
-            'total_candidates': len(candidate_libraries)
-        }
-        
-        return detection_result
+
+        libraries = candidate_libraries
+        return libraries
+
+
+    def _run_agent_analysis(self, root_path, target_binary: TargetBinary, candidate_libraries:List[Library]):
+
+        # 1. Supplement information of the target binary, from LLM itself, web searching, and KnowledgeBase
+        self.binary_analyzer.analyze(target_binary) # TODO 增加设置，支持是否开启搜索，是否开启知识库查询等
+        print(target_binary.information.description, target_binary.information.source_library.description)
+
+        # 2. Try to find TPLs from the strings
+
+        # 3. Cross Validate the candidate TPLs
+
+        # 4. remove the duplicate TPLs
+
+
 
 
 

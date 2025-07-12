@@ -6,7 +6,7 @@ from sqlalchemy.orm import sessionmaker
 from app.config import settings
 
 engine = create_engine(
-    url=f"postgresql+psycopg2://{settings.POSTGRES_USERNAME}:{settings.POSTGRES_PASSWORD}@{settings.POSTGRES_HOST}:{settings.POSTGRES_PORT}/{settings.POSTGRES_DATABASE}",
+    url=settings.MAIN_DATABASE_URL,
     echo=False,
     pool_pre_ping=True,
     pool_size=20,

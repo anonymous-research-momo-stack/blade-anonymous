@@ -8,7 +8,14 @@ def demo():
 
     result = workflow.run(openssl_path)
 
-    print(result)
+    # preview
+    for target_binary, libraries in result:
+        print(f"Target Binary: {target_binary.binary_name}")
+        if libraries:
+            for lib in libraries:
+                print(f"  - Library: {lib.name}, Matched Strings: {len(lib.matched_strings)}")
+        else:
+            print("  - No matching libraries found.")
 
 
 
