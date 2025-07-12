@@ -6,27 +6,11 @@ from pydantic_settings import BaseSettings
 class Settings(BaseSettings):
     """应用配置类"""
     
-    # 应用基本信息
-    app_name: str = "BSCA Expert Agent API"
-    app_version: str = "1.0.0"
-    debug: bool = True
-    
-    # 服务器配置
-    host: str = "0.0.0.0"
-    port: int = 8000
-    
-    # 数据库配置
-    database_url: str = "sqlite:///./bsca_expert_agent.db"
-    
-    # API配置
-    api_key: Optional[str] = None
-    
-    # 日志配置
-    log_level: str = "INFO"
-    
-    class Config:
-        env_file = ".env"
-        case_sensitive = False
+    POSTGRES_HOST: str = os.getenv("POSTGRES_HOST", "localhost")
+    POSTGRES_PORT: int = int(os.getenv("POSTGRES_PORT", 2345))
+    POSTGRES_USERNAME: str = os.getenv("POSTGRES_USERNAME", "open_binary_sca")
+    POSTGRES_PASSWORD: str = os.getenv("POSTGRES_PASSWORD", "open_binary_sca")
+    POSTGRES_DATABASE: str = os.getenv("POSTGRES_DATABASE", "open_binary_sca")
 
 
 # 创建全局配置实例

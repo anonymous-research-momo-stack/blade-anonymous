@@ -3,9 +3,6 @@ networkx
 tqdm
 networkx
 matplotlib
-tree_sitter==0.24.0
-tree_sitter_c==0.21.1
-tree_sitter_cpp==0.21.0
 loguru
 SQLAlchemy
 psycopg2-binary==2.9.10
