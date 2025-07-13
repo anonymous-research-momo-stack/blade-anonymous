@@ -1,7 +1,10 @@
+import os
+from typing import List, Optional
 from sqlalchemy import Column, BigInteger, String, Text, DateTime, ForeignKey, Float, Sequence, create_engine, ARRAY, \
     Table, Index, Boolean, UniqueConstraint
 from sqlalchemy.orm import declarative_base, relationship, declared_attr
 from sqlalchemy.sql import func
+from loguru import logger
 
 from app.config import settings
 
@@ -193,7 +196,8 @@ def create_all_tables():
     # 创建所有定义的表
     Base.metadata.create_all(engine)
 
+    logger.debug("Tables created successfully.")
+
 
 if __name__ == '__main__':
     create_all_tables()
-    print("Tables created successfully.")

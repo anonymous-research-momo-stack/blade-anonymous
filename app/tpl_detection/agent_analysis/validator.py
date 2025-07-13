@@ -2,6 +2,7 @@ import os
 import traceback
 from collections import Counter
 from typing import List, Dict
+from loguru import logger
 
 from agno.agent import Agent
 from agno.knowledge.json import JSONKnowledgeBase
@@ -126,22 +127,22 @@ class LibraryValidator:
         if not libraries:
             return []
 
-        print(f"\n=== Expert Library Validation for {target_binary.binary_name} ===")
-        print(f"Analyzing {len(libraries)} candidates with enhanced two-step approach")
+        logger.debug(f"\n=== Expert Library Validation for {target_binary.binary_name} ===")
+        logger.debug(f"Analyzing {len(libraries)} candidates with enhanced two-step approach")
 
         # 预处理和特征分析 TODO 看看这是干啥的
         # enhanced_libraries = self._enhance_libraries_with_analysis(libraries, target_binary)
         enhanced_libraries = libraries
         try:
             # 第一步：个体合理性分析
-            print(f"\n--- Step 1: Individual Reasonableness Analysis ---")
+            logger.debug(f"\n--- Step 1: Individual Reasonableness Analysis ---")
             individual_results, step_1_response = self._step1_individual_analysis(enhanced_libraries, target_binary)
             reasonable_libs = [lib for lib in enhanced_libraries
                                if self._is_library_reasonable(lib.name, individual_results)]
-            print(f"Individual assessment: {len(reasonable_libs)}/{len(enhanced_libraries)} libraries are reasonable")
+            logger.debug(f"Individual assessment: {len(reasonable_libs)}/{len(enhanced_libraries)} libraries are reasonable")
 
             # 第二步：冗余标记分析
-            print(f"\n--- Step 2: Redundancy Marking Analysis ---")
+            logger.debug(f"\n--- Step 2: Redundancy Marking Analysis ---")
             redundancy_results, step_2_response = self._step2_redundancy_analysis(reasonable_libs, target_binary)
 
             # 应用最终结果
@@ -156,13 +157,13 @@ class LibraryValidator:
             return validated_libraries, process_data
 
         except Exception as e:
-            print(f"Expert validation failed with error: {e}")
-            print(traceback.format_exc())
-            # 返回默认结果
-            for lib in enhanced_libraries:
-                lib.validation_passed = True
-                lib.validation_reasoning = f"Validation failed: {e}"
-            return enhanced_libraries, None, None
+            logger.debug(f"Expert validation failed with error: {e}")
+            logger.debug(traceback.format_exc())
+            # 返回原始库列表，标记为未验证
+            for lib in libraries:
+                lib.validation_passed = False
+                lib.validation_reasoning = f"Validation failed due to error: {str(e)}"
+            return libraries, {}
 
     def _enhance_libraries_with_analysis(self,
                                          libraries: List[Library],
@@ -257,7 +258,7 @@ class LibraryValidator:
         prompt = self._build_step1_prompt(libraries, target_binary)
 
         if self.debug_mode:
-            print(f"Step 1 Expert Prompt Preview: {prompt[:800]}...")
+            logger.debug(f"Step 1 Expert Prompt Preview: {prompt[:800]}...")
 
         response = self.agent.run(prompt)
         return response.content, response
@@ -375,7 +376,7 @@ TASK: Determine if each library's SOURCE CODE is REASONABLE to be compiled into 
         prompt = self._build_step2_prompt(reasonable_libraries, target_binary)
 
         if self.debug_mode:
-            print(f"Step 2 Expert Prompt Preview: {prompt[:800]}...")
+            logger.debug(f"Step 2 Expert Prompt Preview: {prompt[:800]}...")
 
         response = self.agent.run(prompt)
         return response.content, response
@@ -505,7 +506,7 @@ Goal: Mark redundant libraries while keeping only ONE representative for each un
                                         libraries: List[Library]) -> List[Library]:
         """应用验证结果到库对象（修复冗余逻辑和大小写问题）"""
 
-        print(f"\n=== Applying Enhanced Validation Results ===")
+        logger.debug(f"\n=== Applying Enhanced Validation Results ===")
 
         # 创建结果映射 - 使用原始名称作为键，避免大小写覆盖问题
         individual_map = {}
@@ -517,12 +518,12 @@ Goal: Mark redundant libraries while keeping only ONE representative for each un
             redundancy_map[result.library_name] = result
 
         # 添加调试信息
-        print(f"\nDEBUG: Individual map keys: {list(individual_map.keys())}")
-        print(f"DEBUG: Redundancy map keys: {list(redundancy_map.keys())}")
+        logger.debug(f"\nDEBUG: Individual map keys: {list(individual_map.keys())}")
+        logger.debug(f"DEBUG: Redundancy map keys: {list(redundancy_map.keys())}")
 
         # 应用结果，修复冗余逻辑
         for lib in libraries:
-            print(f"\nDEBUG: Processing library '{lib.name}'")
+            logger.debug(f"\nDEBUG: Processing library '{lib.name}'")
 
             # 先尝试精确匹配，如果失败再尝试大小写不敏感匹配
             individual_result = None
@@ -536,13 +537,13 @@ Goal: Mark redundant libraries while keeping only ONE representative for each un
                         break
 
             if individual_result:
-                print(f"DEBUG: Individual result - is_reasonable: {individual_result.is_reasonable}")
+                logger.debug(f"DEBUG: Individual result - is_reasonable: {individual_result.is_reasonable}")
 
                 if not individual_result.is_reasonable:
                     # 个体分析不合理 -> FAIL
                     lib.validation_passed = False
                     lib.validation_reasoning = individual_result.reasoning
-                    print(f"❌ {lib.name}: FAIL (unreasonable)")
+                    logger.debug(f"❌ {lib.name}: FAIL (unreasonable)")
                 else:
                     # 个体分析合理，检查冗余分析
                     redundancy_result = None
@@ -556,32 +557,32 @@ Goal: Mark redundant libraries while keeping only ONE representative for each un
                                 break
 
                     if redundancy_result:
-                        print(f"DEBUG: Redundancy result - should_keep: {redundancy_result.should_keep}")
+                        logger.debug(f"DEBUG: Redundancy result - should_keep: {redundancy_result.should_keep}")
 
                         # 严格按照冗余分析结果执行
                         lib.validation_passed = redundancy_result.should_keep
 
                         if redundancy_result.should_keep:
                             lib.validation_reasoning = f"Library validated as reasonable and non-redundant. {individual_result.reasoning}"
-                            print(f"✅ {lib.name}: PASS (reasonable + kept)")
+                            logger.debug(f"✅ {lib.name}: PASS (reasonable + kept)")
                         else:
                             lib.validation_reasoning = f"Library is reasonable but marked as redundant. {redundancy_result.reasoning}"
-                            print(f"❌ {lib.name}: FAIL (redundant)")
+                            logger.debug(f"❌ {lib.name}: FAIL (redundant)")
                     else:
                         # 合理但没有冗余分析结果，默认通过
                         lib.validation_passed = True
                         lib.validation_reasoning = individual_result.reasoning
-                        print(f"✅ {lib.name}: PASS (reasonable, no redundancy check)")
+                        logger.debug(f"✅ {lib.name}: PASS (reasonable, no redundancy check)")
             else:
                 # 没有个体分析结果，默认通过
                 lib.validation_passed = True
                 lib.validation_reasoning = "No individual analysis result found - defaulting to PASS"
-                print(f"? {lib.name}: DEFAULT PASS")
+                logger.debug(f"? {lib.name}: DEFAULT PASS")
 
         # 统计和验证结果
         passed = sum(1 for lib in libraries if lib.validation_passed)
         failed = len(libraries) - passed
-        print(f"\nValidation Summary: {passed} PASS, {failed} FAIL out of {len(libraries)} total")
+        logger.debug(f"\nValidation Summary: {passed} PASS, {failed} FAIL out of {len(libraries)} total")
 
         # 验证冗余检测是否正确执行
         self._verify_redundancy_resolution(libraries, redundancy_results)
@@ -600,11 +601,11 @@ Goal: Mark redundant libraries while keeping only ONE representative for each un
             if not result.should_keep:
                 # 找到这个库属于哪个组（简化检查）
                 lib_name = result.library_name
-                print(f"📋 Redundancy check: {lib_name} marked as redundant")
+                logger.debug(f"📋 Redundancy check: {lib_name} marked as redundant")
 
         # 检查是否有重复的PASS
         passed_libs = [lib.name for lib in libraries if lib.validation_passed]
         if len(passed_libs) != len(set(passed_libs)):
-            print(f"⚠️  Warning: Duplicate libraries passed validation: {passed_libs}")
+            logger.debug(f"⚠️  Warning: Duplicate libraries passed validation: {passed_libs}")
         else:
-            print(f"✓ Redundancy resolution verified: no duplicate libraries passed")
+            logger.debug(f"✓ Redundancy resolution verified: no duplicate libraries passed")

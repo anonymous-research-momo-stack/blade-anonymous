@@ -1,5 +1,6 @@
 import time
 from typing import List
+from loguru import logger
 
 from app.config import settings
 from app.interface import TargetBinary, Library, AnalysisData, AnalysisResult
@@ -8,6 +9,10 @@ from app.tpl_detection.agent_analysis.tpl_analyzer import TPLAnalyzer
 from app.tpl_detection.agent_analysis.validator import LibraryValidator
 from app.tpl_detection.feature_matching.feature_matching_detector import FeatureMatchingDetector
 from app.tpl_detection.file_preparation.file_preprocessor import FilePreprocessor
+
+# 设置logger级别为INFO，这样debug级别的日志不会显示
+logger.remove()
+logger.add(lambda msg: None, level="INFO")
 
 
 class DetectionWorkflow:
@@ -108,11 +113,11 @@ class DetectionWorkflow:
             if "Feature Matching" not in lib.identify_methods:
                 lib.identify_methods.append("Feature Matching")
 
-        print(f"\n=== Feature Matching Results for {target_binary.binary_name} ===")
-        print(f"Found {len(candidate_libraries)} candidate libraries:")
+        logger.debug(f"\n=== Feature Matching Results for {target_binary.binary_name} ===")
+        logger.debug(f"Found {len(candidate_libraries)} candidate libraries:")
         for index, lib in enumerate(candidate_libraries, 1):
-            print(f"{index}: {lib.name} - {len(lib.matched_strings)} matches")
-            print(f"   Description: {lib.description}")
+            logger.debug(f"{index}: {lib.name} - {len(lib.matched_strings)} matches")
+            logger.debug(f"   Description: {lib.description}")
 
         return candidate_libraries
 
@@ -128,7 +133,7 @@ class DetectionWorkflow:
         # 1. Supplement information of the target binary
         if self.enable_bin_info_analysis:
             bin_info_finder_start_at = time.perf_counter()
-            print(f"\n=== Binary Information Analysis for {target_binary.binary_name} ===")
+            logger.debug(f"\n=== Binary Information Analysis for {target_binary.binary_name} ===")
             response = self.bin_info_finder.find_for(target_binary)
             bin_info_finder_duration = time.perf_counter() - bin_info_finder_start_at
             self.analysis_data.durations["bin_info_finder"] = bin_info_finder_duration
@@ -139,13 +144,13 @@ class DetectionWorkflow:
                 if target_binary.information.source_library:
                     source_lib_desc = target_binary.information.source_library.description
 
-                print(f"Binary Description: {target_binary.information.description}")
-                print(f"Source Library: {source_lib_desc}")
+                logger.debug(f"Binary Description: {target_binary.information.description}")
+                logger.debug(f"Source Library: {source_lib_desc}")
             else:
-                print("No binary information available")
+                logger.debug("No binary information available")
 
         # 2. Try to find TPLs from the strings
-        print(f"\n=== Agent TPL Analysis for {target_binary.binary_name} ===")
+        logger.debug(f"\n=== Agent TPL Analysis for {target_binary.binary_name} ===")
         tpl_analyzer_start_at = time.perf_counter()
         candidate_libraries_from_agent, response = self.tpl_analyzer.analyze(target_binary)
         tpl_analyzer_duration = time.perf_counter() - tpl_analyzer_start_at
@@ -153,19 +158,19 @@ class DetectionWorkflow:
         self.analysis_data.costs["tpl_analyzer"] = response.metrics
         self.analysis_data.tpl_analysis_results = candidate_libraries_from_agent
 
-        print(f"Agent identified {len(candidate_libraries_from_agent)} libraries:")
+        logger.debug(f"Agent identified {len(candidate_libraries_from_agent)} libraries:")
         for index, lib in enumerate(candidate_libraries_from_agent, 1):
-            print(f"{index}: {lib.name}")
-            print(f"   Description: {lib.description}")
-            print(f"   Reasoning: {lib.reasoning}")
+            logger.debug(f"{index}: {lib.name}")
+            logger.debug(f"   Description: {lib.description}")
+            logger.debug(f"   Reasoning: {lib.reasoning}")
 
         # 3. Combine results
         all_candidate_libraries = candidate_libraries_from_feature_matching + candidate_libraries_from_agent
-        print(f"\n=== Combined Candidates for {target_binary.binary_name} ===")
-        print(f"Total candidates before validation: {len(all_candidate_libraries)}")
+        logger.debug(f"\n=== Combined Candidates for {target_binary.binary_name} ===")
+        logger.debug(f"Total candidates before validation: {len(all_candidate_libraries)}")
 
         # 4. Validate the candidate TPLs
-        print(f"\n=== Library Validation for {target_binary.binary_name} ===")
+        logger.debug(f"\n=== Library Validation for {target_binary.binary_name} ===")
         validated_libraries, process_data = self.library_validator.validate_libraries(
             libraries=all_candidate_libraries,
             target_binary=target_binary
@@ -198,14 +203,14 @@ class DetectionWorkflow:
         # 输出验证结果统计
         passed_count = sum(1 for lib in validated_libraries if lib.validation_passed)
         failed_count = len(validated_libraries) - passed_count
-        print(f"Validation completed: {passed_count} passed, {failed_count} failed")
+        logger.debug(f"Validation completed: {passed_count} passed, {failed_count} failed")
 
         # 输出详细验证结果
-        print(f"\n=== Final Results for {target_binary.binary_name} ===")
+        logger.debug(f"\n=== Final Results for {target_binary.binary_name} ===")
         for lib in validated_libraries:
             status = "✅ PASS" if lib.validation_passed else "❌ FAIL"
             methods = ', '.join(lib.identify_methods)
-            print(f"""
+            logger.debug(f"""
 {status} Library: {lib.name}
     Detection Methods: {methods}
     Description: {lib.description}

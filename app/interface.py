@@ -3,6 +3,7 @@ from dataclasses import asdict, fields
 from dataclasses import dataclass
 from typing import Dict, Type, Any
 from typing import List
+from loguru import logger
 
 from app.tpl_detection.agent_analysis.response_models import BinaryInformation, LibraryValidationResult, \
     RedundancyAnalysisResult
@@ -37,7 +38,7 @@ class Serializable:
                 else:
                     init_args[field.name] = field_value
             except Exception as e:
-                print(cls.__name__, field.name, field.type)
+                logger.debug(cls.__name__, field.name, field.type)
                 raise e
         return cls(**init_args)
 

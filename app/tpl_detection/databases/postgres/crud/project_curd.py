@@ -24,7 +24,7 @@ def cascade_add_project_feature(
         # 先查询是否存在，存在则不添加
         result = session.get(ProjectFeatureEntity, project_feature.id)
         if result is not None:
-            print(result)
+            logger.debug(result)
             logger.info(f"project {project_feature.id}: {project_feature.name} already exists. skip insert.")
             return False
 
@@ -90,7 +90,7 @@ def cascade_add_project_feature(
 
 
 
-from typing import List
+from typing import List, Optional
 from sqlalchemy import func
 
 
