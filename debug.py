@@ -9,7 +9,7 @@ def demo():
         top_n=3,
     )
 
-    result = workflow.run(libpng16_so_path)
+    result = workflow.run(openssl_path)
 
     result.analysis_data.preview()
 

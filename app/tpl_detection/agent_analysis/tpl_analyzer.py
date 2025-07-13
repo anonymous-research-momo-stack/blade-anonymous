@@ -3,23 +3,15 @@ from typing import List, Dict
 from agno.run.response import RunResponse
 from agno.agent import Agent
 from agno.knowledge.json import JSONKnowledgeBase
-from agno.models.anthropic import Claude
 from agno.vectordb.pgvector import PgVector
 from agno.vectordb.search import SearchType
-from environs import Env
 
 from app.config import settings
 from app.interface import TargetBinary, Library
 from app.tpl_detection.agent_analysis.response_models import TPLAnalysisResult
 from app.tpl_detection.agent_analysis.string_filter import StringFilter
-
-env = Env()
-env.read_env()
+from app.tpl_detection.agent_analysis.model_factory import create_model
 from agno.tools.duckduckgo import DuckDuckGoTools
-
-# TODO 移动到环境变量中
-ANTHROPIC_API_KEY = env.str("ANTHROPIC_API_KEY")
-CLAUDE_MODEL_ID = "claude-sonnet-4-20250514"
 
 
 class TPLAnalyzer:
@@ -117,7 +109,7 @@ class TPLAnalyzer:
             instructions.append("- Consult the knowledge base for library patterns and signatures")
 
         self.agent = Agent(
-            model=Claude(id=CLAUDE_MODEL_ID, api_key=ANTHROPIC_API_KEY),
+            model=create_model(),
             tools=tools,
             show_tool_calls=True,
             knowledge=knowledge,
