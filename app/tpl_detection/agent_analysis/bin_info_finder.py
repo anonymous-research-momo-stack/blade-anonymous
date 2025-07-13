@@ -6,7 +6,8 @@ from agno.vectordb.search import SearchType
 from environs import Env
 
 from app.config import settings
-from app.interface import TargetBinary, BinaryInformation
+from app.interface import TargetBinary
+from app.tpl_detection.agent_analysis.response_models import BinaryInformation
 
 env = Env()
 env.read_env()
@@ -86,6 +87,12 @@ class BinaryInformationFinder:
             self.agent.knowledge.load(recreate=False)
 
     def find_for(self, target_binary: TargetBinary):
+        """
+
+        :param target_binary:
+        :return: response
+        """
+
         task_prompt = f"""Please analyze this binary file and provide detailed identification information:
 
 Binary Details:
@@ -107,3 +114,5 @@ If the binary appears to be compiled from or related to a specific library or fr
         binary_info = response.content
 
         target_binary.information = binary_info
+
+        return response
