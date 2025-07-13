@@ -1,7 +1,7 @@
 import dataclasses
 from dataclasses import asdict, fields
 from dataclasses import dataclass
-from typing import Dict, Type, Any
+from typing import Dict, Type, Any, Optional
 from typing import List
 
 from pydantic import BaseModel, Field
@@ -42,34 +42,31 @@ class Serializable:
 
 
 
-
 class LibraryInformation(BaseModel):
     """
-    Agent answer format
+    Agent answer format for library information
     """
     name: str = Field(
-        description="the name of the third-party library.",
+        description="The name of the third-party library."
     )
     description: str = Field(
-        description="a concise description of the third-party library.",
+        description="A concise description of the third-party library."
     )
-
-
 
 class BinaryInformation(BaseModel):
     """
-    Agent answer format
+    Agent answer format for binary analysis
     """
     name: str = Field(
-        description="the name of this binary.",
+        description="The name of this binary."
     )
     description: str = Field(
-        description="the description of the binary, including what it may be, which library may compile it, and what is the main function of it, and any other information you think it is useful to know this binary.",
+        description="Comprehensive description of the binary, including what it is, its main function, common use cases, security considerations, and any other useful information about this binary."
     )
-    source_library: LibraryInformation = Field(
-        description="the information of the library which may compile this binary.",
+    source_library: Optional[LibraryInformation] = Field(
+        default=None,
+        description="Information about the library or framework that may have compiled or generated this binary (if applicable)."
     )
-
 
 
 @dataclass

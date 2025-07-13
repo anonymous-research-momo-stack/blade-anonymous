@@ -2,7 +2,7 @@ from typing import List
 
 from app.config import settings
 from app.interface import TargetBinary, Library
-from app.tpl_detection.agent_analysis.binary_analyzer import BinaryAnalyzer
+from app.tpl_detection.agent_analysis.binary_analyzer import BinaryInformationFinder
 from app.tpl_detection.feature_matching.feature_matching_detector import FeatureMatchingDetector
 from app.tpl_detection.file_preparation.file_preprocessor import FilePreprocessor
 
@@ -30,7 +30,7 @@ class DetectionWorkflow:
             min_match_feature_num=min_match_num,
             min_effective_string_length=min_effective_string_length
         )
-        self.binary_analyzer = BinaryAnalyzer(
+        self.bin_info_finder = BinaryInformationFinder(
             knowledge_json_path=settings.KNOWLEDGE_FILE_PATH
         )
 
@@ -72,7 +72,7 @@ class DetectionWorkflow:
     def _run_agent_analysis(self, root_path, target_binary: TargetBinary, candidate_libraries:List[Library]):
 
         # 1. Supplement information of the target binary, from LLM itself, web searching, and KnowledgeBase
-        self.binary_analyzer.analyze(target_binary) # TODO 增加设置，支持是否开启搜索，是否开启知识库查询等
+        self.bin_info_finder.find_for(target_binary) # TODO 增加设置，支持是否开启搜索，是否开启知识库查询等
         print(target_binary.information.description, target_binary.information.source_library.description)
 
         # 2. Try to find TPLs from the strings
