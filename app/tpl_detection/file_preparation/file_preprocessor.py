@@ -2,6 +2,7 @@ from typing import List
 import os
 import subprocess
 import platform
+import traceback
 from pathlib import Path
 from loguru import logger
 
@@ -104,7 +105,8 @@ class FilePreprocessor:
             logger.debug("strings命令未找到，请确保系统已安装strings工具")
             return []
         except Exception as e:
-            logger.debug(f"提取字符串时发生错误: {e}")
+            logger.error(f"提取字符串时发生错误: {e}")
+            logger.error(f"Traceback: {traceback.format_exc()}")
             return []
 
     def _extract_dynamic_libraries(self, file_path: str) -> List[str]:
@@ -130,7 +132,8 @@ class FilePreprocessor:
                 logger.debug(f"不支持的操作系统: {system}")
                 return []
         except Exception as e:
-            logger.debug(f"提取动态链接库信息时发生错误: {e}")
+            logger.error(f"提取动态链接库信息时发生错误: {e}")
+            logger.error(f"Traceback: {traceback.format_exc()}")
             return []
 
     def _extract_dynamic_libraries_linux(self, file_path: str) -> List[str]:
@@ -168,7 +171,8 @@ class FilePreprocessor:
             logger.debug(f"ldd命令执行超时: {file_path}")
             return []
         except Exception as e:
-            logger.debug(f"Linux动态链接库提取失败: {e}")
+            logger.error(f"Linux动态链接库提取失败: {e}")
+            logger.error(f"Traceback: {traceback.format_exc()}")
             return []
 
     def _extract_dynamic_libraries_macos(self, file_path: str) -> List[str]:
@@ -205,7 +209,8 @@ class FilePreprocessor:
             logger.debug(f"otool命令执行超时: {file_path}")
             return []
         except Exception as e:
-            logger.debug(f"macOS动态链接库提取失败: {e}")
+            logger.error(f"macOS动态链接库提取失败: {e}")
+            logger.error(f"Traceback: {traceback.format_exc()}")
             return []
 
     def _extract_dynamic_libraries_windows(self, file_path: str) -> List[str]:
@@ -247,5 +252,6 @@ class FilePreprocessor:
             logger.debug(f"dumpbin命令执行超时: {file_path}")
             return []
         except Exception as e:
-            logger.debug(f"Windows动态链接库提取失败: {e}")
+            logger.error(f"Windows动态链接库提取失败: {e}")
+            logger.error(f"Traceback: {traceback.format_exc()}")
             return []

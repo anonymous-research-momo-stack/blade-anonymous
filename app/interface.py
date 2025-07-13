@@ -1,4 +1,5 @@
 import dataclasses
+import traceback
 from dataclasses import asdict, fields
 from dataclasses import dataclass
 from typing import Dict, Type, Any
@@ -38,7 +39,8 @@ class Serializable:
                 else:
                     init_args[field.name] = field_value
             except Exception as e:
-                logger.debug(cls.__name__, field.name, field.type)
+                logger.error(f"Error in {cls.__name__}, field: {field.name}, type: {field.type}")
+                logger.error(f"Traceback: {traceback.format_exc()}")
                 raise e
         return cls(**init_args)
 

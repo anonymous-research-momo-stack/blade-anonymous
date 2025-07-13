@@ -1,7 +1,9 @@
 import re
 import subprocess
+import traceback
 from typing import List, Dict
 from collections import Counter
+from loguru import logger
 
 
 class StringFilter:
@@ -212,8 +214,10 @@ class StringFilter:
                     demangled.append(self._truncate_string(result.stdout.strip()))
                 else:
                     demangled.append(self._truncate_string(name))
-            except:
+            except Exception as e:
                 # Fallback: simple pattern extraction
+                logger.error(f"Failed to demangle C++ name '{name}': {e}")
+                logger.error(f"Traceback: {traceback.format_exc()}")
                 demangled.append(self._truncate_string(name))
         return demangled
 

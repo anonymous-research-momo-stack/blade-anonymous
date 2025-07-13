@@ -157,8 +157,8 @@ class LibraryValidator:
             return validated_libraries, process_data
 
         except Exception as e:
-            logger.debug(f"Expert validation failed with error: {e}")
-            logger.debug(traceback.format_exc())
+            logger.error(f"Expert validation failed with error: {e}")
+            logger.error(f"Traceback: {traceback.format_exc()}")
             # 返回原始库列表，标记为未验证
             for lib in libraries:
                 lib.validation_passed = False
@@ -205,7 +205,9 @@ class LibraryValidator:
                     if db_match_count > 0:
                         enhanced_lib.matched_strings = [f"Database matches: {db_match_count}"]
                         enhanced_lib.identify_methods.append("Database Verification")
-                except Exception:
+                except Exception as e:
+                    logger.error(f"Database feature match query failed for library '{library.name}': {e}")
+                    logger.error(f"Traceback: {traceback.format_exc()}")
                     pass
 
             enhanced_libraries.append(enhanced_lib)

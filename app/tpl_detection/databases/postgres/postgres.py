@@ -1,7 +1,9 @@
 from contextlib import contextmanager
+import traceback
 
 from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker
+from loguru import logger
 
 from app.config import settings
 
@@ -24,7 +26,9 @@ def session_generator():
     try:
         yield session
         session.commit()
-    except:
+    except Exception as e:
+        logger.error(f"Database session error: {e}")
+        logger.error(f"Traceback: {traceback.format_exc()}")
         session.rollback()
         raise
     finally:
