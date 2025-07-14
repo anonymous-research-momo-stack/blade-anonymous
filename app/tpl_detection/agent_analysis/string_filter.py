@@ -70,18 +70,40 @@ class StringFilter:
             r'(?i)commit\s+[a-f0-9]+',  # commit hash
         ]
 
-        # Library signature keywords
-        self.lib_keywords = [
-            'openssl', 'libssl', 'libcrypto', 'boringssl', 'libressl',
-            'zlib', 'libz', 'gzip', 'compress',
-            'sqlite', 'libsqlite', 'database',
-            'curl', 'libcurl', 'http', 'https',
-            'xml', 'libxml', 'libxml2', 'expat',
-            'json', 'libjson', 'cjson', 'jansson',
-            'png', 'libpng', 'jpeg', 'libjpeg',
-            'thread', 'pthread', 'mutex',
-            'crypto', 'ssl', 'tls', 'cipher',
-            'parser', 'regex', 'pcre',
+        # 更通用的库特征关键词 - 改进点1：移除过于具体的库名，添加更通用的模式
+        self.lib_signature_patterns = [
+            # 通用库标识符
+            r'(?i)lib[a-z0-9_]+',  # lib开头的库名
+            r'(?i)[a-z]+_init',  # 初始化函数模式
+            r'(?i)[a-z]+_create',  # 创建函数模式
+            r'(?i)[a-z]+_destroy',  # 销毁函数模式
+            r'(?i)[a-z]+_version',  # 版本函数模式
+
+            # 特定技术域关键词
+            r'(?i)ssl[_\s]',  # SSL/TLS相关
+            r'(?i)tls[_\s]',
+            r'(?i)crypto[_\s]',  # 加密相关
+            r'(?i)cipher[_\s]',
+            r'(?i)hash[_\s]',
+            r'(?i)compress[_\s]',  # 压缩相关
+            r'(?i)inflate[_\s]',
+            r'(?i)deflate[_\s]',
+            r'(?i)xml[_\s]',  # XML相关
+            r'(?i)json[_\s]',  # JSON相关
+            r'(?i)http[_\s]',  # HTTP相关
+            r'(?i)curl[_\s]',
+            r'(?i)socket[_\s]',  # 网络相关
+            r'(?i)thread[_\s]',  # 线程相关
+            r'(?i)mutex[_\s]',
+            r'(?i)pthread[_\s]',
+            r'(?i)sql[_\s]',  # 数据库相关
+            r'(?i)sqlite[_\s]',
+            r'(?i)regex[_\s]',  # 正则表达式
+            r'(?i)pcre[_\s]',
+            r'(?i)png[_\s]',  # 图像处理
+            r'(?i)jpeg[_\s]',
+            r'(?i)zlib[_\s]',  # 特定知名库
+            r'(?i)openssl[_\s]',
         ]
 
         # Function name patterns
@@ -121,12 +143,16 @@ class StringFilter:
         return results[:self.max_versions]
 
     def extract_library_signatures(self, strings: List[str]) -> List[str]:
-        """Extract strings containing library-specific keywords"""
+        """Extract strings containing library-specific patterns - 改进版本"""
         results = []
         for string in strings:
-            string_lower = string.lower()
-            for keyword in self.lib_keywords:
-                if keyword in string_lower and len(string) <= self.max_string_length:
+            # 跳过过长的字符串
+            if len(string) > self.max_string_length:
+                continue
+
+            # 使用模式匹配而不是简单的关键词匹配
+            for pattern in self.lib_signature_patterns:
+                if re.search(pattern, string):
                     results.append(string)
                     break
 
@@ -150,7 +176,7 @@ class StringFilter:
         return results[:self.max_paths]
 
     def extract_function_names(self, strings: List[str]) -> Dict[str, List[str]]:
-        """Extract function names and analyze prefixes"""
+        """Extract function names and analyze prefixes - 改进版本"""
         function_names = []
         mangled_names = []
 
@@ -162,7 +188,7 @@ class StringFilter:
             elif re.match(r'^_Z\w+', string):
                 mangled_names.append(string)
 
-        # Extract prefixes from simple function names
+        # Extract prefixes from simple function names - 改进的前缀提取
         prefixes = []
         for func in function_names:
             if '_' in func:
@@ -179,14 +205,19 @@ class StringFilter:
         prefix_counts = Counter(prefixes)
         top_prefixes = []
 
-        # Include high-frequency prefixes and library-specific ones
+        # 改进的前缀优先级逻辑
+        known_lib_prefixes = {
+            'ssl', 'tls', 'bn', 'evp', 'rsa', 'aes', 'sha', 'md5', 'x509', 'pem', 'asn1',
+            'crypto', 'bio', 'err', 'obj', 'pkcs', 'ec', 'dh', 'dsa', 'hmac',
+            'zlib', 'inflate', 'deflate', 'gzip', 'sqlite', 'curl', 'xml', 'json',
+            'png', 'jpeg', 'pcre', 'regex', 'thread', 'pthread', 'mutex'
+        }
+
         for prefix, count in prefix_counts.most_common():
-            # Always include known library prefixes regardless of frequency
-            if prefix.lower() in ['ssl', 'tls', 'bn', 'evp', 'rsa', 'aes', 'sha', 'md5', 'x509', 'pem', 'asn1',
-                                  'crypto', 'bio', 'err', 'obj', 'pkcs', 'ec', 'dh', 'dsa', 'hmac',
-                                  'zlib', 'inflate', 'deflate', 'gzip', 'sqlite', 'curl', 'xml', 'json']:
-                top_prefixes.append(f"{prefix} (count: {count})")
-            # Include other high-frequency prefixes
+            # 已知库前缀优先，无论频率
+            if prefix.lower() in known_lib_prefixes:
+                top_prefixes.append(f"{prefix} (count: {count}, known_lib)")
+            # 高频前缀
             elif count >= 3 and len(top_prefixes) < self.max_functions // 2:
                 top_prefixes.append(f"{prefix} (count: {count})")
 

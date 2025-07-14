@@ -20,7 +20,8 @@ from agno.tools.duckduckgo import DuckDuckGoTools
 
 class LibraryValidator:
     """
-    专家级库验证器：智能二进制组成分析
+    Expert Library Validator - STEP 3: Binary Composition Analysis
+    专业库验证器：智能二进制组成分析的最终验证环节
     """
 
     def __init__(self,
@@ -54,46 +55,117 @@ class LibraryValidator:
                 ),
             )
 
-        # 专家级验证指令
+        # 专家级验证指令系统 - 完全重构
         expert_instructions = [
-            "You are a senior binary composition analysis expert with deep knowledge of software architecture and library ecosystems.",
-
-            "CORE MISSION: Identify libraries whose SOURCE CODE is compiled into binaries",
-            "NOT: Libraries that this binary calls or uses as dependencies",
-            "NOT: Libraries that share similar function names or terminology",
-
-            "CRITICAL DISTINCTION:",
-            "✓ 'Library code compiled into binary' - actual source code inclusion",
-            "✗ 'Binary calls library functions' - external API usage, NOT code inclusion",
-            "✗ 'Similar function names detected' - shared terminology, NOT code inclusion",
-
-            "CORE EXPERTISE:",
-            "- Binary composition analysis: identifying SOURCE CODE actually compiled into binaries",
-            "- Software architecture patterns: understanding how libraries are integrated",
-            "- Library ecosystem knowledge: recognizing relationships between libraries",
-            "- Evidence evaluation: distinguishing code inclusion from API usage",
-
-            "ANALYSIS PHILOSOPHY:",
-            "- Think like a forensic expert: distinguish actual code presence from false signals",
-            "- Use domain knowledge: understand how software systems are actually built",
-            "- Be systematic: consider multiple dimensions before making decisions",
-            "- Be decisive: provide clear, well-reasoned conclusions based on evidence",
-
-            "PROFESSIONAL REASONING STYLE:",
-            "- Multi-dimensional analysis covering all relevant aspects",
-            "- Clear logical progression from evidence to conclusion",
-            "- Professional terminology and technical accuracy",
-            "- Confident decisions backed by solid reasoning",
-
-            "QUALITY STANDARDS:",
-            "- Every conclusion must be supported by compelling evidence",
-            "- Reasoning must demonstrate expert-level understanding",
-            "- Analysis must be comprehensive yet focused on key factors",
-            "- Professional presentation suitable for technical stakeholders"
+            "You are a senior binary composition analysis expert conducting the final validation phase.",
+            "",
+            "WORKFLOW CONTEXT:",
+            "This is STEP 3 (FINAL) of a 3-step binary composition analysis workflow:",
+            "• STEP 1 (completed): Binary identity analysis → identified primary source library",
+            "• STEP 2 (completed): Library discovery → found candidate libraries using feature matching + agent analysis",
+            "• STEP 3 (your role): Expert validation → verify and refine the candidate library list",
+            "",
+            "MISSION: Validate which candidate libraries actually have SOURCE CODE compiled into this binary",
+            "",
+            "CORE EXPERTISE DOMAINS:",
+            "- Software architecture patterns and typical dependency relationships",
+            "- Library ecosystem knowledge and inter-library relationships",
+            "- Binary composition analysis and evidence evaluation",
+            "- Distinguishing code inclusion from API usage and false positives",
+            "",
+            "VALIDATION FRAMEWORK:",
+            "You will conduct a two-step expert validation process:",
+            "1. INDIVIDUAL LIBRARY VALIDATION: Assess each candidate for source code inclusion likelihood",
+            "2. CONFLICT RESOLUTION: Resolve contradictions and eliminate redundancy",
+            "",
+            "STEP 1: SOURCE CODE INCLUSION VALIDATION",
+            "",
+            "For each candidate library, evaluate these critical dimensions:",
+            "",
+            "A. PRIMARY SOURCE LIBRARY STATUS (HIGHEST PRIORITY)",
+            "- If a library was identified as the 'primary source' in Step 1, it gets special status",
+            "- Primary source libraries should have high confidence unless strong contrary evidence exists",
+            "- Examples: 'openssl' binary → OpenSSL is primary source (very high confidence)",
+            "",
+            "B. EVIDENCE STRENGTH ASSESSMENT",
+            "- STRONG evidence: Copyright/license statements, version strings, project URLs, library-specific function signatures",
+            "- MEDIUM evidence: Function prefixes, library-related patterns, build paths, configuration strings",
+            "- WEAK evidence: Generic function names, common terminology, shared patterns",
+            "",
+            "C. FUNCTIONAL RELATIONSHIP ANALYSIS (CRITICAL)",
+            "",
+            "REASONABLE functional relationships:",
+            "✓ Functional identity: Binary IS the library implementation (e.g., openssl binary ← OpenSSL library)",
+            "✓ Forward dependency: Upper-layer application depends on lower-layer library (e.g., web server ← OpenSSL)",
+            "",
+            "UNREASONABLE patterns (RED FLAGS):",
+            "❌ REVERSE DEPENDENCY ERROR: Lower-layer library containing upper-layer application code",
+            "   Examples: libpng containing OpenCV code, zlib containing nginx code, OpenSSL containing Apache code",
+            "   Rule: Infrastructure libraries should NOT contain application-layer code",
+            "",
+            "❌ FUNCTIONAL DOMAIN MISMATCH: Completely unrelated functionality domains",
+            "   Examples: SSL tools containing 3D modeling libraries, database tools containing audio processing",
+            "",
+            "❌ GENERIC STRING CONFUSION: Matches based only on common programming terms",
+            "   Examples: Matches only on 'error', 'init', 'free', standard C library functions",
+            "",
+            "❌ API CALL CONFUSION: Mistaking API usage for code inclusion",
+            "   Examples: Detecting SSL_connect calls and assuming OpenSSL code inclusion (might just be API usage)",
+            "",
+            "❌ COMPETING LIBRARY COEXISTENCE: Multiple libraries serving identical functions",
+            "   Examples: OpenSSL + BoringSSL, zlib + lz4, libxml2 + expat simultaneously",
+            "",
+            "❌ VERSION/BRANCH CONFLICTS: Same library, different versions simultaneously",
+            "   Examples: OpenSSL 1.1 + OpenSSL 3.0, different branches of same library",
+            "",
+            "D. ARCHITECTURAL REASONABLENESS",
+            "- Would this library realistically be statically compiled into this binary?",
+            "- Does the inclusion make sense from software engineering perspective?",
+            "- Consider typical development and deployment patterns",
+            "",
+            "STEP 2: CONFLICT RESOLUTION AND REDUNDANCY ELIMINATION",
+            "",
+            "Systematically resolve conflicts using this priority framework:",
+            "",
+            "PRIORITY LEVELS:",
+            "1. PRIMARY SOURCE LIBRARY (from Step 1) - Highest protection",
+            "2. Strong evidence + perfect functional fit",
+            "3. Medium evidence + reasonable functional relationship",
+            "4. Weak evidence candidates",
+            "",
+            "CONFLICT RESOLUTION STRATEGIES:",
+            "",
+            "A. FUNCTIONAL CONFLICTS (mutually exclusive)",
+            "- Competing implementations (OpenSSL vs BoringSSL) → Keep the one with stronger evidence/better fit",
+            "- Same-function libraries (zlib vs lz4) → Keep the most appropriate one",
+            "",
+            "B. INCLUSION RELATIONSHIPS (parent/child)",
+            "- Parent library vs sub-components (OpenSSL vs libcrypto/libssl) → Keep parent only",
+            "- Framework vs modules → Keep framework, remove individual modules",
+            "",
+            "C. VERSION CONFLICTS",
+            "- Same library, different versions → Keep the one with stronger evidence",
+            "- Same library, different detection methods → Merge evidence, keep one entry",
+            "",
+            "D. EVIDENCE QUALITY CONFLICTS",
+            "- Strong evidence library vs weak evidence library serving same function → Keep strong evidence",
+            "",
+            "PROFESSIONAL STANDARDS:",
+            "- Every decision must be backed by clear technical reasoning",
+            "- Demonstrate deep understanding of software architecture principles",
+            "- Provide confident, authoritative assessments suitable for technical stakeholders",
+            "- Use professional terminology and systematic analysis approach",
+            "",
+            "QUALITY ASSURANCE:",
+            "- Primary source library should be preserved unless compelling contrary evidence",
+            "- Final result should be architecturally consistent and conflict-free",
+            "- Each included library should have credible evidence of source code inclusion",
+            "- Provide clear reasoning for every validation decision"
         ]
 
         if enable_knowledge_base or enable_web_search:
-            expert_instructions.append("Leverage available tools to verify unclear cases and enhance analysis quality.")
+            expert_instructions.append(
+                "RESEARCH RESOURCES: Leverage available tools for verification and enhanced analysis quality.")
 
         self.agent = Agent(
             model=create_model(),
@@ -114,38 +186,53 @@ class LibraryValidator:
                            target_binary: TargetBinary,
                            context=None) -> (List[Library], Dict):
         """
-        两步验证流程
+        Expert two-step validation workflow
         """
         if not libraries:
-            return []
+            return [], {}
 
-        logger.debug(f"\n=== Expert Library Validation for {target_binary.binary_name} ===")
-        logger.debug(f"Analyzing {len(libraries)} candidates with enhanced two-step approach")
+        logger.debug(f"\n=== EXPERT VALIDATION WORKFLOW - {target_binary.binary_name} ===")
+        logger.debug(f"Validating {len(libraries)} candidate libraries through two-step expert analysis")
 
-        # 预处理和特征分析 TODO 看看这是干啥的
-        # enhanced_libraries = self._enhance_libraries_with_analysis(libraries, target_binary)
-        enhanced_libraries = libraries
+        # 预处理和特征分析
+        enhanced_libraries = self._enhance_libraries_with_analysis(libraries, target_binary)
+
         try:
-            # 第一步：个体合理性分析
-            logger.debug(f"\n--- Step 1: Individual Reasonableness Analysis ---")
-            individual_results, step_1_response = self._step1_individual_analysis(enhanced_libraries, target_binary)
+            # 第一步：源代码包含合理性验证
+            logger.debug(f"\n--- STEP 1: SOURCE CODE INCLUSION VALIDATION ---")
+            individual_results, step_1_response = self._step1_source_code_inclusion_validation(enhanced_libraries,
+                                                                                               target_binary)
             reasonable_libs = [lib for lib in enhanced_libraries
                                if self._is_library_reasonable(lib.name, individual_results)]
-            logger.debug(f"Individual assessment: {len(reasonable_libs)}/{len(enhanced_libraries)} libraries are reasonable")
+            logger.debug(
+                f"Source code inclusion assessment: {len(reasonable_libs)}/{len(enhanced_libraries)} libraries validated")
 
-            # 第二步：冗余标记分析
-            logger.debug(f"\n--- Step 2: Redundancy Marking Analysis ---")
-            redundancy_results, step_2_response = self._step2_redundancy_analysis(reasonable_libs, target_binary)
+            # 第二步：冲突解决和冗余消除
+            logger.debug(f"\n--- STEP 2: CONFLICT RESOLUTION AND REDUNDANCY ELIMINATION ---")
+            if len(reasonable_libs) <= 1:
+                # 只有一个或没有合理库，跳过冲突解决
+                redundancy_results = RedundancyAnalysisResults(results=[
+                    RedundancyAnalysisResult(
+                        library_name=lib.name,
+                        should_keep=True,
+                        reasoning="Only validated library, no conflicts to resolve."
+                    ) for lib in reasonable_libs
+                ])
+                step_2_response = None
+            else:
+                redundancy_results, step_2_response = self._step2_conflict_resolution(reasonable_libs, target_binary)
 
-            # 应用最终结果
-            validated_libraries = self._apply_validation_results_fixed(individual_results, redundancy_results,
-                                                                       enhanced_libraries)
+            # 应用最终验证结果
+            validated_libraries = self._apply_expert_validation_results(individual_results, redundancy_results,
+                                                                        enhanced_libraries)
+
             process_data = {
                 "step_1_response": step_1_response,
                 "individual_results": individual_results.results,
                 "step_2_response": step_2_response,
                 "redundancy_results": redundancy_results.results,
             }
+
             return validated_libraries, process_data
 
         except Exception as e:
@@ -242,250 +329,316 @@ class LibraryValidator:
         # TODO: 实现具体的数据库查询逻辑
         return 0
 
-    def _step1_individual_analysis(self, libraries: List[Library],
-                                   target_binary: TargetBinary) -> (IndividualValidationResults, RunResponse):
-        """第一步：个体合理性分析"""
+    def _step1_source_code_inclusion_validation(self, libraries: List[Library],
+                                                target_binary: TargetBinary) -> (
+    IndividualValidationResults, RunResponse):
+        """第一步：源代码包含合理性验证"""
 
-        # 相应模型
+        # 设置响应模型
         self.agent.response_model = IndividualValidationResults
 
-        prompt = self._build_step1_prompt(libraries, target_binary)
+        prompt = self._build_step1_expert_prompt(libraries, target_binary)
 
         if self.debug_mode:
-            logger.debug(f"Step 1 Expert Prompt Preview: {prompt[:800]}...")
+            logger.debug(f"Step 1 Expert Validation Prompt Preview: {prompt[:1000]}...")
 
         response = self.agent.run(prompt)
         return response.content, response
 
-    def _build_step1_prompt(self, libraries, target_binary):
-        # 二进制信息
-        binary_profile = self._build_binary_profile(target_binary)
-        # 分析案例
-        analysis_examples = self._get_enhanced_analysis_examples()
-        prompt = f"""EXPERT BINARY COMPOSITION ANALYSIS - STEP 1: INDIVIDUAL LIBRARY ANALYSIS
+    def _build_step1_expert_prompt(self, libraries, target_binary):
+        # 构建专家级验证prompt
+        binary_context = self._build_comprehensive_binary_context(target_binary)
+        validation_framework = self._get_detailed_validation_framework()
 
-{binary_profile}
+        prompt = f"""EXPERT BINARY COMPOSITION ANALYSIS - STEP 1: SOURCE CODE INCLUSION VALIDATION
 
-CORE MISSION CLARIFICATION:
-We are identifying libraries whose SOURCE CODE is compiled into this binary.
-NOT libraries that this binary calls as external dependencies.
-NOT libraries that share similar function names or API terminology.
+{binary_context}
 
-KEY DISTINCTION:
-✓ "Library code compiled into binary" = actual source code inclusion during build
-✗ "Binary calls library functions" = external API usage, NOT code inclusion  
-✗ "Similar function names detected" = shared terminology, NOT actual code
+VALIDATION MISSION:
+Conduct expert-level assessment of whether each candidate library's SOURCE CODE is realistically compiled into this binary.
 
-EXPERT ANALYSIS FRAMEWORK:
-For each candidate library, conduct professional multi-dimensional analysis:
+{validation_framework}
 
-1. NAME/IDENTITY CONSISTENCY
-   - How well does the library name/identity relate to the binary's name and purpose?
-   - Perfect matches (e.g., "openssl" library in "openssl" binary) are strong indicators
-
-2. FUNCTIONAL DOMAIN ALIGNMENT  
-   - Does the library's domain align with what this binary does?
-   - Consider: Would this library's code realistically be compiled into this binary?
-
-3. DETECTION EVIDENCE QUALITY
-   - Assess feature uniqueness and specificity
-   - Distinguish library-specific code signatures from shared terminology
-   - Consider detection method reliability
-
-4. ARCHITECTURAL REASONABLENESS
-   - Would this library realistically be statically linked into this binary?
-   - Consider typical software development and deployment patterns
-
-{analysis_examples}
-
-CANDIDATE LIBRARIES FOR EXPERT ANALYSIS ({len(libraries)}):
+CANDIDATE LIBRARIES FOR EXPERT VALIDATION ({len(libraries)}):
 """
         for i, lib in enumerate(libraries, 1):
-            prompt += f"\n{i}. {lib.name}"
+            prompt += f"\n{i}. LIBRARY: {lib.name}"
             if lib.description:
-                prompt += f" - {lib.description[:120]}..."
+                prompt += f"\n   Description: {lib.description[:150]}..."
 
             prompt += f"\n   Detection Methods: {', '.join(lib.identify_methods)}"
+
+            # 特殊标记主体库
+            is_primary_source = self._is_primary_source_library(lib, target_binary)
+            if is_primary_source:
+                prompt += f"\n   ⭐ PRIMARY SOURCE LIBRARY STATUS: This library was identified as the primary source in Step 1"
 
             # 包含特征独特性分析
             if hasattr(lib, 'unique_feature_count'):
                 total_features = len(lib.matched_strings) if lib.matched_strings else 0
-                prompt += f"\n   Evidence ({total_features} total): {lib.unique_feature_count} unique, {lib.shared_feature_count} shared"
+                prompt += f"\n   Evidence Profile: {total_features} total features"
+                if total_features > 0:
+                    prompt += f" ({lib.unique_feature_count} unique, {lib.shared_feature_count} shared)"
 
-                # 展示一些独特特征样例
-                if lib.unique_features:
-                    unique_examples = lib.unique_features[:3]
-                    prompt += f"\n   Unique Features: {', '.join(unique_examples)}"
-                    if len(lib.unique_features) > 3:
-                        prompt += f"... (+{len(lib.unique_features) - 3} more unique)"
+                    # 展示独特特征样例
+                    if lib.unique_features:
+                        unique_examples = lib.unique_features[:2]
+                        prompt += f"\n   Key Unique Evidence: {', '.join(unique_examples)}"
+                        if len(lib.unique_features) > 2:
+                            prompt += f"... (+{len(lib.unique_features) - 2} more unique)"
 
-                # 展示一些共享特征样例
-                if lib.shared_features:
-                    shared_examples = lib.shared_features[:2]
-                    prompt += f"\n   Shared Features: {', '.join(shared_examples)}"
-                    if len(lib.shared_features) > 2:
-                        prompt += f"... (+{len(lib.shared_features) - 2} more shared)"
+                    # 展示一些证据类型
+                    if hasattr(lib, 'evidences') and lib.evidences:
+                        evidence_examples = lib.evidences[:2]
+                        prompt += f"\n   Agent Evidence: {', '.join(evidence_examples)}"
+                        if len(lib.evidences) > 2:
+                            prompt += f"... (+{len(lib.evidences) - 2} more)"
             elif lib.matched_strings:
                 match_count = len(lib.matched_strings)
-                if match_count <= 3:
+                if match_count <= 2:
                     examples = ", ".join(lib.matched_strings)
                 else:
-                    examples = ", ".join(lib.matched_strings[:3]) + f"... (+{match_count - 3} more)"
+                    examples = ", ".join(lib.matched_strings[:2]) + f"... (+{match_count - 2} more)"
                 prompt += f"\n   Evidence ({match_count} features): {examples}"
 
             if lib.reasoning:
-                prompt += f"\n   Agent Analysis: {lib.reasoning[:200]}..."
+                prompt += f"\n   Original Analysis: {lib.reasoning[:200]}..."
+
+            prompt += "\n"
+
         prompt += f"""
+EXPERT VALIDATION REQUIREMENTS:
 
-PROFESSIONAL REASONING REQUIREMENTS:
-For each library, provide expert-level analysis with:
-- Systematic evaluation covering name consistency, functional alignment, evidence quality, and architectural reasonableness
-- Clear distinction between code inclusion vs API usage vs shared terminology
-- Professional technical reasoning demonstrating deep understanding of software composition
-- Clear logical progression from evidence analysis to conclusion
-- Confident assessment suitable for technical stakeholders
-- 4-6 sentences providing comprehensive but focused professional analysis
+For each library, conduct systematic expert analysis covering:
 
-TASK: Determine if each library's SOURCE CODE is REASONABLE to be compiled into this binary."""
+1. PRIMARY SOURCE ASSESSMENT:
+   - If marked as primary source library, explain why it should be validated or rejected
+   - Primary source libraries require strong contrary evidence for rejection
+
+2. EVIDENCE STRENGTH EVALUATION:
+   - Assess the quality and reliability of detection evidence
+   - Distinguish strong evidence (copyright, library-specific signatures) from weak evidence (generic patterns)
+
+3. FUNCTIONAL RELATIONSHIP ANALYSIS:
+   - Evaluate functional consistency between library and binary
+   - CRITICAL: Check for reverse dependency errors (infrastructure library containing application code)
+   - Identify any domain mismatches or architectural inconsistencies
+
+4. SOURCE CODE INCLUSION LIKELIHOOD:
+   - Professional assessment of whether this library's code would realistically be compiled into this binary
+   - Consider typical software architecture patterns and development practices
+
+VALIDATION DECISION FRAMEWORK:
+- is_reasonable: true/false based on comprehensive evidence assessment
+- confidence: HIGH (strong evidence + perfect fit), MEDIUM (good evidence + reasonable fit), LOW (weak evidence or concerns)
+- reasoning: Expert-level technical analysis demonstrating systematic evaluation
+
+PROFESSIONAL STANDARDS: Provide authoritative, well-reasoned assessments suitable for technical stakeholders.
+"""
         return prompt
 
-    def _step2_redundancy_analysis(self, reasonable_libraries: List[Library],
+    def _step2_conflict_resolution(self, reasonable_libraries: List[Library],
                                    target_binary: TargetBinary) -> (RedundancyAnalysisResults, RunResponse):
-        """第二步：冗余标记分析"""
-
-        if len(reasonable_libraries) <= 1:
-            # 只有一个或没有合理库，都保留
-            results = []
-            for lib in reasonable_libraries:
-                results.append(RedundancyAnalysisResult(
-                    library_name=lib.name,
-                    should_keep=True,
-                    reasoning="Only reasonable library identified, no redundancy concerns."
-                ))
-            return RedundancyAnalysisResults(results=results),None
+        """第二步：冲突解决和冗余消除"""
 
         # 设置结构化响应模型
         self.agent.response_model = RedundancyAnalysisResults
 
-        prompt = self._build_step2_prompt(reasonable_libraries, target_binary)
+        prompt = self._build_step2_expert_prompt(reasonable_libraries, target_binary)
 
         if self.debug_mode:
-            logger.debug(f"Step 2 Expert Prompt Preview: {prompt[:800]}...")
+            logger.debug(f"Step 2 Expert Conflict Resolution Prompt Preview: {prompt[:1000]}...")
 
         response = self.agent.run(prompt)
         return response.content, response
 
-    def _build_step2_prompt(self, reasonable_libraries, target_binary):
+    def _build_step2_expert_prompt(self, reasonable_libraries, target_binary):
+        binary_context = self._get_comprehensive_binary_context(target_binary)
+        conflict_framework = self._get_conflict_resolution_framework()
 
-        binary_context = self._get_binary_context_summary(target_binary)
-        prompt = f"""EXPERT BINARY COMPOSITION ANALYSIS - STEP 2: REDUNDANCY MARKING ANALYSIS
+        prompt = f"""EXPERT BINARY COMPOSITION ANALYSIS - STEP 2: CONFLICT RESOLUTION & REDUNDANCY ELIMINATION
 
 {binary_context}
 
-REASONABLE LIBRARIES FROM STEP 1 ({len(reasonable_libraries)}):
+VALIDATED LIBRARIES FROM STEP 1 ({len(reasonable_libraries)}):
 """
-        for i, lib in enumerate(reasonable_libraries, 1):
-            prompt += f"\n{i}. {lib.name}"
-            if lib.description:
-                prompt += f" - {lib.description[:100]}..."
-            prompt += f"\n   Detection: {', '.join(lib.identify_methods)}"
-            if lib.matched_strings:
-                prompt += f" ({len(lib.matched_strings)} features)"
-            if hasattr(lib, 'uniqueness_score'):
-                prompt += f", {lib.uniqueness_score:.1%} unique"
-        prompt += """
+        # 识别主体库
+        primary_libs = []
+        other_libs = []
 
-REDUNDANCY ANALYSIS FRAMEWORK:
+        for lib in reasonable_libraries:
+            if self._is_primary_source_library(lib, target_binary):
+                primary_libs.append(lib)
+            else:
+                other_libs.append(lib)
 
-CRITICAL RULE: For each redundant group, keep only ONE representative library.
+        if primary_libs:
+            prompt += f"\nPRIMARY SOURCE LIBRARIES ({len(primary_libs)} - Highest Priority):\n"
+            for i, lib in enumerate(primary_libs, 1):
+                prompt += f"{i}. {lib.name}"
+                if lib.description:
+                    prompt += f" - {lib.description[:100]}..."
+                prompt += f"\n   Evidence: {len(lib.matched_strings)} features" if lib.matched_strings else ""
+                prompt += f", Methods: {', '.join(lib.identify_methods)}\n"
 
-Identify and mark redundant libraries in these categories:
+        if other_libs:
+            prompt += f"\nOTHER VALIDATED LIBRARIES ({len(other_libs)}):\n"
+            for i, lib in enumerate(other_libs, 1):
+                prompt += f"{i}. {lib.name}"
+                if lib.description:
+                    prompt += f" - {lib.description[:100]}..."
+                prompt += f"\n   Evidence: {len(lib.matched_strings)} features" if lib.matched_strings else ""
+                if hasattr(lib, 'uniqueness_score'):
+                    prompt += f", Uniqueness: {lib.uniqueness_score:.1%}"
+                prompt += f", Methods: {', '.join(lib.identify_methods)}\n"
 
-1. IDENTICAL LIBRARIES
-   - Same library detected by different methods (e.g., "openssl" vs "OpenSSL")
-   - Minor naming variations of the same underlying library
-   - Keep the most comprehensive or reliable detection
+        prompt += f"""
+{conflict_framework}
 
-2. FUNCTIONAL REDUNDANCY
-   - Multiple libraries serving identical functions that wouldn't coexist
-   - Competing implementations (e.g., OpenSSL vs WolfSSL vs BoringSSL)
-   - Keep the one with strongest evidence or best architectural fit
+CONFLICT RESOLUTION MISSION:
+Systematically identify and resolve conflicts to produce a clean, architecturally consistent final library list.
 
-3. COMPONENT RELATIONSHIPS
-   - Sub-libraries that are part of larger libraries
-   - Library modules belonging to parent frameworks
-   - Keep the parent library, mark components as redundant
+CRITICAL ANALYSIS AREAS:
 
-MARKING PRINCIPLES:
-- For each redundant group, mark all but ONE as should_keep=false
-- Provide clear reasoning for why each library should be kept or removed
-- Consider detection quality, comprehensiveness, and architectural fit when choosing representatives
-- Ensure no two libraries representing the same functionality are both kept
+1. FUNCTIONAL CONFLICTS:
+   - Identify competing implementations (e.g., OpenSSL vs BoringSSL)
+   - Detect same-function libraries that shouldn't coexist
+   - Apply priority-based resolution
 
-PROFESSIONAL ANALYSIS:
-For each library, determine whether to keep it based on:
-- Uniqueness vs redundancy with other libraries
-- Quality and reliability of detection evidence
-- Architectural importance and comprehensiveness
-- Best representation of the library's presence in the binary
+2. INCLUSION RELATIONSHIPS:
+   - Identify parent-child relationships (e.g., OpenSSL parent vs libssl/libcrypto components)
+   - Consolidate to parent libraries only
 
-OUTPUT: For each library, decide whether to keep it and provide professional reasoning.
-Remember: If libraries are redundant, only ONE should have should_keep=true."""
+3. VERSION/DETECTION CONFLICTS:
+   - Detect same library identified through different methods
+   - Merge evidence and consolidate to single entry
+
+4. PRIORITY-BASED RESOLUTION:
+   - Primary source libraries get highest protection
+   - Strong evidence libraries preferred over weak evidence
+   - Better architectural fit preferred
+
+CONFLICT RESOLUTION RULES:
+- PRIMARY SOURCE LIBRARIES: Preserve unless compelling technical reasons for removal
+- COMPETING FUNCTIONS: Keep only the best-supported implementation
+- PARENT-CHILD: Keep parent library, remove child components
+- EVIDENCE CONFLICTS: Prefer stronger evidence and better architectural fit
+
+OUTPUT REQUIREMENT:
+For each library, decide should_keep (true/false) with professional reasoning explaining the decision.
+Ensure final result is conflict-free and architecturally sound.
+"""
         return prompt
 
-    def _build_binary_profile(self, target_binary: TargetBinary) -> str:
-        """构建二进制文件的客观档案"""
-
-        profile = f"""BINARY PROFILE:
-- Name: {target_binary.binary_name}
+    def _build_comprehensive_binary_context(self, target_binary: TargetBinary) -> str:
+        """构建全面的二进制上下文信息"""
+        context = f"""BINARY ANALYSIS CONTEXT:
+- Target: {target_binary.binary_name}
 - Size: {target_binary.file_size_kb} KB
+- Path: {target_binary.relative_path}
 """
 
         if target_binary.information:
-            profile += f"- Description: {target_binary.information.description}\n"
+            context += f"- Type/Purpose: {target_binary.information.description}\n"
             if target_binary.information.source_library:
-                profile += f"- Primary Library: {target_binary.information.source_library.name}\n"
+                context += f"- Primary Source Library: {target_binary.information.source_library.name}\n"
+                context += f"  Description: {target_binary.information.source_library.description}\n"
 
         if target_binary.dynamic_libraries:
-            profile += f"- External Dependencies: {', '.join(target_binary.dynamic_libraries[:5])} (not compiled in)\n"
-            if len(target_binary.dynamic_libraries) > 5:
-                profile += f"  ... and {len(target_binary.dynamic_libraries) - 5} more dynamic libraries\n"
+            context += f"- External Dependencies: {len(target_binary.dynamic_libraries)} dynamic libraries (excluded from analysis)\n"
 
-        profile += f"""
-ANALYSIS CONTEXT:
-- Task: Identify libraries with SOURCE CODE compiled into this binary
-- Focus: Use binary identity and typical software patterns to assess actual code inclusion
-- Principle: Binaries typically contain code from libraries that directly support their core functionality"""
+        return context
 
-        return profile
-
-    def _get_enhanced_analysis_examples(self) -> str:
-        """获取增强的分析示例"""
+    def _get_detailed_validation_framework(self) -> str:
+        """获取详细的验证框架说明"""
         return """
-EXPERT ANALYSIS EXAMPLES:
+EXPERT VALIDATION FRAMEWORK:
 
-Example 1 - Strong Positive Case:
-Library: "OpenSSL" detected in binary "openssl"
-Analysis: "Perfect identity alignment between library name and binary name establishes strong presumption of code inclusion. Agent analysis identified comprehensive OpenSSL function signatures while feature matching detected 3500+ SSL/TLS-specific strings with high uniqueness. Multiple independent detection methods converge on the same conclusion. Architecturally consistent: cryptographic command-line tools typically embed their core cryptographic library directly. This represents textbook primary library inclusion with compelling multi-dimensional evidence."
+PRIMARY SOURCE LIBRARY SPECIAL STATUS:
+- Libraries identified as "primary source" in Step 1 get highest validation priority
+- Requires strong contrary evidence for rejection
+- Represents the main codebase this binary is built from
 
-Example 2 - Clear Negative Case:
-Library: "lib3mf" detected in binary "openssl"  
-Analysis: "Severe functional domain mismatch: lib3mf handles 3D manufacturing file formats while target is cryptographic tool. No reasonable architectural justification for including 3D printing code in SSL utility. The 1300+ detections likely represent false positives from generic build artifacts or shared string patterns rather than actual lib3mf source code. Cross-domain inclusion would violate software engineering principles."
+EVIDENCE STRENGTH CLASSIFICATION:
+- STRONG: Copyright/license statements, version declarations, project URLs, library-unique function signatures
+- MEDIUM: Function prefixes, library-related configurations, build paths, error messages
+- WEAK: Generic function names, common programming terms, shared patterns
 
-Example 3 - API Usage Confusion (CRITICAL):
-Library: "xmlsec" detected in binary "openssl"
-Analysis: "WRONG INTERPRETATION: xmlsec shows OpenSSL API calls (EVP_PKEY_CTX_*, OSSL_STORE_*) suggesting integration. CORRECT ANALYSIS: These are OpenSSL function calls that xmlsec would make as a CLIENT of OpenSSL, not evidence that xmlsec code is compiled into the openssl binary. API function names detected = external usage, NOT code inclusion. This represents classic confusion between library usage and library inclusion."
+FUNCTIONAL RELATIONSHIP VALIDATION:
+✓ VALID RELATIONSHIPS:
+  • Functional identity: Binary IS the library (openssl binary ← OpenSSL library)
+  • Forward dependency: Application uses infrastructure library (web server ← OpenSSL)
 
-Example 4 - Competing Libraries:
-Library: "WolfSSL" detected in binary "openssl" (when OpenSSL confirmed)
-Analysis: "Functional redundancy with confirmed OpenSSL creates architectural impossibility. Software engineering prohibits multiple SSL/TLS libraries due to symbol conflicts and maintenance complexity. Feature matches represent shared SSL/TLS terminology rather than actual WolfSSL code inclusion. Primary OpenSSL presence excludes secondary SSL implementations."
+❌ INVALID PATTERNS (REJECT):
+  • Reverse dependency: Infrastructure library containing application code (libpng ← OpenCV)
+  • Domain mismatch: Unrelated functionality (SSL tool ← 3D modeling library)
+  • Generic confusion: Matches only on common terms (error, init, free)
+  • API confusion: API calls mistaken for code inclusion
+  • Competing coexistence: Multiple libraries for same function (OpenSSL + BoringSSL)
+  • Version conflicts: Same library, multiple versions
+
+ARCHITECTURAL REASONABLENESS ASSESSMENT:
+- Would this library realistically be statically compiled into this binary?
+- Does the inclusion align with typical software engineering practices?
+- Consider build patterns, deployment strategies, and dependency management
 """
 
-    def _get_binary_context_summary(self, target_binary: TargetBinary) -> str:
-        """获取二进制上下文摘要"""
-        return f"""CONTEXT: Analyzing redundancy among reasonable libraries for {target_binary.binary_name}
-Binary Purpose: {target_binary.information.description[:200] if target_binary.information else 'Based on name and context'}...
-Goal: Mark redundant libraries while keeping only ONE representative for each unique functionality."""
+    def _get_conflict_resolution_framework(self) -> str:
+        """获取冲突解决框架"""
+        return """
+CONFLICT RESOLUTION FRAMEWORK:
+
+PRIORITY HIERARCHY:
+1. PRIMARY SOURCE LIBRARIES (Highest Protection)
+2. Strong Evidence + Perfect Functional Fit
+3. Medium Evidence + Reasonable Relationship
+4. Weak Evidence Candidates
+
+SYSTEMATIC CONFLICT TYPES:
+
+A. FUNCTIONAL CONFLICTS (Mutually Exclusive):
+   - Competing SSL implementations: OpenSSL vs BoringSSL vs WolfSSL
+   - Competing compression: zlib vs lz4 vs bzip2
+   - Competing XML parsers: libxml2 vs expat
+   Resolution: Keep strongest evidence + best architectural fit
+
+B. INCLUSION RELATIONSHIPS (Parent/Child):
+   - OpenSSL project: Keep "OpenSSL", remove "libssl", "libcrypto"
+   - Framework components: Keep framework, remove individual modules
+   Resolution: Consolidate to parent library
+
+C. VERSION/BRANCH CONFLICTS:
+   - Same library, different versions: OpenSSL 1.1 vs OpenSSL 3.0
+   - Same library, different detection methods: Feature matching vs Agent analysis
+   Resolution: Merge evidence, keep single best-supported version
+
+D. EVIDENCE QUALITY CONFLICTS:
+   - Strong evidence library vs weak evidence library (same function)
+   Resolution: Prefer strong evidence library
+"""
+
+    def _get_comprehensive_binary_context(self, target_binary: TargetBinary) -> str:
+        """获取全面的二进制上下文"""
+        context = f"""CONFLICT RESOLUTION CONTEXT:
+Binary: {target_binary.binary_name} ({target_binary.file_size_kb} KB)
+"""
+        if target_binary.information:
+            context += f"Purpose: {target_binary.information.description[:200]}...\n"
+            if target_binary.information.source_library:
+                context += f"Primary Source: {target_binary.information.source_library.name}\n"
+        context += "Mission: Eliminate conflicts while preserving all legitimate libraries with source code inclusion."
+        return context
+
+    def _is_primary_source_library(self, lib: Library, target_binary: TargetBinary) -> bool:
+        """检查是否为主体源库"""
+        if not target_binary.information or not target_binary.information.source_library:
+            return False
+
+        primary_name = target_binary.information.source_library.name.lower()
+        lib_name = lib.name.lower()
+
+        # 精确匹配或包含关系
+        return lib_name == primary_name or primary_name in lib_name or lib_name in primary_name
 
     def _is_library_reasonable(self, library_name: str, individual_results: IndividualValidationResults) -> bool:
         """检查库是否通过个体合理性检查"""
@@ -494,112 +647,90 @@ Goal: Mark redundant libraries while keeping only ONE representative for each un
                 return result.is_reasonable
         return False
 
-    def _apply_validation_results_fixed(self,
-                                        individual_results: IndividualValidationResults,
-                                        redundancy_results: RedundancyAnalysisResults,
-                                        libraries: List[Library]) -> List[Library]:
-        """应用验证结果到库对象（修复冗余逻辑和大小写问题）"""
+    def _apply_expert_validation_results(self,
+                                         individual_results: IndividualValidationResults,
+                                         redundancy_results: RedundancyAnalysisResults,
+                                         libraries: List[Library]) -> List[Library]:
+        """应用专家验证结果到库对象"""
 
-        logger.debug(f"\n=== Applying Enhanced Validation Results ===")
+        logger.debug(f"\n=== APPLYING EXPERT VALIDATION RESULTS ===")
 
-        # 创建结果映射 - 使用原始名称作为键，避免大小写覆盖问题
-        individual_map = {}
-        for result in individual_results.results:
-            individual_map[result.library_name] = result
+        # 创建结果映射
+        individual_map = {result.library_name: result for result in individual_results.results}
+        redundancy_map = {result.library_name: result for result in redundancy_results.results}
 
-        redundancy_map = {}
-        for result in redundancy_results.results:
-            redundancy_map[result.library_name] = result
+        logger.debug(f"Individual validation results: {len(individual_map)} libraries")
+        logger.debug(f"Conflict resolution results: {len(redundancy_map)} libraries")
 
-        # 添加调试信息
-        logger.debug(f"\nDEBUG: Individual map keys: {list(individual_map.keys())}")
-        logger.debug(f"DEBUG: Redundancy map keys: {list(redundancy_map.keys())}")
-
-        # 应用结果，修复冗余逻辑
+        # 应用验证结果
         for lib in libraries:
-            logger.debug(f"\nDEBUG: Processing library '{lib.name}'")
+            logger.debug(f"\nProcessing library: {lib.name}")
 
-            # 先尝试精确匹配，如果失败再尝试大小写不敏感匹配
-            individual_result = None
-            if lib.name in individual_map:
-                individual_result = individual_map[lib.name]
-            else:
-                # 大小写不敏感匹配
-                for key, result in individual_map.items():
-                    if key.lower() == lib.name.lower():
-                        individual_result = result
-                        break
+            # 查找个体验证结果（大小写不敏感）
+            individual_result = self._find_result_case_insensitive(lib.name, individual_map)
 
             if individual_result:
-                logger.debug(f"DEBUG: Individual result - is_reasonable: {individual_result.is_reasonable}")
-
                 if not individual_result.is_reasonable:
-                    # 个体分析不合理 -> FAIL
+                    # 个体验证失败
                     lib.validation_passed = False
-                    lib.validation_reasoning = individual_result.reasoning
-                    logger.debug(f"❌ {lib.name}: FAIL (unreasonable)")
+                    lib.validation_reasoning = f"EXPERT REJECTION: {individual_result.reasoning}"
+                    logger.debug(f"❌ {lib.name}: FAILED source code inclusion validation")
                 else:
-                    # 个体分析合理，检查冗余分析
-                    redundancy_result = None
-                    if lib.name in redundancy_map:
-                        redundancy_result = redundancy_map[lib.name]
-                    else:
-                        # 大小写不敏感匹配
-                        for key, result in redundancy_map.items():
-                            if key.lower() == lib.name.lower():
-                                redundancy_result = result
-                                break
+                    # 个体验证通过，检查冲突解决结果
+                    redundancy_result = self._find_result_case_insensitive(lib.name, redundancy_map)
 
                     if redundancy_result:
-                        logger.debug(f"DEBUG: Redundancy result - should_keep: {redundancy_result.should_keep}")
-
-                        # 严格按照冗余分析结果执行
                         lib.validation_passed = redundancy_result.should_keep
 
                         if redundancy_result.should_keep:
-                            lib.validation_reasoning = f"Library validated as reasonable and non-redundant. {individual_result.reasoning}"
-                            logger.debug(f"✅ {lib.name}: PASS (reasonable + kept)")
+                            lib.validation_reasoning = f"EXPERT VALIDATION PASSED: {individual_result.reasoning}"
+                            logger.debug(f"✅ {lib.name}: FULLY VALIDATED")
                         else:
-                            lib.validation_reasoning = f"Library is reasonable but marked as redundant. {redundancy_result.reasoning}"
-                            logger.debug(f"❌ {lib.name}: FAIL (redundant)")
+                            lib.validation_reasoning = f"CONFLICT RESOLUTION: {redundancy_result.reasoning}"
+                            logger.debug(f"❌ {lib.name}: REMOVED in conflict resolution")
                     else:
-                        # 合理但没有冗余分析结果，默认通过
+                        # 个体通过但没有冲突检查（单一库情况）
                         lib.validation_passed = True
-                        lib.validation_reasoning = individual_result.reasoning
-                        logger.debug(f"✅ {lib.name}: PASS (reasonable, no redundancy check)")
+                        lib.validation_reasoning = f"EXPERT VALIDATION PASSED: {individual_result.reasoning}"
+                        logger.debug(f"✅ {lib.name}: VALIDATED (no conflicts to resolve)")
             else:
-                # 没有个体分析结果，默认通过
-                lib.validation_passed = True
-                lib.validation_reasoning = "No individual analysis result found - defaulting to PASS"
-                logger.debug(f"? {lib.name}: DEFAULT PASS")
+                # 没有验证结果，默认失败
+                lib.validation_passed = False
+                lib.validation_reasoning = "VALIDATION ERROR: No expert assessment available"
+                logger.debug(f"❌ {lib.name}: Missing validation data")
 
-        # 统计和验证结果
+        # 验证主体库保护
+        self._verify_primary_source_protection(libraries)
+
+        # 最终统计
         passed = sum(1 for lib in libraries if lib.validation_passed)
         failed = len(libraries) - passed
-        logger.debug(f"\nValidation Summary: {passed} PASS, {failed} FAIL out of {len(libraries)} total")
-
-        # 验证冗余检测是否正确执行
-        self._verify_redundancy_resolution(libraries, redundancy_results)
+        logger.debug(f"\nEXPERT VALIDATION COMPLETE: {passed} LIBRARIES VALIDATED, {failed} REJECTED")
 
         return libraries
 
-    def _verify_redundancy_resolution(self, libraries: List[Library], redundancy_results: RedundancyAnalysisResults):
-        """验证冗余检测是否正确执行"""
-        # 检查是否有冗余组
-        if not redundancy_results.results:
-            return
-
-        # 按冗余组验证
-        redundancy_groups = {}
-        for result in redundancy_results.results:
-            if not result.should_keep:
-                # 找到这个库属于哪个组（简化检查）
-                lib_name = result.library_name
-                logger.debug(f"📋 Redundancy check: {lib_name} marked as redundant")
-
-        # 检查是否有重复的PASS
-        passed_libs = [lib.name for lib in libraries if lib.validation_passed]
-        if len(passed_libs) != len(set(passed_libs)):
-            logger.debug(f"⚠️  Warning: Duplicate libraries passed validation: {passed_libs}")
+    def _verify_primary_source_protection(self, libraries: List[Library]):
+        """验证主体库是否得到适当保护"""
+        primary_libs = [lib for lib in libraries if hasattr(lib, 'is_primary_source') and lib.is_primary_source]
+        if primary_libs:
+            for lib in primary_libs:
+                if not lib.validation_passed:
+                    logger.debug(
+                        f"⚠️  WARNING: Primary source library {lib.name} was rejected: {lib.validation_reasoning}")
+                else:
+                    logger.debug(f"✓ Primary source library {lib.name} protected and validated")
         else:
-            logger.debug(f"✓ Redundancy resolution verified: no duplicate libraries passed")
+            logger.debug("ℹ️  No primary source libraries identified for protection")
+
+    def _find_result_case_insensitive(self, library_name: str, result_map: Dict) -> any:
+        """大小写不敏感地查找验证结果"""
+        # 先尝试精确匹配
+        if library_name in result_map:
+            return result_map[library_name]
+
+        # 大小写不敏感匹配
+        for key, result in result_map.items():
+            if key.lower() == library_name.lower():
+                return result
+
+        return None

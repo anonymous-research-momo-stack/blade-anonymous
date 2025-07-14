@@ -50,6 +50,106 @@ class FeatureMatchingDetector:
         # 调用匹配逻辑
         return self.match_candidate_libraries(target_binary.binary_name, target_binary.strings)
 
+    def filter_strings_to_match(self,target_binary:TargetBinary)->List[str]:
+        strings_to_match = set()
+        for s in target_binary.strings:
+            if not (5 < len(s) < 500):
+                continue
+
+            # 排除掉符合函数名规则的字符串，不匹配函数名
+            if self._is_cpp_function_name(s):
+                continue
+
+            strings_to_match.add(s.strip())
+
+        return list(strings_to_match)
+
+    def _is_cpp_function_name(self, string: str) -> bool:
+        """
+        判断字符串是否符合C/C++函数名规则
+        
+        Args:
+            string: 待检查的字符串
+            
+        Returns:
+            bool: 是否为C/C++函数名
+        """
+        import re
+        
+        # 去除首尾空白
+        s = string.strip()
+        
+        # 空字符串或太短的字符串不是函数名
+        if len(s) < 2:
+            return False
+            
+        # C/C++函数名规则：
+        # 1. 只能包含字母、数字、下划线
+        # 2. 不能以数字开头
+        # 3. 不能是C++关键字
+        # 4. 通常包含字母（纯数字不是函数名）
+        
+        # 检查是否只包含合法字符
+        if not re.match(r'^[a-zA-Z_][a-zA-Z0-9_]*$', s):
+            return False
+            
+        # 检查是否包含字母（纯数字不是函数名）
+        if not re.search(r'[a-zA-Z]', s):
+            return False
+            
+        # 检查是否为C++关键字
+        cpp_keywords = {
+            'auto', 'break', 'case', 'char', 'const', 'continue', 'default', 'do',
+            'double', 'else', 'enum', 'extern', 'float', 'for', 'goto', 'if',
+            'int', 'long', 'register', 'return', 'short', 'signed', 'sizeof', 'static',
+            'struct', 'switch', 'typedef', 'union', 'unsigned', 'void', 'volatile', 'while',
+            'asm', 'bool', 'catch', 'class', 'const_cast', 'delete', 'dynamic_cast',
+            'explicit', 'export', 'false', 'friend', 'inline', 'mutable', 'namespace',
+            'new', 'operator', 'private', 'protected', 'public', 'reinterpret_cast',
+            'static_cast', 'template', 'this', 'throw', 'true', 'try', 'typeid',
+            'typename', 'using', 'virtual', 'wchar_t'
+        }
+        
+        if s.lower() in cpp_keywords:
+            return False
+            
+        # 检查是否为常见的函数名模式
+        # 1. 包含常见的前缀/后缀
+        common_prefixes = ['get', 'set', 'is', 'has', 'can', 'should', 'will', 'do', 'make', 'create', 'init', 'destroy', 'free', 'alloc', 'dealloc']
+        common_suffixes = ['_t', '_ptr', '_ref', '_impl', '_base', '_derived']
+        
+        s_lower = s.lower()
+        for prefix in common_prefixes:
+            if s_lower.startswith(prefix) and len(s) > len(prefix):
+                return True
+                
+        for suffix in common_suffixes:
+            if s_lower.endswith(suffix):
+                return True
+                
+        # 2. 检查是否为驼峰命名法或下划线命名法
+        # 驼峰命名法：getValue, setValue, isEnabled
+        if re.match(r'^[a-z][a-zA-Z0-9]*$', s) or re.match(r'^[A-Z][a-zA-Z0-9]*$', s):
+            return True
+            
+        # 下划线命名法：get_value, set_value, is_enabled
+        if re.match(r'^[a-z][a-z0-9_]*$', s) and '_' in s:
+            return True
+            
+        # 3. 检查是否包含常见的函数名模式
+        function_patterns = [
+            r'^[a-zA-Z_][a-zA-Z0-9_]*$',  # 基本函数名模式
+            r'.*[A-Z].*',  # 包含大写字母（可能是驼峰命名）
+            r'.*_.*',  # 包含下划线
+        ]
+        
+        for pattern in function_patterns:
+            if re.match(pattern, s):
+                return True
+                
+        return False
+
+
     def match_candidate_libraries(self, file_name: str, strings: List[str]) -> List[Library]:
         """
         匹配候选库

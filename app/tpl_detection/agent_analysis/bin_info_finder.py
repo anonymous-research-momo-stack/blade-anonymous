@@ -38,29 +38,63 @@ class BinaryInformationFinder:
 
         # 构建instructions
         instructions = [
-            "You are an expert binary analysis assistant specialized in identifying and analyzing executable files, libraries, and binary components.",
+            "You are a binary analysis specialist focused on identifying the primary source and composition of binary files.",
 
-            "Your primary task is to help identify unknown binary files by providing comprehensive information including what the binary is, its main functionality, which software package or library it belongs to, common use cases, and any security considerations.",
+            "CORE MISSION: Determine what this binary file IS and identify its primary source library/project.",
+            "This analysis is CRITICAL for subsequent library composition analysis.",
 
-            "When analyzing a binary, consider file naming patterns, typical file sizes for known binary types, common libraries and frameworks, and platform-specific characteristics.",
+            "KEY IDENTIFICATION TASKS:",
+            "1. Binary Identity: What is this binary file (executable, library, tool, etc.)?",
+            "2. Primary Function: What is its main purpose and functionality?",
+            "3. Source Library: Does this binary come from a specific library/project whose code it contains?",
+
+            "SOURCE LIBRARY IDENTIFICATION PRINCIPLES:",
+            "- If binary name matches a known library (e.g., 'openssl' binary → OpenSSL library), this is strong evidence",
+            "- If binary is a library file (e.g., 'libssl.a'), identify which project it comes from",
+            "- If binary appears to be compiled from a specific open-source project, identify that project",
+            "- Only identify source library when there's clear evidence of the relationship",
+
+            "CRITICAL EXAMPLES:",
+            "✅ Binary 'openssl' → Source Library: OpenSSL (binary IS the OpenSSL toolkit)",
+            "✅ Binary 'libssl.a' → Source Library: OpenSSL (libssl is part of OpenSSL project)",
+            "✅ Binary 'libcrypto.so' → Source Library: OpenSSL (libcrypto is OpenSSL's crypto library)",
+            "✅ Binary 'nginx' → Source Library: Nginx (binary IS the nginx web server)",
+            "✅ Binary 'sqlite3' → Source Library: SQLite (binary IS the SQLite tool)",
+            "❓ Binary 'myapp' → Source Library: Only if clear evidence points to a specific project",
+
+            "ANALYSIS APPROACH:",
+            "- Use binary name patterns and known software projects",
+            "- Consider file naming conventions (lib prefix, common tool names)",
+            "- Look for obvious matches between binary names and well-known projects",
+            "- Be conservative: only identify source library when confident",
+
+            "SOURCE LIBRARY CRITERIA:",
+            "- Must be a real, identifiable open-source project or library",
+            "- Must have a reasonable connection to the binary file",
+            "- Should represent the primary codebase that this binary is built from",
+            "- Avoid guessing - better to leave null if uncertain",
         ]
 
         # 根据开关状态添加搜索相关指令
         if enable_knowledge_base or enable_web_search:
-            instructions.append("If you're not certain about a binary identification:")
+            instructions.append("VERIFICATION RESOURCES:")
 
         if enable_web_search:
-            instructions.append("- Search the web for additional information about the binary name and characteristics")
+            instructions.append("- Search online to verify binary identity and source project relationships")
 
         if enable_knowledge_base:
-            instructions.append("- Consult the knowledge base for similar binaries and patterns")
+            instructions.append("- Consult knowledge base for known binary-to-library mappings")
 
         instructions.extend([
-            "- Provide your best assessment based on available information",
-            "- Clearly indicate your confidence level in the identification",
+            "- Always provide your assessment with clear confidence indicators",
+            "- Focus on providing actionable information for library composition analysis",
             "",
-            "Always structure your response to be practical and actionable for binary analysis workflows.",
-            "Focus on providing comprehensive information in the description field that would be valuable for security analysis, reverse engineering, or system administration."
+            "RESPONSE REQUIREMENTS:",
+            "- Binary name: Normalized name of the binary",
+            "- Description: Comprehensive but focused description covering identity, purpose, and context",
+            "- Source library: Only when confident about the primary source project (can be null)",
+            "",
+            "This analysis establishes the foundation for identifying all libraries whose code is present in the binary."
         ])
 
         self.agent = Agent(
@@ -79,26 +113,45 @@ class BinaryInformationFinder:
 
     def find_for(self, target_binary: TargetBinary):
         """
+        Analyze binary file to identify its primary source and composition context
 
-        :param target_binary:
-        :return: response
+        :param target_binary: Target binary to analyze
+        :return: response containing binary information
         """
 
-        task_prompt = f"""Please analyze this binary file and provide detailed identification information:
+        task_prompt = f"""Analyze this binary file to establish the foundation for library composition analysis:
 
-Binary Details:
+BINARY DETAILS:
 - Name: {target_binary.binary_name}
 - Size: {target_binary.file_size_kb} KB
+- Path: {target_binary.relative_path}
 
-Please provide comprehensive analysis including:
-- What this binary is (type, purpose, category)
-- Main functionality and purpose
-- Which software package, framework, or library it belongs to
-- Common use cases and contexts where it appears
-- Any security considerations or notable characteristics
-- Your confidence level in this identification
+ANALYSIS REQUIREMENTS:
 
-If the binary appears to be compiled from or related to a specific library or framework, please also identify that source library."""
+1. BINARY IDENTITY ANALYSIS:
+   - What type of binary is this? (executable, static library, shared library, etc.)
+   - What is its primary function and purpose?
+   - What category of software does it belong to?
+
+2. SOURCE LIBRARY IDENTIFICATION:
+   - Does this binary come from a specific open-source project or library?
+   - Is there a clear relationship between the binary name and a known library/project?
+   - Examples of clear relationships:
+     * 'openssl' binary → OpenSSL project
+     * 'libssl.a' library → OpenSSL project  
+     * 'nginx' binary → Nginx project
+     * 'sqlite3' binary → SQLite project
+
+3. COMPOSITION ANALYSIS CONTEXT:
+   - What types of libraries would reasonably be included in this binary?
+   - Any specific technical domains this binary operates in?
+   - Security considerations or notable characteristics?
+
+CRITICAL: The 'source_library' field should only be populated when you can confidently identify the primary open-source project that this binary is built from or belongs to. If uncertain, leave it null.
+
+CONFIDENCE INDICATORS: Clearly indicate your confidence level in the identification, especially for the source library determination.
+
+This analysis will guide subsequent steps that identify all libraries whose code is present in this binary."""
 
         response = self.agent.run(task_prompt)
 

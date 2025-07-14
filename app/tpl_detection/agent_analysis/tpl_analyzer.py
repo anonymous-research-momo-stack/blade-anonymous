@@ -9,9 +9,10 @@ from agno.vectordb.search import SearchType
 from app.config import settings
 from app.interface import TargetBinary, Library
 from app.tpl_detection.agent_analysis.response_models import TPLAnalysisResult
-from app.tpl_detection.agent_analysis.string_filter import StringFilter
 from app.tpl_detection.agent_analysis.model_factory import create_model
 from agno.tools.duckduckgo import DuckDuckGoTools
+
+from app.tpl_detection.agent_analysis.string_filter import StringFilter
 
 
 class TPLAnalyzer:
@@ -46,67 +47,83 @@ class TPLAnalyzer:
                 ),
             )
 
-        # Build instructions
+        # 核心指令系统 - 完全重写
         instructions = [
-            "You are an expert in binary composition analysis. Your task is to identify DISTINCT LIBRARIES whose code is included in this binary file.",
-
-            "CRITICAL DEFINITION: A 'library' means code from a SEPARATE, INDEPENDENTLY DEVELOPED project or repository.",
-            "- Each library should represent ONE source code repository or project",
-            "- Do NOT separate a library into its sub-components or modules",
-            "- Do NOT report protocol implementations or feature modules as separate libraries",
-
-            "EXAMPLES OF CORRECT vs INCORRECT identification:",
-            "✅ CORRECT: 'OpenSSL' (the entire cryptographic library)",
-            "❌ INCORRECT: 'libcrypto', 'libssl', 'CMS', 'TS' (these are OpenSSL components, not separate libraries)",
-            "✅ CORRECT: 'zlib' (independent compression library)",
-            "❌ INCORRECT: 'inflate', 'deflate' (these are zlib functions, not separate libraries)",
-            "✅ CORRECT: 'SQLite' (independent database library)",
-            "❌ INCORRECT: 'sqlite3_exec', 'sqlite3_open' (these are SQLite functions, not separate libraries)",
-
-            "ANALYSIS APPROACH:",
-            "1. ALWAYS include the main source library identified in previous analysis",
-            "2. Look for evidence of OTHER independent libraries that were statically linked",
-            "3. Group all evidence by the library/project it belongs to",
-            "4. Report each independent library/project only ONCE",
-
-            "WHAT TO IDENTIFY (independent libraries only):",
-            "- OpenSSL (entire cryptographic library and toolkit)",
-            "- zlib (compression library)",
-            "- SQLite (database library)",
-            "- libcurl (HTTP client library)",
-            "- libxml2 (XML parsing library)",
-            "- Other independently developed and maintained libraries",
-
-            "WHAT NOT TO IDENTIFY:",
-            "- Sub-components of libraries (libcrypto, libssl are parts of OpenSSL)",
-            "- Protocol implementations (CMS, TS are OpenSSL features)",
-            "- Function modules or feature sets within a library",
-            "- System libraries that are dynamically linked",
-            "- Internal functionality or built-in features",
-
-            "EVIDENCE CONSOLIDATION:",
-            "- If you see OpenSSL copyright + SSL_ functions + crypto_ functions → Report as 'OpenSSL'",
-            "- If you see zlib copyright + inflate/deflate functions → Report as 'zlib'",
-            "- If you see multiple pieces of evidence for the same library → Combine into ONE library entry",
-
-            "OUTPUT FORMAT:",
-            "- Library name: Use the main project/repository name",
-            "- Description: Describe the entire library, not just one component",
-            "- Evidence type: 'Explicit' (copyright/license), 'Implicit' (function patterns), or 'Mixed'",
-            "- Combine ALL evidence for the same library into one entry",
-            "- Reasoning: Explain why this represents an independent library project",
-
-            "Be conservative - only report libraries with strong evidence of being SEPARATE, INDEPENDENT projects."
+            "You are an expert binary composition analyst specializing in library source code identification.",
+            "",
+            "WORKFLOW CONTEXT:",
+            "This is STEP 2 of a 3-step binary composition analysis workflow:",
+            "• STEP 1 (completed): Binary identity analysis identified the primary source",
+            "• STEP 2 (your task): Identify ALL libraries whose source code is present in this binary",
+            "• STEP 3 (next): Expert validation will verify and refine your findings",
+            "",
+            "CORE MISSION: Identify libraries whose SOURCE CODE is compiled into this binary file",
+            "",
+            "CRITICAL TASK DEFINITION:",
+            "✓ IDENTIFY: Libraries whose source code is compiled/linked into this binary",
+            "✗ NOT: Libraries that this binary calls as external dependencies",
+            "✗ NOT: Libraries that this binary may use but are not compiled in",
+            "✗ NOT: Similar-named libraries that might share function names",
+            "",
+            "KEY DISTINCTION:",
+            "- 'Source code compiled in' = actual code inclusion during build process",
+            "- 'External dependency' = runtime library loading (not your concern)",
+            "- 'API similarity' = shared function names (often false positive)",
+            "",
+            "PRIORITY SYSTEM:",
+            "1. PRIMARY SOURCE LIBRARY: If step 1 identified a source library, it MUST be included",
+            "2. DIRECT DEPENDENCIES: Libraries this project directly incorporates",
+            "3. TRANSITIVE DEPENDENCIES: Libraries included by the dependencies",
+            "",
+            "LIBRARY CONSOLIDATION RULES:",
+            "- Report each INDEPENDENT PROJECT only once",
+            "- DO NOT separate libraries into sub-components",
+            "- Example: Report 'OpenSSL' (not 'libcrypto' + 'libssl' separately)",
+            "- Example: Report 'zlib' (not 'inflate' + 'deflate' functions separately)",
+            "",
+            "CRITICAL EXAMPLES:",
+            "✅ CORRECT: Binary 'openssl' → Report 'OpenSSL' (primary source)",
+            "✅ CORRECT: Binary 'libssl.a' → Report 'OpenSSL' (source project)",
+            "✅ CORRECT: Custom app with OpenSSL copyright → Report 'OpenSSL'",
+            "❌ WRONG: Report both 'OpenSSL' and 'BoringSSL' (competing implementations)",
+            "❌ WRONG: Report 'libcrypto' separately from 'OpenSSL' (same project)",
+            "",
+            "EVIDENCE ANALYSIS:",
+            "- STRONG: Copyright/license statements, version strings, project URLs",
+            "- MEDIUM: Function prefixes, library-specific patterns, build paths",
+            "- WEAK: Generic function names, common terminology",
+            "",
+            "CONSOLIDATION APPROACH:",
+            "- Group ALL evidence by the library project it belongs to",
+            "- Combine evidence for the same project into ONE library entry",
+            "- Use the main project/repository name as the library name",
+            "",
+            "QUALITY STANDARDS:",
+            "- Only report libraries with credible evidence of source code inclusion",
+            "- Be conservative: better to miss a library than report false positives",
+            "- Focus on major, independently-developed libraries with clear evidence",
         ]
 
         if enable_knowledge_base or enable_web_search:
-            instructions.append("If you need more information about potential libraries:")
+            instructions.append("VERIFICATION RESOURCES:")
 
         if enable_web_search:
-            instructions.append("- Search the web for library information and confirmation")
+            instructions.append("- Search online to verify library information and resolve ambiguities")
 
         if enable_knowledge_base:
-            instructions.append("- Consult the knowledge base for library patterns and signatures")
+            instructions.append("- Consult knowledge base for library identification patterns")
+
+        instructions.extend([
+            "",
+            "RESPONSE FORMAT:",
+            "- Library name: Use main project/repository name (e.g., 'OpenSSL', not 'libssl')",
+            "- Description: Brief but complete description of the entire library project",
+            "- Evidence type: 'Explicit' (direct mentions), 'Implicit' (patterns), or 'Mixed'",
+            "- Evidence list: Specific strings from binary that support this identification",
+            "- Reasoning: Clear explanation of why this represents source code inclusion",
+            "",
+            "Remember: You're identifying source code that was compiled INTO this binary, not libraries it might call or reference."
+        ])
 
         self.agent = Agent(
             model=create_model(),
@@ -123,8 +140,9 @@ class TPLAnalyzer:
             self.agent.knowledge.load(recreate=False)
 
         self.method_name = "Agent Analysis"
+
     def analyze(self, target_binary: TargetBinary) -> (List[Library], RunResponse):
-        """Analyze binary for third-party library usage"""
+        """Analyze binary for library source code inclusion"""
 
         # Filter and categorize strings
         filtered_strings = self.string_filter.filter_strings(target_binary.strings)
@@ -154,77 +172,109 @@ class TPLAnalyzer:
     def _build_analysis_prompt(self, target_binary: TargetBinary, filtered_strings: Dict) -> str:
         """Build the analysis prompt for the agent"""
 
-        prompt = f"""Analyze this binary for library composition - identify ALL libraries whose code is present in this binary:
+        prompt = f"""BINARY COMPOSITION ANALYSIS - STEP 2: LIBRARY SOURCE CODE IDENTIFICATION
 
-Binary Information:
+TARGET BINARY:
 - Name: {target_binary.binary_name}
-- Path: {target_binary.relative_path}
+- Path: {target_binary.relative_path}  
 - Size: {target_binary.file_size_kb} KB
+- Type: Binary file for source code composition analysis
 """
 
-        # Add dynamic libraries info
-        if target_binary.dynamic_libraries:
-            prompt += f"""
-Dynamic Libraries (loaded at runtime, NOT compiled in):
-{', '.join(target_binary.dynamic_libraries)}
-
-IMPORTANT: These dynamic libraries are loaded at runtime and their code is NOT compiled into this binary.
-Do NOT identify these as embedded libraries. Focus only on code that is statically compiled in.
-"""
-
-        # Add previous analysis info if available
+        # 添加主要源库信息（最重要的上下文）
         if target_binary.information and target_binary.information.source_library:
             prompt += f"""
-Previous Analysis Results:
-- Source Library: {target_binary.information.source_library.name}
+PRIMARY SOURCE LIBRARY (from Step 1 analysis):
+- Library: {target_binary.information.source_library.name}
 - Description: {target_binary.information.source_library.description}
 
-NOTE: This source library should be included in your analysis as it represents the main library code in this binary.
+CRITICAL: This primary source library represents the main codebase and MUST be included in your analysis.
+All evidence related to this library should be consolidated under this primary library entry.
+"""
+        elif target_binary.information:
+            prompt += f"""
+BINARY IDENTITY (from Step 1 analysis):
+- Description: {target_binary.information.description}
+
+TASK: Identify what library projects have source code compiled into this binary.
 """
 
-        # Add filtered strings
+        # 动态库排除信息
+        if target_binary.dynamic_libraries:
+            prompt += f"""
+DYNAMIC LIBRARIES (excluded from analysis):
+{', '.join(target_binary.dynamic_libraries)}
+NOTE: These are runtime dependencies, NOT compiled into the binary. Do not analyze these.
+"""
+
+        # 字符串证据分析
         if filtered_strings['license_copyright']:
-            prompt += f"\nLicense/Copyright Strings ({len(filtered_strings['license_copyright'])}):\n"
-            for item in filtered_strings['license_copyright']:
-                prompt += f"- {item}\n"
+            prompt += f"\nLICENSE/COPYRIGHT EVIDENCE ({len(filtered_strings['license_copyright'])} items):\n"
+            for item in filtered_strings['license_copyright'][:10]:  # 限制显示数量
+                prompt += f"• {item}\n"
+            if len(filtered_strings['license_copyright']) > 10:
+                prompt += f"... and {len(filtered_strings['license_copyright']) - 10} more copyright/license strings\n"
 
         if filtered_strings['paths_urls']:
-            prompt += f"\nFile Paths/URLs ({len(filtered_strings['paths_urls'])}):\n"
-            for item in filtered_strings['paths_urls']:
-                prompt += f"- {item}\n"
+            prompt += f"\nPATH/URL EVIDENCE ({len(filtered_strings['paths_urls'])} items):\n"
+            for item in filtered_strings['paths_urls'][:8]:
+                prompt += f"• {item}\n"
+            if len(filtered_strings['paths_urls']) > 8:
+                prompt += f"... and {len(filtered_strings['paths_urls']) - 8} more path/URL strings\n"
 
         functions = filtered_strings['functions']
         if functions['function_prefixes']:
-            prompt += f"\nFunction Prefixes (top {len(functions['function_prefixes'])}):\n"
-            for prefix in functions['function_prefixes']:
-                prompt += f"- {prefix}\n"
+            prompt += f"\nFUNCTION PREFIX PATTERNS ({len(functions['function_prefixes'])} patterns):\n"
+            for prefix in functions['function_prefixes'][:10]:
+                prompt += f"• {prefix}\n"
+            if len(functions['function_prefixes']) > 10:
+                prompt += f"... and {len(functions['function_prefixes']) - 10} more function prefixes\n"
 
         if functions['demangled_functions']:
-            prompt += f"\nDemangled Functions ({len(functions['demangled_functions'])}):\n"
-            for func in functions['demangled_functions']:
-                prompt += f"- {func}\n"
+            prompt += f"\nDEMANGLED FUNCTION SIGNATURES ({len(functions['demangled_functions'])} functions):\n"
+            for func in functions['demangled_functions'][:8]:
+                prompt += f"• {func}\n"
+            if len(functions['demangled_functions']) > 8:
+                prompt += f"... and {len(functions['demangled_functions']) - 8} more function signatures\n"
 
-        if filtered_strings['log_messages']:
-            prompt += f"\nLog Messages ({len(filtered_strings['log_messages'])}):\n"
-            for msg in filtered_strings['log_messages']:
-                prompt += f"- {msg}\n"
+        if filtered_strings['library_signatures']:
+            prompt += f"\nLIBRARY SIGNATURE PATTERNS ({len(filtered_strings['library_signatures'])} patterns):\n"
+            for sig in filtered_strings['library_signatures'][:10]:
+                prompt += f"• {sig}\n"
+            if len(filtered_strings['library_signatures']) > 10:
+                prompt += f"... and {len(filtered_strings['library_signatures']) - 10} more signature patterns\n"
 
-        prompt += """
-Analyze these artifacts to identify DISTINCT, INDEPENDENT libraries whose code is compiled into this binary.
+        if filtered_strings['version_info']:
+            prompt += f"\nVERSION INFORMATION ({len(filtered_strings['version_info'])} items):\n"
+            for version in filtered_strings['version_info'][:5]:
+                prompt += f"• {version}\n"
 
-CRITICAL RULES:
-1. Report each independent library/project only ONCE
-2. Do NOT separate libraries into sub-components (e.g., don't report both 'OpenSSL' and 'libcrypto')
-3. Do NOT report protocol implementations or feature modules as separate libraries
-4. Group ALL evidence for the same library into ONE entry
+        prompt += f"""
 
-CONSOLIDATION EXAMPLES:
-- If you find OpenSSL copyright + SSL_ functions + BN_ functions + EVP_ functions → Report as ONE entry: 'OpenSSL'
-- If you find zlib evidence + inflate/deflate functions → Report as ONE entry: 'zlib'
-- Do NOT report 'libcrypto' and 'libssl' separately from 'OpenSSL'
-- Do NOT report 'CMS' or 'TS' as separate libraries (they are OpenSSL features)
+ANALYSIS INSTRUCTIONS:
 
-Focus on identifying code from DIFFERENT source repositories or independent projects.
-Each library should represent a separately developed and maintained codebase."""
+1. CONSOLIDATION PRIORITY:
+   - Start with the primary source library (if identified in Step 1)
+   - Group all related evidence under the correct library project
+   - Do NOT create separate entries for sub-components of the same library
+
+2. EVIDENCE EVALUATION:
+   - Copyright/license statements = STRONG evidence of source code inclusion
+   - Function prefixes + library signatures = MEDIUM evidence
+   - Generic patterns without specific attribution = WEAK evidence  
+
+3. LIBRARY IDENTIFICATION STANDARDS:
+   - Use main project names (e.g., "OpenSSL" not "libssl" or "libcrypto")
+   - Each library should represent ONE independent source code repository
+   - Only report libraries with credible evidence of code compilation
+
+4. CONSOLIDATION EXAMPLES:
+   - OpenSSL copyright + SSL_* functions + BN_* functions → ONE entry: "OpenSSL"
+   - zlib copyright + inflate/deflate functions → ONE entry: "zlib"  
+   - Multiple XML-related patterns → Determine if from one library (libxml2) or multiple
+
+TASK: Identify all library projects whose source code is compiled into this binary.
+Focus on independent libraries with clear evidence. Consolidate all evidence by source project.
+"""
 
         return prompt
