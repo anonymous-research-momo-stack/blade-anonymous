@@ -9,6 +9,8 @@ from typing import List
 
 from loguru import logger
 
+from app.interface import SimpleResult, AnalysisResult
+
 
 @dataclass
 class Serializable:
@@ -127,3 +129,68 @@ class Benchmark(Serializable):
 
     def __repr__(self):
         return self.get_meta().__repr__()
+
+
+@dataclass
+class EvaluationConfig(Serializable):
+    """
+    Configuration for evaluation
+    """
+    # input
+    benchmark_file: str
+    test_case_dir: str
+
+    # process
+    concurrency: int = 3
+
+    # test cases
+    slice_start: int = 0
+    slice_end: int = -1
+
+@dataclass
+class EvaluationReport(Serializable):
+    start_at: str = None
+    finished_at: str = None
+    evaluation_config: EvaluationConfig = None
+    benchmark: Benchmark = None
+    evaluation_results: List[AnalysisResult] = None
+
+    def dump(self, file_path):
+        data = self.customer_serialize()
+        with open(file_path, 'w', encoding='utf-8') as f:
+            json.dump(data, f, indent=4, ensure_ascii=False)
+
+        simple_report = self.get_simple_report()
+        simple_report_save_path = file_path.replace('.json', '_simple.json')
+        with open(simple_report_save_path, 'w', encoding='utf-8') as f:
+            json.dump(simple_report, f, indent=4, ensure_ascii=False)
+
+    @classmethod
+    def load_from_file(cls, file_path: str) -> 'EvaluationReport':
+        with open(file_path, 'r', encoding='utf-8') as f:
+            data = json.load(f)
+        return cls.init_from_dict(data)
+
+    def get_simple_report(self):
+        """
+        Dump a simplified version of the report, focusing on essential information.
+        """
+        simple_report = {
+            'start_at': self.start_at,
+            'finished_at': self.finished_at,
+            'evaluation_config': self.evaluation_config.customer_serialize(),
+            'benchmark_meta': self.benchmark.get_meta().customer_serialize(),
+            'simple_results': [result.get_simple_result().customer_serialize() for result in self.evaluation_results]
+        }
+        return simple_report
+
+
+
+
+@dataclass
+class SimpleEvaluationReport(Serializable):
+    start_at: str = None
+    finished_at: str = None
+    evaluation_config: EvaluationConfig = None
+    benchmark_meta: BenchmarkMeta = None
+    simple_results: List[SimpleResult] = dataclasses.field(default_factory=list)

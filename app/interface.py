@@ -216,7 +216,12 @@ class AnalysisData(Serializable):
         print("\n" + "="*60)
 
 
-    
+@dataclass
+class SimpleResult(Serializable):
+    target_binary_name: str = None
+    target_binary_path: str = None
+    detected_library_names: List[str] = dataclasses.field(default_factory=list)
+
 @dataclass
 class AnalysisResult(Serializable):
     target_binary: TargetBinary
@@ -240,6 +245,16 @@ class AnalysisResult(Serializable):
         with open(file_path, 'r', encoding='utf-8') as f:
             data = json.load(f)
             return cls.init_from_dict(data)
+
+    def get_simple_result(self) -> SimpleResult:
+        """
+        获取简化的分析结果
+        """
+        return SimpleResult(
+            target_binary_name=self.target_binary.binary_name,
+            target_binary_path=self.target_binary.absolute_path,
+            detected_library_names=[lib.name for lib in self.detected_libraries]
+        )
 
 @dataclass
 class BinaryContext(Serializable):
