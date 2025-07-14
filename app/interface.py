@@ -2,6 +2,7 @@ import dataclasses
 import traceback
 from dataclasses import asdict, fields
 from dataclasses import dataclass
+from datetime import datetime
 from typing import Dict, Type, Any
 from typing import List
 from loguru import logger
@@ -103,7 +104,38 @@ class Library(Serializable):
 
 
 @dataclass
+class AnalysisConfig(Serializable):
+    # LLM相关
+    llm_provider: str = "openai"  # e.g., "openai", "anthropic", "ollama"
+    model_id: str = "gpt-4.1"  # e.g., "gpt-4.1", "claude-2", "llama-3"
+
+    # 特征匹配参数
+    feature_matching_min_string_length: int = 5
+    feature_matching_max_string_length: int = 500
+    feature_matching_min_match_feature_num: int = 5
+    feature_matching_return_top_n: int = 3
+
+    # 二进制信息分析
+    enable_bin_info_analysis: bool = True
+    enable_bin_info_analysis_web_search: bool = False
+    enable_bin_info_analysis_knowledge_base: bool = False
+
+    # TPL分析
+    enable_tpl_analysis: bool = True
+    enable_tpl_analysis_web_search: bool = False
+    enable_tpl_analysis_knowledge_base: bool = False
+
+    # 库验证
+    enable_library_validation_web_search: bool = False
+    enable_library_validation_knowledge_base: bool = False
+    enable_library_validation_db_verification: bool = False
+    library_validation_debug_mode: bool = False
+
+
+@dataclass
 class AnalysisData(Serializable):
+    analysis_datetime: str = dataclasses.field(default_factory=lambda: datetime.now().strftime("%Y-%m-%d %H:%M:%S"))
+    config: AnalysisConfig = None  # 新增：分析配置
     feature_matching_results: List[Library] = dataclasses.field(default_factory=list)
     tpl_analysis_results: List[Library] = dataclasses.field(default_factory=list)
     validation_step_1_results: List[LibraryValidationResult] = dataclasses.field(default_factory=list)  # e.g., {"libpng": True, "openssl": False}
@@ -190,6 +222,24 @@ class AnalysisResult(Serializable):
     target_binary: TargetBinary
     detected_libraries: List[Library] = dataclasses.field(default_factory=list)
     analysis_data: AnalysisData = None
+
+    def dump_to_file(self, file_path: str):
+        """
+        将分析结果序列化并保存到文件
+        """
+        import json
+        with open(file_path, 'w', encoding='utf-8') as f:
+            json.dump(self.customer_serialize(), f, ensure_ascii=False, indent=4)
+
+    @classmethod
+    def init_from_file(cls, file_path: str):
+        """
+        从文件中加载分析结果
+        """
+        import json
+        with open(file_path, 'r', encoding='utf-8') as f:
+            data = json.load(f)
+            return cls.init_from_dict(data)
 
 @dataclass
 class BinaryContext(Serializable):

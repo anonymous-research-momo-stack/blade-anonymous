@@ -15,8 +15,9 @@ class FeatureMatchingDetector:
 
     def __init__(self,
                  top_n: int = 5,
-                 min_match_feature_num: int = 5,
-                 min_effective_string_length: int = 10):
+                 feature_min_length = 5,
+                 feature_max_length = 500,
+                 min_match_feature_num: int = 5):
         """
         初始化特征匹配检测器
 
@@ -27,7 +28,9 @@ class FeatureMatchingDetector:
         """
         self.top_n = top_n
         self.min_match_num = min_match_feature_num
-        self.min_effective_string_length = min_effective_string_length
+        self.feature_min_length = feature_min_length
+        self.feature_max_length = feature_max_length
+        self.min_effective_string_length = 10
 
         self.method_name = "Feature Matching"
 
@@ -47,13 +50,15 @@ class FeatureMatchingDetector:
 
         logger.info(f"Starting feature matching detection for binary: {target_binary.binary_name} with {len(target_binary.strings)} strings")
 
+        # 筛选特征
+        strings = self.filter_strings_to_match(target_binary)
         # 调用匹配逻辑
-        return self.match_candidate_libraries(target_binary.binary_name, target_binary.strings)
+        return self.match_candidate_libraries(target_binary.binary_name, strings)
 
     def filter_strings_to_match(self,target_binary:TargetBinary)->List[str]:
         strings_to_match = set()
         for s in target_binary.strings:
-            if not (5 < len(s) < 500):
+            if not (self.feature_min_length < len(s) < self.feature_max_length):
                 continue
 
             # 排除掉符合函数名规则的字符串，不匹配函数名
@@ -266,6 +271,7 @@ class FeatureMatchingDetector:
                 description=description,
                 matched_strings=project_entity.matched_strings,
                 identify_methods=[self.method_name],
+                reasoning=f"Based on feature matching method, it matched {len(project_entity.matched_strings)} strings. ",
             )
 
             libraries.append(library)

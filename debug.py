@@ -7,13 +7,15 @@ def demo():
     ffmpeg_path = "/Users/liuchengyue/Desktop/BinarySCA Platform/Data/Test Cases/TPL Test Cases/Benchmarks/FTPL100/decompressed_deb/ffmpeg_7%3a4.4.2-0ubuntu0.22.04.1_amd64/usr/bin/ffmpeg"
 
     workflow = DetectionWorkflow(
-        top_n=3,
+        feature_matching_return_top_n=3,
     )
 
-    result = workflow.run(ffmpeg_path)
+    result = workflow.run(openssl_path)
 
     result.analysis_data.preview()
 
+    result_save_path = "/Users/liuchengyue/Desktop/BinarySCA Platform/Code/sca_agents/bsca-expert-agent-api/tmp/analysis_result.json"
+    result.dump_to_file(result_save_path)
 
 if __name__ == '__main__':
     demo()
