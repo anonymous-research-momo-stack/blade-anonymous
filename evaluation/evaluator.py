@@ -1,17 +1,21 @@
 import os.path
 import time
+from typing import List
 
+from app.interface import AnalysisResult
 from app.tpl_detection.batch_detection_workflow import BatchDetectionWorkflow
 from evaluation.interface import EvaluationConfig, Benchmark, EvaluationReport
 
 
 class Evaluator:
     def __init__(self,config:EvaluationConfig):
-        self.config = config
+        self.evaluation_config = config
 
         self.benchmark = Benchmark.load_from_json_file(config.benchmark_file)
 
         self.batch_detection_workflow = BatchDetectionWorkflow(concurrency=config.concurrency)
+
+        self.evaluation_results = []
 
         self.report = EvaluationReport(
             evaluation_config=config,
@@ -23,8 +27,8 @@ class Evaluator:
         运行，以获取结果
         :return:
         """
-        relative_paths = [tc.test_binary.relative_path for tc in self.benchmark.test_cases][self.config.slice_start:self.config.slice_end]
-        absolute_paths = [os.path.join(self.config.test_case_dir, path) for path in relative_paths]
+        relative_paths = [tc.test_binary.relative_path for tc in self.benchmark.test_cases][self.evaluation_config.slice_start:self.evaluation_config.slice_end]
+        absolute_paths = [os.path.join(self.evaluation_config.test_case_dir, path) for path in relative_paths]
 
         start_time = time.perf_counter()
         self.report.start_at = time.strftime("%Y-%m-%d %H:%M:%S", time.localtime(start_time))
@@ -34,12 +38,13 @@ class Evaluator:
 
         self.report.evaluation_results = results
 
-
-    def check_result(self):
+    @classmethod
+    def check_result(cls, benchmark:Benchmark, evaluation_results:List[AnalysisResult]):
         """
         检查结果，与Ground Truth进行对比
         :return:
         """
+        ground_truth_dict = {test_case.test_binary.relative_path: test_case.reused_libraries for test_case in benchmark.test_cases}
         pass
 
     def generate_report(self):

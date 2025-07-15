@@ -130,6 +130,53 @@ class Benchmark(Serializable):
     def __repr__(self):
         return self.get_meta().__repr__()
 
+@dataclass
+class AnalysisResultCheck(AnalysisResult):
+
+    """
+    1. 结果的验证
+    2. 记录TP, FP, FN
+    """
+    binary_name: str = None  # Name of the binary file
+    binary_hash: str = None  # Hash of the binary file, used for verification
+
+    ground_truth_lib_names: List[str] = dataclasses.field(default_factory=list)  # Ground Truth Libraries
+    detected_lib_names: List[str] = dataclasses.field(default_factory=list)  # Detected Libraries
+
+    tp_lib_names: List[str] = dataclasses.field(default_factory=list)  # True Positive Libraries
+    fp_lib_names: List[str] = dataclasses.field(default_factory=list)  # False Positive Libraries
+    fn_lib_names: List[str] = dataclasses.field(default_factory=list)  # False Negative Libraries
+
+class ResearchQuestionData(Serializable):
+    """
+    Data structure for research question data
+    """
+    # rq 1
+    tp_count: int = None  # True Positive count
+    fp_count: int = None  # False Positive count
+    fn_count: int = None  # False Negative count
+
+    precision: float = None  # Precision of the analysis
+    recall: float = None  # Recall of the analysis
+    f1_score: float = None  # F1 Score of the analysis
+
+    # rq 2 消融实验
+
+    # rq 3
+    # duration
+    total_detection_duration: float = None  # Total detection duration in seconds
+    average_detection_duration: float = None  # Average detection duration in seconds
+
+    # cost
+    total_file_size_kb: float = None  # Total file size in KB
+    average_file_size_kb: float = None  # Average file size in KB
+
+    input_token_count = None  # Input token count
+    output_token_count = None  # Output token count
+    total_token_count = None  # Total token count
+
+    total_cost: float = None  # Total cost in USD
+    average_cost: float = None  # Average cost per analysis in USD
 
 @dataclass
 class EvaluationConfig(Serializable):
@@ -147,6 +194,7 @@ class EvaluationConfig(Serializable):
     slice_start: int = 0
     slice_end: int = -1
 
+
 @dataclass
 class EvaluationReport(Serializable):
     start_at: str = None
@@ -154,6 +202,7 @@ class EvaluationReport(Serializable):
     evaluation_config: EvaluationConfig = None
     benchmark: Benchmark = None
     evaluation_results: List[AnalysisResult] = None
+    evaluation_results_check: List[AnalysisResultCheck] = dataclasses.field(default_factory=list)
 
     def dump(self, file_path):
         data = self.customer_serialize()
@@ -183,8 +232,6 @@ class EvaluationReport(Serializable):
             'simple_results': [result.get_simple_result().customer_serialize() for result in self.evaluation_results]
         }
         return simple_report
-
-
 
 
 @dataclass
