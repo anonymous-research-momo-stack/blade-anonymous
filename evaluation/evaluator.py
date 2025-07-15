@@ -103,6 +103,8 @@ class Evaluator:
                 binary_hash=result.target_binary.hash_sha256,
                 ground_truth_lib_names=[lib.name for lib in ground_truth_reused_libraries],  # Ground Truth 库名称
                 detected_lib_names=[lib.name for lib in result.detected_libraries],  # 检测到的库名称
+                hs_fn=len(fn_library_names) > 0,  # 是否有漏报
+                hs_fp=len(fp_library_names) > 0,  # 是否有误报
                 tp_lib_names=tp_library_names,  # 真正检测到的库名称
                 fp_lib_names=fp_library_names,  # 误报的库名称
                 fn_lib_names=fn_library_names,  # 漏报的库名称

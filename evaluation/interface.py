@@ -143,6 +143,9 @@ class AnalysisResultCheck(Serializable):
     ground_truth_lib_names: List[str] = dataclasses.field(default_factory=list)  # Ground Truth Libraries
     detected_lib_names: List[str] = dataclasses.field(default_factory=list)  # Detected Libraries
 
+    hs_fn: bool = False  # Has False Negative, if True, means there are libraries in ground truth that are not detected
+    hs_fp: bool = False  # Has False Positive, if True, means there are libraries detected that are not in ground truth
+
     tp_lib_names: List[str] = dataclasses.field(default_factory=list)  # True Positive Libraries
     fp_lib_names: List[str] = dataclasses.field(default_factory=list)  # False Positive Libraries
     fn_lib_names: List[str] = dataclasses.field(default_factory=list)  # False Negative Libraries
@@ -255,7 +258,7 @@ class EvaluationReport(Serializable):
             benchmark_meta=self.benchmark.get_meta() if self.benchmark else None,
             research_question_data=self.research_question_data,
             evaluation_results_check=self.evaluation_results_check,
-            simple_results=self.evaluation_results if self.evaluation_results else []
+            simple_results=[r.get_simple_result() for r in self.evaluation_results] if self.evaluation_results else []
         )
 
         return simple_report
