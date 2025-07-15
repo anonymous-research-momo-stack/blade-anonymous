@@ -120,7 +120,8 @@ class DetectionWorkflow:
             detected_libraries=[lib for lib in validated_libraries if lib.validation_passed],
             analysis_data=self.analysis_data
         )
-
+        total_duration = time.perf_counter() - all_start_at
+        self.analysis_data.durations["total"] = total_duration
         return result
 
     def _run_tpl_detection(self, target_binary: TargetBinary) -> List[Library]:

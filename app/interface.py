@@ -53,6 +53,7 @@ class TargetBinary(Serializable):
     """
     # name
     binary_name: str
+    hash_sha256: str = None  # SHA-256 hash of the binary file
 
     # path
     relative_path: str = ""

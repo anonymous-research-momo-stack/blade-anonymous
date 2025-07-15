@@ -131,7 +131,7 @@ class Benchmark(Serializable):
         return self.get_meta().__repr__()
 
 @dataclass
-class AnalysisResultCheck(AnalysisResult):
+class AnalysisResultCheck(Serializable):
 
     """
     1. 结果的验证
@@ -147,12 +147,13 @@ class AnalysisResultCheck(AnalysisResult):
     fp_lib_names: List[str] = dataclasses.field(default_factory=list)  # False Positive Libraries
     fn_lib_names: List[str] = dataclasses.field(default_factory=list)  # False Negative Libraries
 
+@dataclass
 class ResearchQuestionData(Serializable):
     """
     Data structure for research question data
     """
     # rq 1
-    tp_count: int = None  # True Positive count
+    tp_count: int = None  # Trues Positive count
     fp_count: int = None  # False Positive count
     fn_count: int = None  # False Negative count
 
@@ -171,10 +172,12 @@ class ResearchQuestionData(Serializable):
     total_file_size_kb: float = None  # Total file size in KB
     average_file_size_kb: float = None  # Average file size in KB
 
-    input_token_count = None  # Input token count
-    output_token_count = None  # Output token count
-    total_token_count = None  # Total token count
+    # token
+    input_token_count:int = None  # Input token count
+    output_token_count:int = None  # Output token count
+    total_token_count:int = None  # Total token count
 
+    # cost
     total_cost: float = None  # Total cost in USD
     average_cost: float = None  # Average cost per analysis in USD
 
@@ -187,6 +190,12 @@ class EvaluationConfig(Serializable):
     benchmark_file: str
     test_case_dir: str
 
+    # llm
+    llm_provider: str = 'openai'  # LLM provider, e.g., OpenAI, Azure, etc.
+    llm_model_id: str = 'gpt-4o'
+    input_token_price_per_1M: float = 2.0  # Price per million input tokens
+    output_token_price_per_1M: float = 8.0
+
     # process
     concurrency: int = 3
 
@@ -195,14 +204,29 @@ class EvaluationConfig(Serializable):
     slice_end: int = -1
 
 
+
+@dataclass
+class SimpleEvaluationReport(Serializable):
+    start_at: str = None
+    finished_at: str = None
+    evaluation_config: EvaluationConfig = None
+    benchmark_meta: BenchmarkMeta = None
+    research_question_data: ResearchQuestionData = None
+    evaluation_results_check: List[AnalysisResultCheck] = dataclasses.field(default_factory=list)
+    simple_results: List[SimpleResult] = dataclasses.field(default_factory=list)
+
 @dataclass
 class EvaluationReport(Serializable):
     start_at: str = None
     finished_at: str = None
     evaluation_config: EvaluationConfig = None
-    benchmark: Benchmark = None
-    evaluation_results: List[AnalysisResult] = None
+    research_question_data: ResearchQuestionData = None
     evaluation_results_check: List[AnalysisResultCheck] = dataclasses.field(default_factory=list)
+    evaluation_results: List[AnalysisResult] = None
+    benchmark: Benchmark = None
+
+
+
 
     def dump(self, file_path):
         data = self.customer_serialize()
@@ -212,7 +236,7 @@ class EvaluationReport(Serializable):
         simple_report = self.get_simple_report()
         simple_report_save_path = file_path.replace('.json', '_simple.json')
         with open(simple_report_save_path, 'w', encoding='utf-8') as f:
-            json.dump(simple_report, f, indent=4, ensure_ascii=False)
+            json.dump(simple_report.customer_serialize(), f, indent=4, ensure_ascii=False)
 
     @classmethod
     def load_from_file(cls, file_path: str) -> 'EvaluationReport':
@@ -224,20 +248,14 @@ class EvaluationReport(Serializable):
         """
         Dump a simplified version of the report, focusing on essential information.
         """
-        simple_report = {
-            'start_at': self.start_at,
-            'finished_at': self.finished_at,
-            'evaluation_config': self.evaluation_config.customer_serialize(),
-            'benchmark_meta': self.benchmark.get_meta().customer_serialize(),
-            'simple_results': [result.get_simple_result().customer_serialize() for result in self.evaluation_results]
-        }
+        simple_report = SimpleEvaluationReport(
+            start_at=self.start_at,
+            finished_at=self.finished_at,
+            evaluation_config=self.evaluation_config,
+            benchmark_meta=self.benchmark.get_meta() if self.benchmark else None,
+            research_question_data=self.research_question_data,
+            evaluation_results_check=self.evaluation_results_check,
+            simple_results=self.evaluation_results if self.evaluation_results else []
+        )
+
         return simple_report
-
-
-@dataclass
-class SimpleEvaluationReport(Serializable):
-    start_at: str = None
-    finished_at: str = None
-    evaluation_config: EvaluationConfig = None
-    benchmark_meta: BenchmarkMeta = None
-    simple_results: List[SimpleResult] = dataclasses.field(default_factory=list)

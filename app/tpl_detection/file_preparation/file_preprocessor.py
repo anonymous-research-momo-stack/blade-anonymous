@@ -1,3 +1,4 @@
+import hashlib
 from typing import List
 import os
 import subprocess
@@ -11,6 +12,45 @@ from loguru import logger
 from app.interface import TargetBinary
 
 
+def calculate_file_sha256(file_path):
+    """
+    计算指定文件的SHA256哈希值
+
+    Args:
+        file_path (str): 文件路径
+
+    Returns:
+        str: 文件的SHA256哈希值（十六进制字符串）
+
+    Raises:
+        FileNotFoundError: 如果文件不存在
+        PermissionError: 如果没有读取文件的权限
+        OSError: 其他文件操作错误
+    """
+    # 检查文件是否存在
+    if not os.path.exists(file_path):
+        raise FileNotFoundError(f"文件不存在: {file_path}")
+
+    # 检查是否为文件（而不是目录）
+    if not os.path.isfile(file_path):
+        raise ValueError(f"路径不是文件: {file_path}")
+
+    # 创建SHA256哈希对象
+    sha256_hash = hashlib.sha256()
+
+    try:
+        # 以二进制模式打开文件
+        with open(file_path, 'rb') as file:
+            # 分块读取文件内容，避免大文件占用过多内存
+            for chunk in iter(lambda: file.read(4096), b""):
+                sha256_hash.update(chunk)
+    except PermissionError:
+        raise PermissionError(f"没有读取文件的权限: {file_path}")
+    except OSError as e:
+        raise OSError(f"读取文件时发生错误: {e}")
+
+    # 返回十六进制格式的哈希值
+    return sha256_hash.hexdigest()
 
 class FilePreprocessor:
 
@@ -64,6 +104,7 @@ class FilePreprocessor:
         # 创建TargetBinary对象
         target_binary = TargetBinary(
             binary_name=file_path_obj.name,
+            hash_sha256= calculate_file_sha256(file_path),
             relative_path=relative_path,
             absolute_path=str(file_path_absolute),
             file_size_kb=file_size_kb,
