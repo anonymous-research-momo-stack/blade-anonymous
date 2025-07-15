@@ -686,6 +686,7 @@ Binary: {target_binary.binary_name} ({target_binary.file_size_kb} KB)
                             lib.validation_reasoning = f"EXPERT VALIDATION PASSED: {individual_result.reasoning}"
                             logger.debug(f"✅ {lib.name}: FULLY VALIDATED")
                         else:
+                            lib.validation_passed = False # 不应该保留的也认为是验证不通过。
                             lib.validation_reasoning = f"CONFLICT RESOLUTION: {redundancy_result.reasoning}"
                             logger.debug(f"❌ {lib.name}: REMOVED in conflict resolution")
                     else:

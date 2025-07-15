@@ -174,7 +174,7 @@ class DetectionWorkflow:
                 logger.debug("No binary information available")
 
         # 2. Try to find TPLs from the strings
-        all_candidate_libraries = candidate_libraries_from_feature_matching
+        candidate_libraries_from_agent = []
         if self.enable_bin_info_analysis:
             logger.debug(f"\n=== Agent TPL Analysis for {target_binary.binary_name} ===")
             tpl_analyzer_start_at = time.perf_counter()
@@ -190,10 +190,11 @@ class DetectionWorkflow:
                 logger.debug(f"   Description: {lib.description}")
                 logger.debug(f"   Reasoning: {lib.reasoning}")
 
-            # 3. Combine results
-            all_candidate_libraries = self._combine_candidate_libraries(candidate_libraries_from_feature_matching, candidate_libraries_from_agent)
-            logger.debug(f"\n=== Combined Candidates for {target_binary.binary_name} ===")
-            logger.debug(f"Total candidates before validation: {len(all_candidate_libraries)}")
+        # 3. Combine results
+        all_candidate_libraries = self._combine_candidate_libraries(candidate_libraries_from_feature_matching,
+                                                                    candidate_libraries_from_agent)
+        logger.debug(f"\n=== Combined Candidates for {target_binary.binary_name} ===")
+        logger.debug(f"Total candidates before validation: {len(all_candidate_libraries)}")
 
         # 4. Validate the candidate TPLs
         logger.debug(f"\n=== Library Validation for {target_binary.binary_name} ===")
@@ -251,17 +252,17 @@ class DetectionWorkflow:
         """
         按照小写名称合并
         """
-        combined_libraries = libraries_1
-        combined_library_dict = {lib.name.lower(): lib for lib in combined_libraries}
-        for lib_2 in libraries_2:
-            if lib_2.name.lower() in combined_library_dict:
-               lib_1 = combined_library_dict[lib_2.name.lower()]
-               lib_1.matched_strings += lib_2.matched_strings
-               lib_1.reasoning += lib_1.reasoning
-               lib_1.identify_methods=list(set(lib_1.identify_methods + lib_2.identify_methods))
 
+        combined_library_dict = {}
+        for lib in libraries_1 + libraries_2:
+            key = lib.name.lower()
+            if key in combined_library_dict:
+               existing_lib = combined_library_dict[key]
+               existing_lib.matched_strings = list(set(existing_lib.matched_strings + lib.matched_strings))
+               existing_lib.reasoning += lib.reasoning
+               existing_lib.identify_methods=list(set(existing_lib.identify_methods + lib.identify_methods))
             else:
-                combined_libraries.append(lib_2)
+                combined_library_dict[key] = lib
 
-        return combined_libraries
+        return list(combined_library_dict.values())
 

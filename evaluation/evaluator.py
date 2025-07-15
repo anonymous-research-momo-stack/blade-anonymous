@@ -45,7 +45,17 @@ class Evaluator:
         :return:
         """
         ground_truth_dict = {test_case.test_binary.relative_path: test_case.reused_libraries for test_case in benchmark.test_cases}
+        for result in evaluation_results:
+            ground_truth_reused_libraries = ground_truth_dict.get(result.target_binary.relative_path, [])
+
+            tp_library_names = []
+            fp_library_names = []
+            fn_library_names = []
+
+            detected_libraries = [lib.name for lib in result.detected_libraries]
+
         pass
+
 
     def generate_report(self):
         """
