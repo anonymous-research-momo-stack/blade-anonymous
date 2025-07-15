@@ -67,10 +67,12 @@ class TargetBinary(Serializable):
     # dynamic libraries
     dynamic_libraries: List[str] = dataclasses.field(default_factory=list)
 
+    # symbols
+    imported_symbols: List[str] = dataclasses.field(default_factory=list)
+    exported_symbols: List[str] = dataclasses.field(default_factory=list)
+
     # Binary Information
     information: BinaryInformation = None
-
-
 
 
 @dataclass
@@ -165,13 +167,15 @@ class AnalysisData(Serializable):
             for i, lib in enumerate(self.tpl_analysis_results, 1):
                 print(f"   {i}. {lib.name}")
                 print(f"      描述: {lib.description}")
+                print(f"      推理过程: {lib.reasoning}")
                 print(f"      证据类型: {lib.evidence_type}")
                 print(f"      证据数量: {len(lib.evidences)}")
+                print(f"      证据例子: {lib.evidences[:5]}")
         else:
             print("   Agent未识别到TPL")
         
         # 3. 预览验证步骤1结果
-        print("\n✅ 验证步骤1结果:")
+        print("\n✅ 验证步骤1: 验证识别结果的合理性")
         print(f"   验证的TPL数量: {len(self.validation_step_1_results)}")
         if self.validation_step_1_results:
             passed_count = sum(1 for result in self.validation_step_1_results if result.is_reasonable)
@@ -185,7 +189,7 @@ class AnalysisData(Serializable):
             print("   无验证步骤1数据")
         
         # 4. 预览验证步骤2结果
-        print("\n🔍 验证步骤2结果:")
+        print("\n🔍 验证步骤2: 验证所有合理结果的冗余性")
         print(f"   冗余分析的TPL数量: {len(self.validation_step_2_results)}")
         if self.validation_step_2_results:
             kept_count = sum(1 for result in self.validation_step_2_results if result.should_keep)

@@ -74,7 +74,7 @@ def main():
     config = EvaluationConfig(
         benchmark_file="/Users/liuchengyue/Desktop/BinarySCA Platform/Code/sca_agents/bsca-expert-agent/evaluation/benchmark_meta/FTPL50.json",
         test_case_dir="/Users/liuchengyue/Desktop/BinarySCA Platform/Data/Test_Cases/TPL_Test_Cases/Benchmarks/FTPL100/decompressed_deb",
-        concurrency=5,
+        concurrency=10,
         slice_start=0,
         slice_end=-1,
     )

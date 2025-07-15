@@ -205,6 +205,7 @@ TASK: Identify what library projects have source code compiled into this binary.
 DYNAMIC LIBRARIES (excluded from analysis):
 {', '.join(target_binary.dynamic_libraries)}
 NOTE: These are runtime dependencies, NOT compiled into the binary. Do not analyze these.
+For example: if the binary dynamic linked the 'libssl.so', and we know 'libssl.so' is from OpenSSL, you should not report 'OpenSSL' as a library in this binary. Because the 'libssl.so' is not compiled into this binary, it is just a runtime dependency.
 """
 
         # 字符串证据分析

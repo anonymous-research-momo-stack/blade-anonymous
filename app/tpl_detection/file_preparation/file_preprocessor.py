@@ -4,6 +4,8 @@ import subprocess
 import platform
 import traceback
 from pathlib import Path
+
+import lief
 from loguru import logger
 
 from app.interface import TargetBinary
@@ -53,11 +55,11 @@ class FilePreprocessor:
                 # 如果文件不在根目录下，使用文件名
                 relative_path = file_path_obj.name
 
+        # 提取动态链接库, 导入，到处符号表
+        dynamic_linked_libraries, imported_symbols, exported_symbols = self._lief_parse(file_path)
+
         # 使用strings命令提取字符串
         strings_list = self._extract_strings(file_path)
-
-        # 提取动态链接库信息
-        dynamic_libraries = self._extract_dynamic_libraries(file_path)
 
         # 创建TargetBinary对象
         target_binary = TargetBinary(
@@ -66,7 +68,9 @@ class FilePreprocessor:
             absolute_path=str(file_path_absolute),
             file_size_kb=file_size_kb,
             strings=strings_list,
-            dynamic_libraries=dynamic_libraries
+            dynamic_libraries=dynamic_linked_libraries,
+            imported_symbols=imported_symbols,
+            exported_symbols=exported_symbols,
         )
 
         return target_binary
@@ -109,149 +113,24 @@ class FilePreprocessor:
             logger.error(f"Traceback: {traceback.format_exc()}")
             return []
 
-    def _extract_dynamic_libraries(self, file_path: str) -> List[str]:
+
+    def _lief_parse(self, file_path):
         """
-        提取二进制文件的动态链接库信息
+        获取二进制文件的动态链接库
 
         Args:
-            file_path: 二进制文件路径
+            file_path (str): 二进制文件路径
 
         Returns:
-            List[str]: 动态链接库列表
-        """
-        system = platform.system().lower()
-
-        try:
-            if system == "linux":
-                return self._extract_dynamic_libraries_linux(file_path)
-            elif system == "darwin":
-                return self._extract_dynamic_libraries_macos(file_path)
-            elif system == "windows":
-                return self._extract_dynamic_libraries_windows(file_path)
-            else:
-                logger.debug(f"不支持的操作系统: {system}")
-                return []
-        except Exception as e:
-            logger.error(f"提取动态链接库信息时发生错误: {e}")
-            logger.error(f"Traceback: {traceback.format_exc()}")
-            return []
-
-    def _extract_dynamic_libraries_linux(self, file_path: str) -> List[str]:
-        """
-        在Linux系统上提取动态链接库信息
+            list: 动态链接库名称列表
         """
         try:
-            # 使用ldd命令
-            result = subprocess.run(
-                ['ldd', file_path],
-                capture_output=True,
-                text=True,
-                timeout=30
-            )
-
-            if result.returncode == 0:
-                libraries = []
-                for line in result.stdout.split('\n'):
-                    line = line.strip()
-                    if line and '=>' in line:
-                        # 解析ldd输出格式: libname.so => /path/to/libname.so
-                        parts = line.split('=>')
-                        if len(parts) == 2:
-                            lib_name = parts[0].strip()
-                            # 提取库名（去掉版本号）
-                            if '.so' in lib_name:
-                                lib_name = lib_name.split('.so')[0] + '.so'
-                            libraries.append(lib_name)
-                return libraries
-            else:
-                logger.debug(f"ldd命令执行超时: {file_path}")
-                return []
-
-        except subprocess.TimeoutExpired:
-            logger.debug(f"ldd命令执行超时: {file_path}")
-            return []
-        except Exception as e:
-            logger.error(f"Linux动态链接库提取失败: {e}")
-            logger.error(f"Traceback: {traceback.format_exc()}")
-            return []
-
-    def _extract_dynamic_libraries_macos(self, file_path: str) -> List[str]:
-        """
-        在macOS系统上提取动态链接库信息
-        """
-        try:
-            # 使用otool命令
-            result = subprocess.run(
-                ['otool', '-L', file_path],
-                capture_output=True,
-                text=True,
-                timeout=30
-            )
-
-            if result.returncode == 0:
-                libraries = []
-                for line in result.stdout.split('\n'):
-                    line = line.strip()
-                    if line and not line.startswith(file_path) and not line.startswith('/System/'):
-                        # 解析otool输出格式: /path/to/libname.dylib
-                        if '.dylib' in line:
-                            lib_name = line.split('/')[-1]  # 提取文件名
-                            libraries.append(lib_name)
-                return libraries
-            else:
-                logger.debug(f"otool命令执行超时: {file_path}")
-                return []
-
-        except FileNotFoundError:
-            logger.debug("otool命令未找到，请确保已安装Xcode命令行工具")
-            return []
-        except subprocess.TimeoutExpired:
-            logger.debug(f"otool命令执行超时: {file_path}")
-            return []
-        except Exception as e:
-            logger.error(f"macOS动态链接库提取失败: {e}")
-            logger.error(f"Traceback: {traceback.format_exc()}")
-            return []
-
-    def _extract_dynamic_libraries_windows(self, file_path: str) -> List[str]:
-        """
-        在Windows系统上提取动态链接库信息
-        """
-        try:
-            # 使用dumpbin命令
-            result = subprocess.run(
-                ['dumpbin', '/dependents', file_path],
-                capture_output=True,
-                text=True,
-                timeout=30
-            )
-
-            if result.returncode == 0:
-                libraries = []
-                in_dependencies = False
-                for line in result.stdout.split('\n'):
-                    line = line.strip()
-                    if 'Dump of file' in line:
-                        in_dependencies = False
-                    elif 'Image has the following dependencies:' in line:
-                        in_dependencies = True
-                    elif in_dependencies and line and not line.startswith('Summary'):
-                        # 解析dumpbin输出格式
-                        if '.dll' in line.lower():
-                            lib_name = line.strip()
-                            libraries.append(lib_name)
-                return libraries
-            else:
-                logger.debug(f"dumpbin命令执行超时: {file_path}")
-                return []
-
-        except FileNotFoundError:
-            logger.debug("dumpbin命令未找到，跳过Windows DLL依赖分析")
-            return []
-        except subprocess.TimeoutExpired:
-            logger.debug(f"dumpbin命令执行超时: {file_path}")
-            return []
-        except Exception as e:
-            logger.error(f"Windows动态链接库提取失败: {e}")
-            logger.error(f"Traceback: {traceback.format_exc()}")
-            return []
+            binary = lief.parse(file_path)
+            if binary is None:
+                return [],[],[]
+            dynamic_linked_libraries = list(binary.libraries)
+            imported_symbols = [symbol.name for symbol in binary.imported_symbols if symbol.name]
+            exported_symbols = [symbol.name for symbol in binary.exported_symbols if symbol.name]
+            return dynamic_linked_libraries, imported_symbols, exported_symbols
+        except:
+            return [],[],[]
