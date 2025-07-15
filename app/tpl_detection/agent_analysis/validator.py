@@ -518,11 +518,27 @@ CRITICAL ANALYSIS AREAS:
    - Strong evidence libraries preferred over weak evidence
    - Better architectural fit preferred
 
+5. NAMING VARIANT CONFLICTS:
+   - Identify same projects detected with different name formats (e.g., postgres vs PostgreSQL)
+   - Apply priority resolution: Feature matching method > Repository name proximity > Generic names
+   - Consolidate to single best representation
+   
 CONFLICT RESOLUTION RULES:
 - PRIMARY SOURCE LIBRARIES: Preserve unless compelling technical reasons for removal
 - COMPETING FUNCTIONS: Keep only the best-supported implementation
 - PARENT-CHILD: Keep parent library, remove child components
 - EVIDENCE CONFLICTS: Prefer stronger evidence and better architectural fit
+- NAMING VARIANTS: Keep one representation per project using priority hierarchy
+
+SPECIAL ATTENTION - NAMING VARIANT DETECTION:
+Pay special attention to libraries that represent the same project but with different naming conventions:
+- Examples: "postgres" vs "PostgreSQL", "openssl" vs "OpenSSL", "sqlite" vs "SQLite"
+- These should be treated as redundant variants of the same library
+- Resolution priority: 
+  1. Libraries detected via feature matching methods (strongest evidence)
+  2. Names closer to official source repository names
+  3. Other naming variants
+- When consolidating, preserve the highest-priority variant and remove others as redundant
 
 OUTPUT REQUIREMENT:
 For each library, decide should_keep (true/false) with professional reasoning explaining the decision.
@@ -615,6 +631,11 @@ C. VERSION/BRANCH CONFLICTS:
 D. EVIDENCE QUALITY CONFLICTS:
    - Strong evidence library vs weak evidence library (same function)
    Resolution: Prefer strong evidence library
+
+E. NAMING VARIANTS (Same Project, Different Names):
+   - Same project with different name formats: postgres vs PostgreSQL, openssl vs OpenSSL
+   - Official vs abbreviated names: JavaScript vs JS, GNU Compiler Collection vs GCC
+   Resolution Priority: Feature matching detection > Source repository name proximity > Other names
 """
 
     def _get_comprehensive_binary_context(self, target_binary: TargetBinary) -> str:
