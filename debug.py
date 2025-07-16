@@ -22,7 +22,7 @@ def demo():
 
     # 分析工作流
     workflow = DetectionWorkflow(
-        feature_matching_return_top_n=5,
+        feature_matching_return_top_n=3,
     )
 
     # 上下文

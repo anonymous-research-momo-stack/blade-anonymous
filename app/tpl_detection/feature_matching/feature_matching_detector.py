@@ -1,4 +1,5 @@
 import os
+import re
 from typing import List
 from loguru import logger
 
@@ -237,6 +238,8 @@ class FeatureMatchingDetector:
         """
         检查文件名与库名称是否相似
 
+        要求匹配的部分必须是独立的词，前后用特殊符号分隔
+
         Args:
             file_name: 处理后的文件名
             library_name: 库名称
@@ -244,8 +247,20 @@ class FeatureMatchingDetector:
         Returns:
             是否相似
         """
-        return (file_name in library_name.lower() or
-                library_name.lower() in file_name)
+        # 定义词边界分隔符模式
+        word_boundary = r'[\s_\-/\.\|\\\+\*\(\)\[\]\{\}\,\;\:\!\?\@\#\$\%\^\&\=\~\`]'
+
+        # 转义特殊字符，避免正则表达式冲突
+        escaped_file_name = re.escape(file_name.lower())
+        escaped_library_name = re.escape(library_name.lower())
+
+        # 构建正则模式：(开头|分隔符) + 目标词 + (分隔符|结尾)
+        file_pattern = f'(^|{word_boundary}){escaped_file_name}({word_boundary}|$)'
+        library_pattern = f'(^|{word_boundary}){escaped_library_name}({word_boundary}|$)'
+
+        # 双向检查
+        return (re.search(file_pattern, library_name.lower()) is not None or
+                re.search(library_pattern, file_name.lower()) is not None)
 
     def _convert_to_library_interface(self, project_entities: List[ProjectFeatureEntity]) -> List[Library]:
         """
