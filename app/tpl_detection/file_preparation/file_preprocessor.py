@@ -1,5 +1,5 @@
 import hashlib
-from typing import List
+from typing import List, Dict, Any
 import os
 import subprocess
 import platform
@@ -10,6 +10,7 @@ import lief
 from loguru import logger
 
 from app.interface import TargetBinary
+from app.tpl_detection.agent_analysis.string_filter import StringFilter
 
 
 def calculate_file_sha256(file_path):
@@ -54,11 +55,30 @@ def calculate_file_sha256(file_path):
 
 class FilePreprocessor:
 
-    def __init__(self):
+    def __init__(self,
+                 # StringFilter相关参数
+                 max_copyright: int = 15,  # 版权信息最大显示数量
+                 max_paths: int = 20,  # 路径URL最大显示数量
+                 max_function_prefixes: int = 15,  # 函数前缀最大显示数量
+                 max_logs: int = 10,  # 日志消息最大显示数量
+                 max_versions: int = 8,  # 版本信息最大显示数量
+                 max_string_length: int = 200,  # 单个字符串最大长度
+                 ):
+        # StringFilter配置
+        self.string_filter = StringFilter(
+            max_copyright=max_copyright,
+            max_paths=max_paths,
+            max_function_prefixes=max_function_prefixes,
+            max_logs=max_logs,
+            max_versions=max_versions,
+            max_string_length=max_string_length
+        )
         pass
 
 
-    def basic_analyze(self, file_path, root_path=None) -> TargetBinary:
+    def basic_analyze(self, file_path, root_path=None,
+
+                      ) -> TargetBinary:
         """
         对二进制文件进行基础分析，提取字符串信息和动态链接信息
 
@@ -101,6 +121,9 @@ class FilePreprocessor:
         # 使用strings命令提取字符串
         strings_list = self._extract_strings(file_path)
 
+        # Filter and categorize strings
+        filtered_strings = self.string_filter.filter_strings(strings_list)
+
         # 创建TargetBinary对象
         target_binary = TargetBinary(
             binary_name=file_path_obj.name,
@@ -109,9 +132,12 @@ class FilePreprocessor:
             absolute_path=str(file_path_absolute),
             file_size_kb=file_size_kb,
             strings=strings_list,
+            classified_strings=filtered_strings,
             dynamic_libraries=dynamic_linked_libraries,
             imported_symbols=imported_symbols,
             exported_symbols=exported_symbols,
+            imported_symbol_analysis=self._analyze_imported_symbols(imported_symbols),
+            exported_symbol_analysis=self._analyze_exported_symbols(exported_symbols),
         )
 
         return target_binary
@@ -175,3 +201,81 @@ class FilePreprocessor:
             return dynamic_linked_libraries, imported_symbols, exported_symbols
         except:
             return [],[],[]
+
+    # TODO tpl_analyzer 里面也实现了一份，改成一样的。
+    def _analyze_exported_symbols(self, exported_symbols: list) -> Dict[str, Any]:
+        """按函数前缀分类分析导出符号"""
+        if not exported_symbols:
+            return {}
+
+        prefix_categories = {}
+
+        for symbol in exported_symbols:
+            # 提取前缀（到第一个下划线）
+            if '_' in symbol:
+                prefix = symbol.split('_')[0]
+            else:
+                # 如果没有下划线，取前几个字符作为前缀
+                import re
+                match = re.match(r'^[a-zA-Z]+', symbol)
+                prefix = match.group()[:4] if match else 'other'
+
+            # 只统计有意义的前缀（长度>=2）
+            if len(prefix) >= 2:
+                if prefix not in prefix_categories:
+                    prefix_categories[prefix] = []
+                prefix_categories[prefix].append(symbol)
+
+        # 整理结果：每个前缀类别给几个例子
+        result = {
+            'total_exported': len(exported_symbols),
+            'prefix_categories': {}
+        }
+
+        for prefix, symbols in prefix_categories.items():
+            if len(symbols) >= 1:  # 至少有1个符号
+                result['prefix_categories'][prefix] = {
+                    'count': len(symbols),
+                    'examples': symbols[:3]  # 每个前缀给3个例子
+                }
+
+        return result
+
+    def _analyze_imported_symbols(self, imported_symbols: list) -> Dict[str, Any]:
+        """分析导入符号的前缀模式"""
+        if not imported_symbols:
+            return {}
+
+        prefix_categories = {}
+
+        for symbol in imported_symbols:
+            # 提取前缀（到第一个下划线）
+            if '_' in symbol:
+                prefix = symbol.split('_')[0]
+            else:
+                # 如果没有下划线，取前几个字符作为前缀
+                import re
+                match = re.match(r'^[a-zA-Z]+', symbol)
+                prefix = match.group()[:4] if match else 'other'
+
+            # 只统计有意义的前缀（长度>=2）
+            if len(prefix) >= 2:
+                if prefix not in prefix_categories:
+                    prefix_categories[prefix] = []
+                prefix_categories[prefix].append(symbol)
+
+        # 只保留有多个符号的前缀
+        significant_prefixes = {k: v for k, v in prefix_categories.items() if len(v) >= 2}
+
+        result = {
+            'total_imported': len(imported_symbols),
+            'significant_prefixes': {}
+        }
+
+        for prefix, symbols in significant_prefixes.items():
+            result['significant_prefixes'][prefix] = {
+                'count': len(symbols),
+                'examples': symbols[:2]  # 每个前缀给2个例子
+            }
+
+        return result

@@ -64,6 +64,8 @@ class TargetBinary(Serializable):
 
     # strings
     strings: List[str] = dataclasses.field(default_factory=list)
+    # 分类的字符串
+    classified_strings:Dict[str, List[str]] = dataclasses.field(default_factory=dict)  # e.g., {"function": ["func1", "func2"], "variable": ["var1"]}
 
     # dynamic libraries
     dynamic_libraries: List[str] = dataclasses.field(default_factory=list)
@@ -71,6 +73,10 @@ class TargetBinary(Serializable):
     # symbols
     imported_symbols: List[str] = dataclasses.field(default_factory=list)
     exported_symbols: List[str] = dataclasses.field(default_factory=list)
+
+    # symbol analysis
+    exported_symbol_analysis:Dict[str, Any] = dataclasses.field(default_factory=dict)  # e.g., {"symbol_name": {"type": "function", "size": 64}}
+    imported_symbol_analysis:Dict[str, Any] = dataclasses.field(default_factory=dict)  # e.g., {"symbol_name": {"type": "function", "size": 64}}
 
     # Binary Information
     information: BinaryInformation = None

@@ -1,4 +1,4 @@
-from typing import Optional
+from typing import Optional, Dict, Any
 from agno.agent import Agent
 from agno.knowledge.json import JSONKnowledgeBase
 from agno.vectordb.pgvector import PgVector
@@ -37,7 +37,7 @@ class BinaryInformationFinder:
                 ),
             )
 
-        # Enhanced instructions with context awareness
+        # Enhanced instructions with symbol analysis emphasis
         instructions = [
             "You are a binary analysis specialist focused on identifying binary files through external intelligence and pattern recognition.",
             "",
@@ -45,10 +45,23 @@ class BinaryInformationFinder:
             "This provides foundational context for subsequent detailed internal analysis.",
             "",
             "ANALYSIS STRATEGY:",
-            "- Leverage file naming patterns and conventions",
+            "- PRIORITIZE exported symbol analysis - symbols reveal the true identity",
+            "- Leverage file naming patterns and conventions (but symbols override names)",
             "- Use software context when available to improve accuracy",
             "- Consult external knowledge sources for verification",
             "- Focus on establishing binary identity rather than detailed composition",
+            "",
+            "CRITICAL EVIDENCE HIERARCHY:",
+            "1. EXPORTED SYMBOLS (Highest Priority) - The most reliable indicator of what this binary actually IS",
+            "2. Function prefix patterns reveal the library's true identity (e.g., 'ao_plugin_*' indicates libao plugin)",
+            "3. File names can be misleading, but exported symbols don't lie",
+            "4. Context and external knowledge sources provide validation",
+            "",
+            "SYMBOL-BASED IDENTIFICATION PRINCIPLES:",
+            "- If symbols show clear patterns (e.g., 'ssl_*', 'crypto_*'), prioritize over filename",
+            "- Plugin patterns (e.g., 'ao_plugin_*', 'np_*') indicate wrapper/plugin architecture",
+            "- Consider that filename might reflect the plugin's target, not its source",
+            "- Multiple prefixes may indicate which library is the primary source vs. which is being used",
             "",
             "KEY IDENTIFICATION TASKS:",
             "1. BINARY IDENTITY: What type of binary file is this?",
@@ -56,10 +69,16 @@ class BinaryInformationFinder:
             "3. SOURCE LIBRARY: Does this binary come from a specific library/project?",
             "",
             "SOURCE LIBRARY IDENTIFICATION PRINCIPLES:",
-            "- Strong name-based evidence (e.g., 'openssl' binary → OpenSSL library)",
+            "- Strong symbol-based evidence takes priority over name-based evidence",
+            "- Plugin architectures: 'ao_plugin_*' symbols → libao plugin, regardless of filename",
             "- Library file conventions (e.g., 'libssl.a' → OpenSSL project)",
             "- Known project patterns and naming conventions",
             "- Only identify when confident about the relationship",
+            "",
+            "PLUGIN ARCHITECTURE RECOGNITION:",
+            "- Plugins often have misleading filenames (e.g., libpulse.so that's actually a libao plugin)",
+            "- Symbol patterns are the key: 'ao_plugin_*' = libao plugin, 'pa_*' = PulseAudio client",
+            "- Distinguish between what the plugin IS vs. what it interfaces with",
             "",
             "HANDLING UNCERTAIN CASES:",
             "- Custom/demo binaries (e.g., 'demo', 'test', 'myapp'): Usually no identifiable source library",
@@ -81,6 +100,7 @@ class BinaryInformationFinder:
             "CRITICAL EXAMPLES:",
             "✅ Binary 'openssl' → Source Library: OpenSSL (binary IS the OpenSSL toolkit)",
             "✅ Binary 'libssl.a' → Source Library: OpenSSL (libssl is part of OpenSSL project)",
+            "✅ Binary 'libpulse.so' with 'ao_plugin_*' symbols → Source Library: libao (plugin architecture)",
             "✅ Binary 'nginx' → Source Library: Nginx (binary IS the nginx web server)",
             "✅ Binary 'sqlite3' → Source Library: SQLite (binary IS the SQLite tool)",
             "❌ Binary 'demo' → Source Library: None (custom/demo applications have no identifiable source)",
@@ -91,7 +111,7 @@ class BinaryInformationFinder:
             "- This is a rapid identification phase",
             "- Detailed composition analysis happens in subsequent steps",
             "- Focus on establishing clear binary identity and primary source",
-            "- Be conservative with source library identification",
+            "- Be conservative with source library identification, but trust symbol evidence",
         ]
 
         # Add resource-specific instructions
@@ -109,8 +129,9 @@ class BinaryInformationFinder:
             "RESPONSE REQUIREMENTS:",
             "- Binary name: Normalized name of the binary",
             "- Description: Comprehensive description covering identity, purpose, and context",
-            "- Source library: Only when confident about the primary source project",
+            "- Source library: Based primarily on symbol analysis, secondarily on naming patterns",
             "",
+            "Remember: Exported symbols are the most reliable indicator of a binary's true identity.",
             "This analysis establishes the foundation for subsequent detailed library composition analysis."
         ])
 
@@ -127,6 +148,7 @@ class BinaryInformationFinder:
         # Load knowledge base if exists
         if knowledge is not None:
             self.agent.knowledge.load(recreate=False)
+
 
     def find_for(self, target_binary: TargetBinary, software_context: Optional[SoftwareContext] = None):
         """
@@ -148,7 +170,7 @@ class BinaryInformationFinder:
 
     def _build_context_aware_prompt(self, target_binary: TargetBinary,
                                     software_context: Optional[SoftwareContext]) -> str:
-        """Build context-aware analysis prompt"""
+        """Build context-aware analysis prompt with symbol analysis"""
 
         prompt = f"""BINARY IDENTIFICATION ANALYSIS
 
@@ -156,6 +178,41 @@ BINARY DETAILS:
 - Name: {target_binary.binary_name}
 - Size: {target_binary.file_size_kb} KB
 - Path: {target_binary.relative_path}
+"""
+
+        # Add exported symbol analysis
+        if target_binary.exported_symbols:
+            symbol_analysis = target_binary.exported_symbol_analysis
+            prompt += f"""
+EXPORTED SYMBOL ANALYSIS (CRITICAL EVIDENCE):
+- Total exported symbols: {symbol_analysis['total_exported']}
+- Symbol categories by prefix:
+"""
+            for prefix, info in symbol_analysis['prefix_categories'].items():
+                examples_str = ', '.join(info['examples'])
+                prompt += f"  • {prefix}_* family: {info['count']} symbols (e.g., {examples_str})\n"
+        else:
+            prompt += "\nEXPORTED SYMBOL ANALYSIS: No exported symbols available\n"
+
+        # Add imported symbol analysis
+        if target_binary.imported_symbols:
+            import_analysis = target_binary.imported_symbol_analysis
+            if import_analysis['significant_prefixes']:
+                prompt += f"""
+IMPORTED SYMBOL PATTERNS (Dependency Analysis):
+- Total imported symbols: {import_analysis['total_imported']}
+- Key dependency patterns:
+"""
+                for prefix, info in import_analysis['significant_prefixes'].items():
+                    examples_str = ', '.join(info['examples'])
+                    prompt += f"  • {prefix}_* family: {info['count']} symbols (e.g., {examples_str})\n"
+
+        # Add dynamic libraries info
+        if target_binary.dynamic_libraries:
+            prompt += f"""
+DYNAMIC LIBRARY DEPENDENCIES:
+- Libraries: {', '.join(target_binary.dynamic_libraries)}
+- Note: These are runtime dependencies, not the binary's source identity
 """
 
         # Add software context if available
@@ -187,27 +244,41 @@ Proceed with standalone binary identification based on file-level information.
         prompt += f"""
 ANALYSIS REQUIREMENTS:
 
-1. BINARY IDENTITY ANALYSIS:
-   - What type of binary is this? (executable, static library, shared library, etc.)
-   - What is its primary function and purpose?
-   - What category of software does it belong to?
+1. SYMBOL-FIRST BINARY IDENTITY ANALYSIS:
+   - PRIORITIZE exported symbol patterns over filename
+   - What do the symbol prefixes reveal about this binary's true identity?
+   - Plugin patterns (ao_plugin_*, np_*, etc.) indicate wrapper/plugin architecture
+   - What type of binary is this? (executable, static library, shared library, plugin, etc.)
+   - What is its primary function and purpose based on symbols?
 
 2. SOURCE LIBRARY IDENTIFICATION:
+   - Which library project do the exported symbols belong to?
+   - Is this a plugin/wrapper for another library (check symbol patterns)?
+   - Consider: filename might be misleading, symbols don't lie
    - Does this binary come from a specific open-source project or library?
-   - Is there a clear relationship between the binary name and known projects?
-   - Consider file naming conventions and common patterns
    - If no clear evidence found through search/knowledge base → report as None
    - Custom/demo applications typically have no identifiable source library
 
-3. CONTEXT VALIDATION:
+3. ARCHITECTURE PATTERN RECOGNITION:
+   - Plugin architecture: Look for *_plugin_* patterns in symbols
+   - Client library: Look for consistent API prefixes
+   - Wrapper library: Mixed symbol patterns from different sources
+
+4. CONTEXT VALIDATION:
    {"- Validate findings against the provided software context" if software_context else "- Use general software knowledge for validation"}
    - Ensure identified purpose aligns with deployment environment
    - Check consistency with expected technology patterns
 
-CRITICAL: Only populate 'source_library' when confident about the primary source project.
-If uncertain, leave it null - detailed composition analysis will follow.
+CRITICAL ANALYSIS PRIORITY:
+1. Exported symbols (highest priority - these reveal true identity)
+2. Imported symbols (show dependencies and usage patterns)
+3. Filename and path (can be misleading, use for validation only)
+4. Context and external knowledge
 
-FOCUS: This is rapid external identification. Detailed internal analysis happens next.
+CRITICAL: Only populate 'source_library' when confident about the primary source project.
+Trust symbol evidence over naming conventions. If uncertain, leave it null.
+
+FOCUS: This is rapid external identification with symbol-based evidence priority.
 """
 
         return prompt

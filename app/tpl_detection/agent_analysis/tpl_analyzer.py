@@ -22,13 +22,7 @@ class TPLAnalyzer:
                  enable_knowledge_base: bool = True,
                  report_custom_components: bool = False,
 
-                 # StringFilter相关参数
-                 max_copyright: int = 15,  # 版权信息最大显示数量
-                 max_paths: int = 20,  # 路径URL最大显示数量
-                 max_function_prefixes: int = 15,  # 函数前缀最大显示数量
-                 max_logs: int = 10,  # 日志消息最大显示数量
-                 max_versions: int = 8,  # 版本信息最大显示数量
-                 max_string_length: int = 200,  # 单个字符串最大长度
+
 
                  # Prompt显示限制参数
                  max_display_copyright: int = 10,  # Prompt中显示的版权信息数量
@@ -40,15 +34,7 @@ class TPLAnalyzer:
                  max_matches_per_component: int = 3,  # 每个组件显示的匹配示例数量
                  ):
 
-        # StringFilter配置
-        self.string_filter = StringFilter(
-            max_copyright=max_copyright,
-            max_paths=max_paths,
-            max_function_prefixes=max_function_prefixes,
-            max_logs=max_logs,
-            max_versions=max_versions,
-            max_string_length=max_string_length
-        )
+
 
         # Prompt显示参数配置
         self.max_display_copyright = max_display_copyright  # 版权信息显示上限
@@ -79,13 +65,13 @@ class TPLAnalyzer:
                 ),
             )
 
-        # 核心指令系统 - 完全重写
+        # 核心指令系统 - 修改关键部分
         instructions = [
             "You are an expert binary composition analyst specializing in library source code identification.",
             "",
             "WORKFLOW CONTEXT:",
             "This is STEP 2 of a 3-step binary composition analysis workflow:",
-            "• STEP 1 (completed): Binary identity analysis identified the primary source",
+            "• STEP 1 (completed): Binary identity analysis provided preliminary identification",
             "• STEP 2 (your task): Identify ALL libraries whose source code is present in this binary",
             "• STEP 3 (next): Expert validation will verify and refine your findings",
             "",
@@ -102,10 +88,16 @@ class TPLAnalyzer:
             "- 'External dependency' = runtime library loading (not your concern)",
             "- 'API similarity' = shared function names (often false positive)",
             "",
+            "EVIDENCE VALIDATION APPROACH:",
+            "- Cross-validate preliminary identification with string and symbol evidence",
+            "- If evidence contradicts preliminary identification, trust the evidence",
+            "- Symbol patterns (especially exported symbols) are highly reliable indicators",
+            "- Exported symbols reveal the binary's true identity and purpose",
+            "",
             "PRIORITY SYSTEM:",
-            "1. PRIMARY SOURCE LIBRARY: If step 1 identified a source library, it MUST be included",
-            "2. DIRECT DEPENDENCIES: Libraries this project directly incorporates",
-            "3. TRANSITIVE DEPENDENCIES: Libraries included by the dependencies",
+            "1. SYMBOL EVIDENCE: Exported/imported symbol patterns (highest reliability)",
+            "2. STRING EVIDENCE: Copyright, paths, function names, component matches",
+            "3. PRELIMINARY IDENTIFICATION: From Step 1 (validate, don't assume)",
             "",
             "LIBRARY CONSOLIDATION RULES:",
             "- Report each INDEPENDENT PROJECT only once",
@@ -116,12 +108,12 @@ class TPLAnalyzer:
             "CRITICAL EXAMPLES:",
             "✅ CORRECT: Binary 'openssl' → Report 'OpenSSL' (primary source)",
             "✅ CORRECT: Binary 'libssl.a' → Report 'OpenSSL' (source project)",
-            "✅ CORRECT: Custom app with OpenSSL copyright → Report 'OpenSSL'",
+            "✅ CORRECT: Binary with 'ao_plugin_*' symbols → Report 'libao' (trust symbols over filename)",
             "❌ WRONG: Report both 'OpenSSL' and 'BoringSSL' (competing implementations)",
             "❌ WRONG: Report 'libcrypto' separately from 'OpenSSL' (same project)",
             "",
             "EVIDENCE ANALYSIS:",
-            "- STRONG: Copyright/license statements, version strings, project URLs",
+            "- STRONG: Copyright/license statements, version strings, project URLs, unique symbol patterns",
             "- MEDIUM: Function prefixes, library-specific patterns, build paths",
             "- WEAK: Generic function names, common terminology",
             "",
@@ -203,14 +195,14 @@ class TPLAnalyzer:
 
         self.method_name = "Agent Analysis"
 
-    def analyze(self, target_binary: TargetBinary, software_context:SoftwareContext=None) -> (List[Library], RunResponse):
+    def analyze(self, target_binary: TargetBinary, software_context: SoftwareContext = None) -> (
+    List[Library], RunResponse):
         """Analyze binary for library source code inclusion"""
 
-        # Filter and categorize strings
-        filtered_strings = self.string_filter.filter_strings(target_binary.strings)
+
 
         # Build analysis prompt
-        prompt = self._build_analysis_prompt(target_binary, filtered_strings, software_context)
+        prompt = self._build_analysis_prompt(target_binary, target_binary.classified_strings, software_context)
 
         # Run agent analysis
         response = self.agent.run(prompt)
@@ -231,7 +223,8 @@ class TPLAnalyzer:
 
         return libraries, response
 
-    def _build_analysis_prompt(self, target_binary: TargetBinary, filtered_strings: Dict,software_context:SoftwareContext=None) -> str:
+    def _build_analysis_prompt(self, target_binary: TargetBinary, filtered_strings: Dict,
+                               software_context: SoftwareContext = None) -> str:
         """Build the analysis prompt for the agent"""
 
         prompt = f"""BINARY COMPOSITION ANALYSIS - STEP 2: LIBRARY SOURCE CODE IDENTIFICATION
@@ -258,15 +251,16 @@ CONTEXT-BASED LIBRARY EXPECTATIONS:
 Use this context to prioritize library identification and validate findings against typical patterns for this software type.
         """
 
-        # 添加主要源库信息（最重要的上下文）
+        # 修改主要源库信息部分 - 不再强制要求MUST be included
         if target_binary.information and target_binary.information.source_library:
             prompt += f"""
-PRIMARY SOURCE LIBRARY (from Step 1 analysis):
-- Library: {target_binary.information.source_library.name}
+PRELIMINARY IDENTIFICATION (from Step 1 analysis):
+- Initial assessment: {target_binary.information.source_library.name}
 - Description: {target_binary.information.source_library.description}
 
-CRITICAL: This primary source library represents the main codebase and MUST be included in your analysis.
-All evidence related to this library should be consolidated under this primary library entry.
+NOTE: This is a preliminary identification that should be validated against ALL available evidence.
+Your analysis should independently verify whether this identification is accurate based on the symbols, strings, and patterns found.
+If evidence contradicts this preliminary assessment, trust the evidence.
 """
         elif target_binary.information:
             prompt += f"""
@@ -275,6 +269,37 @@ BINARY IDENTITY (from Step 1 analysis):
 
 TASK: Identify what library projects have source code compiled into this binary.
 """
+
+        # 添加符号分析部分
+        if target_binary.exported_symbols:
+            symbol_analysis = target_binary.exported_symbol_analysis
+            prompt += f"""
+EXPORTED SYMBOL EVIDENCE (HIGH PRIORITY):
+- Total exported symbols: {symbol_analysis['total_exported']}
+- Symbol families by prefix:
+"""
+            for prefix, info in symbol_analysis['prefix_categories'].items():
+                examples_str = ', '.join(info['examples'])
+                prompt += f"  • {prefix}_* family: {info['count']} symbols (e.g., {examples_str})\n"
+
+            prompt += """
+SYMBOL ANALYSIS GUIDANCE:
+- Exported symbols are the most reliable indicator of what this binary actually IS
+- Plugin patterns (e.g., 'ao_plugin_*') strongly indicate the source library
+- Symbol prefixes reveal the true identity, often more reliable than filename
+"""
+
+        if target_binary.imported_symbols:
+            import_analysis = target_binary.imported_symbol_analysis
+            if import_analysis['significant_prefixes']:
+                prompt += f"""
+IMPORTED SYMBOL PATTERNS (Dependency Analysis):
+- Total imported symbols: {import_analysis['total_imported']}
+- Key dependency patterns:
+"""
+                for prefix, info in import_analysis['significant_prefixes'].items():
+                    examples_str = ', '.join(info['examples'])
+                    prompt += f"  • {prefix}_* family: {info['count']} symbols (e.g., {examples_str})\n"
 
         # 动态库排除信息
         if target_binary.dynamic_libraries:
@@ -298,7 +323,7 @@ Our advanced string filtering system extracted {total_filtered} high-value strin
 3. FUNCTION PREFIX ANALYSIS: Statistical analysis of function naming patterns
 4. LOG MESSAGE EXTRACTION: Error messages, debug info, initialization strings
 5. VERSION INFORMATION: Version strings, build info, release identifiers
-6. COMPONENT NAME MATCHING: Two-phase matching against {len(self.string_filter.known_component_names)} known library names:
+6. COMPONENT NAME MATCHING: Two-phase matching against about 5,000 known library names:
    - Phase 1: Fast filtering using substring matching
    - Phase 2: Precise word-boundary matching to avoid false positives
 
@@ -409,37 +434,43 @@ Your task is to distinguish between these cases using all available evidence.
         prompt += """
 ANALYSIS INSTRUCTIONS:
 
-1. EVIDENCE INTEGRATION:
-   - Synthesize ALL evidence types: copyright, paths, functions, logs, versions, component matches
-   - Component matches are HINTS, not definitive proof - validate with other evidence
+1. EVIDENCE INTEGRATION WITH SYMBOL PRIORITY:
+   - START with exported symbol analysis - this is your most reliable evidence
+   - Cross-reference symbol patterns with string evidence and component matches
+   - If symbols contradict preliminary identification, trust the symbols
    - Look for CONSISTENT PATTERNS across multiple evidence types
 
-2. COMPONENT MATCH INTERPRETATION:
+2. SYMBOL-BASED IDENTIFICATION:
+   - Exported symbols reveal what this binary actually IS and DOES
+   - Plugin patterns (ao_plugin_*, np_*, etc.) strongly indicate source library
+   - Function prefixes in symbols are more reliable than string-based prefixes
+   - Imported symbols show dependencies, not necessarily source inclusion
+
+3. COMPONENT MATCH INTERPRETATION:
    - COMPILED-IN LIBRARIES: Strong evidence across multiple categories, library-specific patterns
    - EXTERNAL DEPENDENCIES: Component matches but no copyright/path evidence of inclusion
    - INTERNAL MODULES: Component matches that are actually features of a larger library
    - FALSE POSITIVES: Generic terms without supporting technical evidence
 
-3. CONSOLIDATION PRIORITY:
-   - Start with the primary source library (if identified in Step 1)
-   - Group related component matches under their parent library project
-   - Example: If binary is 'openssl', then 'base64', 'ed25519' matches are likely OpenSSL features
-   - Do NOT create separate entries for sub-components of the same library
+4. PRELIMINARY IDENTIFICATION VALIDATION:
+   - Validate (don't assume) the preliminary identification from Step 1
+   - If symbol evidence contradicts it, explain the discrepancy in your reasoning
+   - Trust concrete evidence over naming conventions
 
-4. EVIDENCE STRENGTH HIERARCHY:
-   - STRONGEST: Copyright statements + source paths + version info + component matches
-   - STRONG: Function prefixes + library-specific error messages + component matches  
-   - MEDIUM: Component matches + generic function patterns
+5. EVIDENCE STRENGTH HIERARCHY:
+   - STRONGEST: Exported symbol patterns + copyright statements + version info
+   - STRONG: Symbol patterns + function prefixes + library-specific error messages
+   - MEDIUM: Component matches + generic function patterns  
    - WEAK: Component matches alone without supporting evidence
 
-5. QUALITY CONTROL:
+6. QUALITY CONTROL:
    - Be conservative: better to miss a library than report false positives
    - Focus on libraries with multiple types of supporting evidence
    - Exclude generic matches without technical substance
    - Consider the binary's primary purpose when evaluating matches
 
 TASK: Identify all library projects whose source code is compiled into this binary.
-Use component matches as starting points, but validate with comprehensive evidence analysis.
+Prioritize exported symbol evidence, then validate with comprehensive evidence analysis.
 Focus on independent libraries with strong, consistent evidence across multiple categories.
 """
 
