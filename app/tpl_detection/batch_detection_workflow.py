@@ -1,5 +1,7 @@
 import concurrent.futures
 from typing import List, Optional
+
+from app.tpl_detection.agent_analysis.response_models import SoftwareContext
 from app.tpl_detection.detection_workflow import DetectionWorkflow
 from app.interface import AnalysisResult
 from tqdm import tqdm
@@ -13,17 +15,18 @@ class BatchDetectionWorkflow:
         self.concurrency = concurrency
         self.detection_kwargs = detection_kwargs
 
-    def run_batch(self, file_paths: List[str]) -> List[Optional[AnalysisResult]]:
+    def run_batch(self, file_paths: List[str],software_context:SoftwareContext=None) -> List[Optional[AnalysisResult]]:
         """
         并发分析多个二进制文件
         file_paths: 待分析的二进制文件路径列表
         返回: 每个文件的 AnalysisResult，失败则为 None
         """
+
         results = [None] * len(file_paths)
         def task(idx, file_path):
             try:
                 workflow = DetectionWorkflow(**self.detection_kwargs)
-                return idx, workflow.run(file_path)
+                return idx, workflow.run(file_path,software_context=software_context)
             except Exception as e:
                 # 可根据需要记录异常
                 error_message = f"{e}"

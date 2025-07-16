@@ -2,8 +2,11 @@ import os.path
 import time
 from typing import List
 
+from loguru import logger
+
 from app.interface import AnalysisResult, AnalysisData
 from app.tpl_detection.batch_detection_workflow import BatchDetectionWorkflow
+from app.tpl_detection.detection_workflow import DetectionWorkflow
 from evaluation.interface import EvaluationConfig, Benchmark, EvaluationReport, AnalysisResultCheck, \
     ResearchQuestionData
 
@@ -14,6 +17,9 @@ class Evaluator:
 
         self.benchmark = Benchmark.load_from_json_file(config.benchmark_file)
 
+        self.workflow = DetectionWorkflow(
+        feature_matching_return_top_n=5,
+    )
         self.batch_detection_workflow = BatchDetectionWorkflow(concurrency=config.concurrency)
 
         self.evaluation_results = []
@@ -23,7 +29,7 @@ class Evaluator:
             benchmark=self.benchmark,
         )
 
-    def run_benchmark(self):
+    def run_benchmark(self, analyze_context:bool=True):
         """
         运行，以获取结果
         :return:
@@ -35,17 +41,25 @@ class Evaluator:
         # run test cases
         start_time = time.perf_counter()
         self.report.start_at = time.strftime("%Y-%m-%d %H:%M:%S", time.localtime(start_time))
-        results = self.batch_detection_workflow.run_batch(absolute_paths)
+
+        context = None
+        if analyze_context:
+            logger.info("分析软件上下文...")
+            context = self.workflow.analyze_context(self.evaluation_config.test_case_dir)
+        logger.info(f"开始分析")
+        results = self.batch_detection_workflow.run_batch(absolute_paths, software_context=context)
         total_time = time.perf_counter() - start_time
         self.report.finished_at = time.strftime("%Y-%m-%d %H:%M:%S", time.localtime(start_time + total_time))
 
         self.report.evaluation_results = results
 
         # 检查结果
+        logger.info("检查结果...")
         results_check_lst = self.check_result(self.benchmark, results)
         self.report.evaluation_results_check = results_check_lst
 
         # 生成RQ数据
+        logger.info("生成研究问题数据...")
         rq_data = self.cal_rq_data(
             evaluation_results=results,
             result_check_lst=results_check_lst,
@@ -53,6 +67,7 @@ class Evaluator:
             output_token_price_per_1M=self.evaluation_config.output_token_price_per_1M,
         )
         self.report.research_question_data = rq_data
+        logger.info(f"All Done, total time: {total_time:.2f} seconds")
 
     def check_result(self, benchmark: Benchmark, evaluation_results: List[AnalysisResult]) -> List[AnalysisResultCheck]:
         """
@@ -216,10 +231,10 @@ def main():
         test_case_dir=benchmark_tc_dir,
         concurrency=10,
         slice_start=0,
-        slice_end=10,
+        slice_end=5,
     )
     evaluator = Evaluator(config)
-    evaluator.run_benchmark()
+    evaluator.run_benchmark(analyze_context=True)
     evaluator.report.dump(evaluation_report_save_path)
 
 
