@@ -28,15 +28,10 @@ class LibraryValidator:
                  knowledge_json_path: str = None,
                  enable_web_search: bool = True,
                  enable_knowledge_base: bool = False,
-                 enable_db_verification: bool = True,
-                 debug_mode: bool = False):
+                 enable_db_verification: bool = True):
 
         self.enable_db_verification = enable_db_verification
-        self.debug_mode = debug_mode
 
-        # 设置调试环境变量
-        if debug_mode:
-            os.environ["AGNO_DEBUG"] = "true"
 
         # Build tools list
         tools = []
@@ -173,8 +168,7 @@ class LibraryValidator:
             show_tool_calls=True,
             knowledge=knowledge,
             search_knowledge=enable_knowledge_base,
-            instructions=expert_instructions,
-            debug_mode=debug_mode,
+            instructions=expert_instructions
         )
 
         # Load knowledge base if exists
@@ -340,9 +334,6 @@ class LibraryValidator:
 
         prompt = self._build_step1_expert_prompt(libraries, target_binary,software_context)
 
-        if self.debug_mode:
-            logger.debug(f"Step 1 Expert Validation Prompt Preview: {prompt[:1000]}...")
-
         response = self.agent.run(prompt)
         return response.content, response
 
@@ -477,8 +468,6 @@ PROFESSIONAL STANDARDS: Provide authoritative, well-reasoned assessments suitabl
 
         prompt = self._build_step2_expert_prompt(reasonable_libraries, target_binary,software_context)
 
-        if self.debug_mode:
-            logger.debug(f"Step 2 Expert Conflict Resolution Prompt Preview: {prompt[:1000]}...")
 
         response = self.agent.run(prompt)
         return response.content, response

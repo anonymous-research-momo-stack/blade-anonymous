@@ -17,12 +17,9 @@ class SoftwareContextAnalyzer:
     Smart Software Context Analyzer - Intelligently analyzes software projects with minimal operations
     """
 
-    def __init__(self, enable_web_search: bool = True, debug_mode: bool = False):
+    def __init__(self, enable_web_search: bool = True):
         self.enable_web_search = enable_web_search
-        self.debug_mode = debug_mode
 
-        if debug_mode:
-            os.environ["AGNO_DEBUG"] = "true"
 
         # Smart analysis instructions
         self.instructions = [

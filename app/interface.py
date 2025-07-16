@@ -132,7 +132,8 @@ class AnalysisConfig(Serializable):
     enable_library_validation_web_search: bool = False
     enable_library_validation_knowledge_base: bool = False
     enable_library_validation_db_verification: bool = False
-    library_validation_debug_mode: bool = False
+
+    debug_mode: bool = False
 
 
 @dataclass

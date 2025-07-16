@@ -1,3 +1,4 @@
+import os
 import time
 from typing import List
 from loguru import logger
@@ -36,7 +37,7 @@ class DetectionWorkflow:
                  enable_library_validation_web_search: bool = False,
                  enable_library_validation_knowledge_base: bool = False,
                  enable_library_validation_db_verification: bool = False,
-                 library_validation_debug_mode: bool = False):
+                 debug_mode: bool = False):
         """
         初始化检测工作流
         """
@@ -59,13 +60,16 @@ class DetectionWorkflow:
             enable_library_validation_web_search=enable_library_validation_web_search,
             enable_library_validation_knowledge_base=enable_library_validation_knowledge_base,
             enable_library_validation_db_verification=enable_library_validation_db_verification,
-            library_validation_debug_mode=library_validation_debug_mode
+            debug_mode=debug_mode
         )
+        self.debug_mode = debug_mode
+
+        if debug_mode:
+            os.environ["AGNO_DEBUG"] = "true"
 
         # 上下文环境分析器
         self.context_analyzer = SoftwareContextAnalyzer(
-                enable_web_search=True,
-                debug_mode=False
+                enable_web_search=True
             )
 
         # 文件预处理器
@@ -98,8 +102,7 @@ class DetectionWorkflow:
         self.library_validator = LibraryValidator(
             enable_web_search=enable_library_validation_web_search,
             enable_knowledge_base=enable_library_validation_knowledge_base,
-            enable_db_verification=enable_library_validation_db_verification,
-            debug_mode=library_validation_debug_mode
+            enable_db_verification=enable_library_validation_db_verification
         )
 
         self.analysis_data = AnalysisData(config=self.analysis_config)  # 分析数据对象，用于存储分析结果

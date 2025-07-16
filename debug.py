@@ -12,6 +12,7 @@ def demo():
     libpg_path = "/Users/liuchengyue/Desktop/BinarySCA Platform/Data/Test_Cases/TPL_Test_Cases/Benchmarks/FTPL100/decompressed_deb/libpq5_14.15-0ubuntu0.22.04.1_amd64/usr/lib/x86_64-linux-gnu/libpq.so.5.14"
     libvulkan_path = "/Users/liuchengyue/Desktop/BinarySCA Platform/Data/Test_Cases/TPL_Test_Cases/Benchmarks/FTPL100/decompressed_deb/libvulkan1_1.3.204.1-2_amd64/usr/lib/x86_64-linux-gnu/libvulkan.so.1.3.204"
 
+    libpulse_so = "/Users/liuchengyue/Desktop/BinarySCA Platform/Data/Test_Cases/TPL_Test_Cases/Benchmarks/DDE2000/libpulse.so"
 
     # Car cases
     # mbedtls
@@ -23,14 +24,16 @@ def demo():
     # 分析工作流
     workflow = DetectionWorkflow(
         feature_matching_return_top_n=5,
+        debug_mode=True
     )
 
-    # 上下文
-    context = workflow.analyze_context(root_path)
 
     # 分析
-    # result = workflow.run(openssl_path)
-    result = workflow.run(secverify_path, software_context=context)
+    result = workflow.run(libpulse_so)
+
+    # 结合上下文分析
+    # context = workflow.analyze_context(root_path)
+    # result = workflow.run(secverify_path, software_context=context)
 
     result.analysis_data.preview()
 
