@@ -197,8 +197,19 @@ class LibraryValidator:
             individual_results, step_1_response = self._step1_source_code_inclusion_validation(enhanced_libraries,
                                                                                                target_binary,
                                                                                                context)
-            reasonable_libs = [lib for lib in enhanced_libraries
-                               if self._is_library_reasonable(lib.name, individual_results)]
+            # 更新 library 属性
+            reasonable_libs = []
+            for lib in enhanced_libraries:
+                for result in individual_results.results:
+                    # 找到对应的分析结果
+                    if result.library_name.lower() == lib.name.lower():
+                        # 标记是否合理
+                        lib.is_reasonable = result.is_reasonable
+                        lib.reasonable_reasoning = result.reasoning
+                        if result.is_reasonable:
+                            lib.validation_passed = True # 默认通过
+                            reasonable_libs.append(lib)
+
             logger.debug(
                 f"Source code inclusion assessment: {len(reasonable_libs)}/{len(enhanced_libraries)} libraries validated")
 
@@ -765,21 +776,24 @@ Binary: {target_binary.binary_name} ({target_binary.file_size_kb} KB)
                         lib.validation_passed = redundancy_result.should_keep
 
                         if redundancy_result.should_keep:
-                            lib.validation_reasoning = f"EXPERT VALIDATION PASSED: {individual_result.reasoning}"
+                            lib.is_redundant = False
+                            lib.redundancy_reasoning =  f"EXPERT VALIDATION PASSED: {individual_result.reasoning}"
                             logger.debug(f"✅ {lib.name}: FULLY VALIDATED")
                         else:
-                            lib.validation_passed = False # 不应该保留的也认为是验证不通过。
-                            lib.validation_reasoning = f"CONFLICT RESOLUTION: {redundancy_result.reasoning}"
+                            lib.is_redundant = True
+                            lib.redundancy_reasoning = f"CONFLICT RESOLUTION: {redundancy_result.reasoning}"
                             logger.debug(f"❌ {lib.name}: REMOVED in conflict resolution")
                     else:
-                        # 个体通过但没有冲突检查（单一库情况）
+                        # 个体通过但没有冲突检查（单一库情况）, 默认通过
+                        lib.is_redundant = False
                         lib.validation_passed = True
-                        lib.validation_reasoning = f"EXPERT VALIDATION PASSED: {individual_result.reasoning}"
+                        lib.redundancy_reasoning = f"EXPERT VALIDATION PASSED: {individual_result.reasoning}"
                         logger.debug(f"✅ {lib.name}: VALIDATED (no conflicts to resolve)")
             else:
                 # 没有验证结果，默认失败
+                lib.is_redundant = True
                 lib.validation_passed = False
-                lib.validation_reasoning = "VALIDATION ERROR: No expert assessment available"
+                lib.redundancy_reasoning = "VALIDATION ERROR: No expert assessment available"
                 logger.debug(f"❌ {lib.name}: Missing validation data")
 
         # 验证主体库保护

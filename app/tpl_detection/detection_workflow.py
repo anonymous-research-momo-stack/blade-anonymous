@@ -1,6 +1,6 @@
 import os
 import time
-from typing import List
+from typing import List, Any
 from loguru import logger
 
 from app.config import settings
@@ -135,8 +135,9 @@ class DetectionWorkflow:
 
         # 3. agent analysis
         validation_start_at = time.perf_counter()
-        validated_libraries = self._run_agent_analysis(target_binary, feature_matching_libraries,software_context)
+        validated_libraries = self._run_agent_analysis(target_binary, feature_matching_libraries, software_context)
         self.analysis_data.durations["agent_analysis"] = time.perf_counter() - validation_start_at
+
 
         # 4. Return Results
         result = AnalysisResult(
@@ -172,7 +173,7 @@ class DetectionWorkflow:
 
     def _run_agent_analysis(self, target_binary: TargetBinary,
                             candidate_libraries_from_feature_matching: List[Library],
-                            software_context:SoftwareContext=None) -> List[Library]:
+                            software_context:SoftwareContext=None) -> tuple[list[Library], Any]:
         """
         Run agent analysis including binary info analysis, TPL analysis, and validation.
 
@@ -270,7 +271,6 @@ class DetectionWorkflow:
     Description: {lib.description}
     Original Reasoning: {lib.reasoning}
     Validation Passed: {lib.validation_passed}
-    Validation Reasoning: {lib.validation_reasoning}
             """)
 
         return validated_libraries

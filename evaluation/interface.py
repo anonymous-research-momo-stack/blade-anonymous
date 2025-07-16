@@ -151,10 +151,11 @@ class AnalysisResultCheck(Serializable):
     fp_lib_names: List[str] = dataclasses.field(default_factory=list)  # False Positive Libraries
     fn_lib_names: List[str] = dataclasses.field(default_factory=list)  # False Negative Libraries
 
+
 @dataclass
-class ResearchQuestionData(Serializable):
+class EffectivenessData(Serializable):
     """
-    Data structure for research question data
+    Effectiveness
     """
     # rq 1
     tp_count: int = None  # Trues Positive count
@@ -165,10 +166,35 @@ class ResearchQuestionData(Serializable):
     recall: float = None  # Recall of the analysis
     f1_score: float = None  # F1 Score of the analysis
 
-    # rq 2 消融实验
+@dataclass
+class AblationData(Serializable):
+    """
+    分析几个主要环节的贡献
 
+    # 消融验证环节
+    1. Ablate Validation Step 2
+    2. Ablate Validation Step 1
+    3. Ablate Validation Step 1 + 2
+
+    # 消融发现环节
+    4. Ablate Agent TPL Analysis
+
+    # 消融整个Agent分析
+    5. Ablate Agent Analysis
+    """
+
+    wo_agent_tpl_analysis: EffectivenessData = None  # Effectiveness data without agent analysis
+    wo_validation_step_1: EffectivenessData = None  # Effectiveness data without validation step 1
+    wo_validation_step_2: EffectivenessData = None  # Effectiveness data without validation step 2
+    wo_validation_step_1_and_2: EffectivenessData = None  # Effectiveness data without validation step 1 and 2
+    wo_agent_analysis: EffectivenessData = None  # Effectiveness data without agent analysis
+
+@dataclass
+class EfficiencyData(Serializable):
+    """
+    Data structure for research question data
+    """
     # rq 3
-    # duration
     total_detection_duration: float = None  # Total detection duration in seconds
     average_detection_duration: float = None  # Average detection duration in seconds
 
@@ -184,6 +210,22 @@ class ResearchQuestionData(Serializable):
     # cost
     total_cost: float = None  # Total cost in USD
     average_cost: float = None  # Average cost per analysis in USD
+
+@dataclass
+class ResearchQuestionData(Serializable):
+    """
+    Data structure for research question data
+    """
+    # rq 1 效果
+    rq_1_data: EffectivenessData = None  # Data for research question 1
+
+    # rq 2 消融实验
+    rq_2_data: AblationData = None  # Data for research question 2
+
+    # rq 3 效率
+    rq_3_data: EfficiencyData = None  # Data for research question 3
+
+    # rq 4 实例实验
 
 @dataclass
 class EvaluationConfig(Serializable):

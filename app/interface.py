@@ -116,8 +116,13 @@ class Library(Serializable):
     reasoning: str = ""
 
     # validation results
+    is_reasonable:bool=True
+    reasonable_reasoning: str = ""
+
+    is_redundant: bool = False
+    redundancy_reasoning: str = ""
+
     validation_passed: bool = True
-    validation_reasoning: str = ""
 
 
 
