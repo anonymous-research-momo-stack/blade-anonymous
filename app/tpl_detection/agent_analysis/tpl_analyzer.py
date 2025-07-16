@@ -104,7 +104,7 @@ class TPLAnalyzer:
             "- Be conservative: better to miss a library than report false positives",
             "- Focus on major, independently-developed libraries with clear evidence",
         ]
-        
+
         if report_custom_components:
             instructions.extend([
                 "",
@@ -205,108 +205,178 @@ class TPLAnalyzer:
 
         prompt = f"""BINARY COMPOSITION ANALYSIS - STEP 2: LIBRARY SOURCE CODE IDENTIFICATION
 
-TARGET BINARY:
-- Name: {target_binary.binary_name}
-- Path: {target_binary.relative_path}  
-- Size: {target_binary.file_size_kb} KB
-- Type: Binary file for source code composition analysis
-"""
+    TARGET BINARY:
+    - Name: {target_binary.binary_name}
+    - Path: {target_binary.relative_path}  
+    - Size: {target_binary.file_size_kb} KB
+    - Type: Binary file for source code composition analysis
+    """
 
         # 添加主要源库信息（最重要的上下文）
         if target_binary.information and target_binary.information.source_library:
             prompt += f"""
-PRIMARY SOURCE LIBRARY (from Step 1 analysis):
-- Library: {target_binary.information.source_library.name}
-- Description: {target_binary.information.source_library.description}
+    PRIMARY SOURCE LIBRARY (from Step 1 analysis):
+    - Library: {target_binary.information.source_library.name}
+    - Description: {target_binary.information.source_library.description}
 
-CRITICAL: This primary source library represents the main codebase and MUST be included in your analysis.
-All evidence related to this library should be consolidated under this primary library entry.
-"""
+    CRITICAL: This primary source library represents the main codebase and MUST be included in your analysis.
+    All evidence related to this library should be consolidated under this primary library entry.
+    """
         elif target_binary.information:
             prompt += f"""
-BINARY IDENTITY (from Step 1 analysis):
-- Description: {target_binary.information.description}
+    BINARY IDENTITY (from Step 1 analysis):
+    - Description: {target_binary.information.description}
 
-TASK: Identify what library projects have source code compiled into this binary.
-"""
+    TASK: Identify what library projects have source code compiled into this binary.
+    """
 
         # 动态库排除信息
         if target_binary.dynamic_libraries:
             prompt += f"""
-DYNAMIC LIBRARIES (excluded from analysis):
-{', '.join(target_binary.dynamic_libraries)}
-NOTE: These are runtime dependencies, NOT compiled into the binary. Do not analyze these.
-For example: if the binary dynamic linked the 'libssl.so', and we know 'libssl.so' is from OpenSSL, you should not report 'OpenSSL' as a library in this binary. Because the 'libssl.so' is not compiled into this binary, it is just a runtime dependency.
-"""
+    DYNAMIC LIBRARIES (excluded from analysis):
+    {', '.join(target_binary.dynamic_libraries)}
+    NOTE: These are runtime dependencies, NOT compiled into the binary. Do not analyze these.
+    For example: if the binary dynamically links 'libssl.so', and 'libssl.so' is from OpenSSL, 
+    you should NOT report 'OpenSSL' as a library in this binary, because 'libssl.so' is not 
+    compiled into this binary - it's just a runtime dependency.
+    """
+
+        # STRING FILTERING METHODOLOGY
+        prompt += f"""
+    STRING ANALYSIS METHODOLOGY:
+    Our advanced string filtering system extracted {sum(len(v) if isinstance(v, list) else len(v) for v in filtered_strings.values())} high-value strings from {len(target_binary.strings)} total strings using:
+
+    1. LICENSE/COPYRIGHT DETECTION: Broad pattern matching for copyright, license, author information
+    2. PATH/URL ANALYSIS: Source paths, repository URLs, library file references  
+    3. FUNCTION PREFIX ANALYSIS: Statistical analysis of function naming patterns
+    4. LOG MESSAGE EXTRACTION: Error messages, debug info, initialization strings
+    5. VERSION INFORMATION: Version strings, build info, release identifiers
+    6. COMPONENT NAME MATCHING: Two-phase matching against {len(self.string_filter.known_component_names)} known library names:
+       - Phase 1: Fast filtering using substring matching
+       - Phase 2: Precise word-boundary matching to avoid false positives
+
+    COMPONENT MATCHING INTERPRETATION:
+    The component matches below show potential library references, but require careful analysis:
+    ✓ STRONG INDICATORS: Multiple matches with library-specific patterns, version info, copyright
+    ✓ MEDIUM INDICATORS: Function prefixes, API patterns, but could be external dependencies  
+    ✗ WEAK INDICATORS: Generic terms, single matches, common words that may be coincidental
+
+    CRITICAL DISTINCTION:
+    - Component matches may indicate SOURCE CODE INCLUSION (what we want)
+    - OR they may indicate EXTERNAL DEPENDENCIES (exclude from results)
+    - OR they may indicate INTERNAL FUNCTIONALITY (exclude from results)
+    Your task is to distinguish between these cases using all available evidence.
+    """
 
         # 字符串证据分析
-        if filtered_strings['license_copyright']:
+        if filtered_strings.get('license_copyright'):
             prompt += f"\nLICENSE/COPYRIGHT EVIDENCE ({len(filtered_strings['license_copyright'])} items):\n"
             for item in filtered_strings['license_copyright'][:10]:  # 限制显示数量
                 prompt += f"• {item}\n"
             if len(filtered_strings['license_copyright']) > 10:
                 prompt += f"... and {len(filtered_strings['license_copyright']) - 10} more copyright/license strings\n"
 
-        if filtered_strings['paths_urls']:
+        if filtered_strings.get('paths_urls'):
             prompt += f"\nPATH/URL EVIDENCE ({len(filtered_strings['paths_urls'])} items):\n"
             for item in filtered_strings['paths_urls'][:8]:
                 prompt += f"• {item}\n"
             if len(filtered_strings['paths_urls']) > 8:
                 prompt += f"... and {len(filtered_strings['paths_urls']) - 8} more path/URL strings\n"
 
-        functions = filtered_strings['functions']
-        if functions['function_prefixes']:
-            prompt += f"\nFUNCTION PREFIX PATTERNS ({len(functions['function_prefixes'])} patterns):\n"
-            for prefix in functions['function_prefixes'][:10]:
+        if filtered_strings.get('function_prefixes'):
+            prompt += f"\nFUNCTION PREFIX PATTERNS ({len(filtered_strings['function_prefixes'])} patterns):\n"
+            for prefix in filtered_strings['function_prefixes'][:10]:
                 prompt += f"• {prefix}\n"
-            if len(functions['function_prefixes']) > 10:
-                prompt += f"... and {len(functions['function_prefixes']) - 10} more function prefixes\n"
+            if len(filtered_strings['function_prefixes']) > 10:
+                prompt += f"... and {len(filtered_strings['function_prefixes']) - 10} more function prefixes\n"
 
-        if functions['demangled_functions']:
-            prompt += f"\nDEMANGLED FUNCTION SIGNATURES ({len(functions['demangled_functions'])} functions):\n"
-            for func in functions['demangled_functions'][:8]:
-                prompt += f"• {func}\n"
-            if len(functions['demangled_functions']) > 8:
-                prompt += f"... and {len(functions['demangled_functions']) - 8} more function signatures\n"
+        if filtered_strings.get('log_messages'):
+            prompt += f"\nLOG/ERROR MESSAGES ({len(filtered_strings['log_messages'])} items):\n"
+            for msg in filtered_strings['log_messages'][:8]:
+                prompt += f"• {msg}\n"
+            if len(filtered_strings['log_messages']) > 8:
+                prompt += f"... and {len(filtered_strings['log_messages']) - 8} more log messages\n"
 
-        if filtered_strings['library_signatures']:
-            prompt += f"\nLIBRARY SIGNATURE PATTERNS ({len(filtered_strings['library_signatures'])} patterns):\n"
-            for sig in filtered_strings['library_signatures'][:10]:
-                prompt += f"• {sig}\n"
-            if len(filtered_strings['library_signatures']) > 10:
-                prompt += f"... and {len(filtered_strings['library_signatures']) - 10} more signature patterns\n"
-
-        if filtered_strings['version_info']:
+        if filtered_strings.get('version_info'):
             prompt += f"\nVERSION INFORMATION ({len(filtered_strings['version_info'])} items):\n"
             for version in filtered_strings['version_info'][:5]:
                 prompt += f"• {version}\n"
+            if len(filtered_strings['version_info']) > 5:
+                prompt += f"... and {len(filtered_strings['version_info']) - 5} more version strings\n"
+
+        # COMPONENT MATCHING RESULTS
+        component_matches = filtered_strings.get('component_matches', {})
+        if component_matches:
+            # Sort components by evidence strength (number of matches)
+            sorted_components = sorted(component_matches.items(),
+                                       key=lambda x: len(x[1]), reverse=True)
+
+            prompt += f"\nCOMPONENT NAME MATCHES ({len(component_matches)} components detected):\n"
+            prompt += "Format: [Component] → Evidence strings (showing top matches)\n\n"
+
+            for component, matches in sorted_components[:15]:  # Show top 15 components
+                match_count = len(matches)
+                display_matches = matches[:3]  # Show top 3 matches per component
+
+                prompt += f"[{component}] ({match_count} matches):\n"
+                for match in display_matches:
+                    prompt += f"  • {match}\n"
+                if match_count > 3:
+                    prompt += f"  ... and {match_count - 3} more matches\n"
+                prompt += "\n"
+
+            if len(sorted_components) > 15:
+                remaining = len(sorted_components) - 15
+                prompt += f"... and {remaining} more components with fewer matches\n\n"
+
+            # Analysis guidance for component matches
+            prompt += "COMPONENT MATCH ANALYSIS GUIDANCE:\n"
+            prompt += "• HIGH CONFIDENCE: Components with many matches, specific function patterns, version info\n"
+            prompt += "• MEDIUM CONFIDENCE: Components with moderate matches, some specific patterns\n"
+            prompt += "• LOW CONFIDENCE: Components with few matches, generic terms, or common words\n"
+            prompt += "• FALSE POSITIVES: Generic terms (like 'file', 'server', 'check') that appear in many contexts\n\n"
+
+            # Suggest dominant library analysis
+            if sorted_components:
+                top_component = sorted_components[0]
+                prompt += f"DOMINANT PATTERN: '{top_component[0]}' has the most matches ({len(top_component[1])})\n"
+                prompt += "Consider whether other matches might be internal modules of this dominant library.\n\n"
 
         prompt += f"""
+    ANALYSIS INSTRUCTIONS:
 
-ANALYSIS INSTRUCTIONS:
+    1. EVIDENCE INTEGRATION:
+       - Synthesize ALL evidence types: copyright, paths, functions, logs, versions, component matches
+       - Component matches are HINTS, not definitive proof - validate with other evidence
+       - Look for CONSISTENT PATTERNS across multiple evidence types
 
-1. CONSOLIDATION PRIORITY:
-   - Start with the primary source library (if identified in Step 1)
-   - Group all related evidence under the correct library project
-   - Do NOT create separate entries for sub-components of the same library
+    2. COMPONENT MATCH INTERPRETATION:
+       - COMPILED-IN LIBRARIES: Strong evidence across multiple categories, library-specific patterns
+       - EXTERNAL DEPENDENCIES: Component matches but no copyright/path evidence of inclusion
+       - INTERNAL MODULES: Component matches that are actually features of a larger library
+       - FALSE POSITIVES: Generic terms without supporting technical evidence
 
-2. EVIDENCE EVALUATION:
-   - Copyright/license statements = STRONG evidence of source code inclusion
-   - Function prefixes + library signatures = MEDIUM evidence
-   - Generic patterns without specific attribution = WEAK evidence  
+    3. CONSOLIDATION PRIORITY:
+       - Start with the primary source library (if identified in Step 1)
+       - Group related component matches under their parent library project
+       - Example: If binary is 'openssl', then 'base64', 'ed25519' matches are likely OpenSSL features
+       - Do NOT create separate entries for sub-components of the same library
 
-3. LIBRARY IDENTIFICATION STANDARDS:
-   - Use main project names (e.g., "OpenSSL" not "libssl" or "libcrypto")
-   - Each library should represent ONE independent source code repository
-   - Only report libraries with credible evidence of code compilation
+    4. EVIDENCE STRENGTH HIERARCHY:
+       - STRONGEST: Copyright statements + source paths + version info + component matches
+       - STRONG: Function prefixes + library-specific error messages + component matches  
+       - MEDIUM: Component matches + generic function patterns
+       - WEAK: Component matches alone without supporting evidence
 
-4. CONSOLIDATION EXAMPLES:
-   - OpenSSL copyright + SSL_* functions + BN_* functions → ONE entry: "OpenSSL"
-   - zlib copyright + inflate/deflate functions → ONE entry: "zlib"  
-   - Multiple XML-related patterns → Determine if from one library (libxml2) or multiple
+    5. QUALITY CONTROL:
+       - Be conservative: better to miss a library than report false positives
+       - Focus on libraries with multiple types of supporting evidence
+       - Exclude generic matches without technical substance
+       - Consider the binary's primary purpose when evaluating matches
 
-TASK: Identify all library projects whose source code is compiled into this binary.
-Focus on independent libraries with clear evidence. Consolidate all evidence by source project.
-"""
+    TASK: Identify all library projects whose source code is compiled into this binary.
+    Use component matches as starting points, but validate with comprehensive evidence analysis.
+    Focus on independent libraries with strong, consistent evidence across multiple categories.
+    """
 
         return prompt
