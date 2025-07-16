@@ -186,7 +186,7 @@ class DetectionWorkflow:
             logger.debug(f"\n=== Binary Information Analysis for {target_binary.binary_name} ===")
             response = self.bin_info_finder.find_for(target_binary, software_context)
             bin_info_finder_duration = time.perf_counter() - bin_info_finder_start_at
-            self.analysis_data.durations["bin_info_finder"] = bin_info_finder_duration
+            self.analysis_data.durations["_bin_info_finder"] = bin_info_finder_duration
             self.analysis_data.costs["bin_info_finder"] = response.metrics
 
             if target_binary.information:
@@ -206,7 +206,7 @@ class DetectionWorkflow:
             tpl_analyzer_start_at = time.perf_counter()
             candidate_libraries_from_agent, response = self.tpl_analyzer.analyze(target_binary, software_context)
             tpl_analyzer_duration = time.perf_counter() - tpl_analyzer_start_at
-            self.analysis_data.durations["tpl_analyzer"] = tpl_analyzer_duration
+            self.analysis_data.durations["_tpl_analyzer"] = tpl_analyzer_duration
             self.analysis_data.costs["tpl_analyzer"] = response.metrics
             self.analysis_data.tpl_analysis_results = candidate_libraries_from_agent
 
@@ -238,17 +238,17 @@ class DetectionWorkflow:
 
         if step_1_response:
             step_1_metrics = step_1_response.metrics
-            self.analysis_data.durations["library_validation_step_1"] = step_1_metrics['time']
+            self.analysis_data.durations["_library_validation_step_1"] = step_1_metrics['time']
             self.analysis_data.costs["library_validation_step_1"] = step_1_metrics
 
         if step_2_response:
             step_2_metrics = step_2_response.metrics
             # duration
-            self.analysis_data.durations["library_validation_step_2"] = step_2_metrics['time']
+            self.analysis_data.durations["_library_validation_step_2"] = step_2_metrics['time']
             # cost
             self.analysis_data.costs["library_validation_step_2"] = step_2_metrics
         else:
-            self.analysis_data.durations["library_validation_step_2"] = 0
+            self.analysis_data.durations["_library_validation_step_2"] = 0
             self.analysis_data.costs["library_validation_step_2"] = {}
 
         self.analysis_data.validation_step_1_results = individual_results

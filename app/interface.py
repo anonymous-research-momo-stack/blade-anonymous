@@ -81,6 +81,15 @@ class TargetBinary(Serializable):
     # Binary Information
     information: BinaryInformation = None
 
+    def preview(self):
+        print("\n" + "="*60)
+        print("📊 目标二进制文件预览")
+        print("="*60)
+        print(f"\tname: {self.binary_name}")
+        print(f"\tpath: {self.absolute_path}")
+        print(f"\tinformation: {self.information.description if self.information else 'N/A'}")
+        print(f"\tSource TPL: {self.information.source_library.name + ":" + self.information.source_library.description if self.information and self.information.source_library else 'N/A'}")
+
 
 @dataclass
 class Library(Serializable):
@@ -209,7 +218,9 @@ class AnalysisData(Serializable):
                 print(f"      分析: {result.reasoning}")
         else:
             print("   无验证步骤2数据")
-        
+        print("="*60)
+        print(f"效率与成本分析")
+        print("="*60)
         # 5. 打印时间开销
         print("\n⏱️  时间开销:")
         if self.durations:
@@ -220,9 +231,24 @@ class AnalysisData(Serializable):
         
         # 6. 打印token成本
         print("\n💰 Token成本:")
+
         if self.costs:
+            total_input = 0
+            total_output = 0
+
             for step, cost_data in self.costs.items():
-                print(f"   {step}: {cost_data}")
+                print(f"   {step}:")
+                for key, value in cost_data.items():
+                    if key in ["input_tokens", "output_tokens", "total_tokens", "time"]:
+                        print(f"      {key}: {value} tokens")
+                        total_input += value[0] if key == "input_tokens" else 0
+                        total_output += value[0] if key == "output_tokens" else 0
+
+            total_tokens = total_input + total_output
+            print(f"   总输入Token: {total_input} tokens, 总输出Token: {total_output} tokens, 总Token: {total_tokens} tokens")
+
+            total_cost = total_input * 2/1_000_000 + total_output * 8/1_000_000
+            print(f"   总成本: ${total_cost:.6f} (假设单价为输入Token $2/百万, 输出Token $8/百万)")
         else:
             print("   无成本数据")
         
