@@ -1,0 +1,992 @@
+{
+  "name": "Famous TPL Benchmark",
+  "version": "0.1.0",
+  "notes": [
+    {
+      "message": "update benchmark fields: remove test case dir, add benchmark notes and target binary sha256.",
+      "update_at": "2024-12-24 15:48:47"
+    }
+  ],
+  "test_cases": [
+    {
+      "test_binary": {
+        "original_name": "libfltk.so.1.3",
+        "relative_path": "libfltk1.3_1.3.8-4_amd64/usr/lib/x86_64-linux-gnu/libfltk.so.1.3",
+        "file_size_kb": 1222.78,
+        "sha256": "609c7dac0310e908341eed5331ca1c3344ea3183b6381cf21720a4f1c604bf0b",
+        "notes": "libfltk1.3_1.3.8-4_amd64"
+      },
+      "reused_libraries": [
+        {
+          "name": "fltk",
+          "vendor": "fltk",
+          "repository": "https://github.com/fltk/fltk",
+          "other_names": [
+            "FLTK"
+          ],
+          "version": "1.3.8",
+          "description": "Cross-platform C++ GUI toolkit",
+          "type": "GUI Library",
+          "notes": "Lightweight and efficient toolkit optimized for 3D graphics"
+        }
+      ]
+    },
+    {
+      "test_binary": {
+        "original_name": "openssl",
+        "relative_path": "openssl_3.0.2-0ubuntu1.18_amd64/usr/bin/openssl",
+        "file_size_kb": 977.8,
+        "sha256": "4bfdc44f0870920e5bb599d3dadaaadd612cf3f59e93e5f5dbcf1bfa852e18fc",
+        "notes": "openssl_3.0.2-0ubuntu1.18_amd64"
+      },
+      "reused_libraries": [
+        {
+          "name": "openssl",
+          "vendor": "openssl",
+          "repository": "https://github.com/openssl/openssl",
+          "other_names": [
+            "OpenSSL"
+          ],
+          "version": "3.0.2",
+          "description": "A robust, commercial-grade, full-featured toolkit for TLS and SSL protocols",
+          "type": "System and Utility Library",
+          "notes": "Widely used as the de facto standard for secure network communications"
+        }
+      ]
+    },
+    {
+      "test_binary": {
+        "original_name": "libpq.so.5.14",
+        "relative_path": "libpq5_14.15-0ubuntu0.22.04.1_amd64/usr/lib/x86_64-linux-gnu/libpq.so.5.14",
+        "file_size_kb": 334.18,
+        "sha256": "55d1f40db2ea9b7bf3be51867cc9e5971742eba6756613e86e367ed2fffd7536",
+        "notes": "libpq5_14.15-0ubuntu0.22.04.1_amd64"
+      },
+      "reused_libraries": [
+        {
+          "name": "postgres",
+          "vendor": "postgres",
+          "repository": "https://github.com/postgres/postgres",
+          "other_names": [
+            "postgresql",
+            "PostgreSQL"
+          ],
+          "version": "14.15",
+          "description": "C application programmer's interface to PostgreSQL",
+          "type": "Database Library",
+          "notes": "Official C client library for PostgreSQL database"
+        }
+      ]
+    },
+    {
+      "test_binary": {
+        "original_name": "libasound.so.2.0.0",
+        "relative_path": "libasound2_1.2.6.1-1ubuntu1_amd64/usr/lib/x86_64-linux-gnu/libasound.so.2.0.0",
+        "file_size_kb": 1030.73,
+        "sha256": "962ca764da620b3febbe82e399a85c59be847966c940571df6b1c5d2825988ba",
+        "notes": "libasound2_1.2.6.1-1ubuntu1_amd64"
+      },
+      "reused_libraries": [
+        {
+          "name": "alsa-lib",
+          "vendor": "Advanced Linux Sound Architecture Project",
+          "repository": "https://github.com/alsa-project/alsa-lib",
+          "other_names": [
+            "ALSA",
+            "alsa"
+          ],
+          "version": "1.2.6.1",
+          "description": "Advanced Linux Sound Architecture Library",
+          "type": "Audio Library",
+          "notes": "Primary sound system for Linux operating systems"
+        }
+      ]
+    },
+    {
+      "test_binary": {
+        "original_name": "libfftw3.so.3.5.8",
+        "relative_path": "libfftw3-double3_3.3.8-2ubuntu8_amd64/usr/lib/x86_64-linux-gnu/libfftw3.so.3.5.8",
+        "file_size_kb": 2150.33,
+        "sha256": "34610b14cb5199a78d9554bef4ef90f8fc53c11d56dd13c5011892a307f71e6d",
+        "notes": "libfftw3-double3_3.3.8-2ubuntu8_amd64"
+      },
+      "reused_libraries": [
+        {
+          "name": "fftw",
+          "vendor": "FFTW",
+          "repository": "https://github.com/FFTW/fftw3",
+          "other_names": [
+            "FFTW",
+            "fftw3"
+          ],
+          "version": "3.3.8",
+          "description": "Library for computing Discrete Fourier Transforms",
+          "type": "Scientific Computing Library",
+          "notes": "One of the fastest implementations of FFT algorithms"
+        }
+      ]
+    },
+    {
+      "test_binary": {
+        "original_name": "libmongoc-1.0.so.0.0.0",
+        "relative_path": "libmongoc-1.0-0_1.21.0-1build1_amd64/usr/lib/x86_64-linux-gnu/libmongoc-1.0.so.0.0.0",
+        "file_size_kb": 739.27,
+        "sha256": "3294a51b8b405d1d3c0282f932d3ea55f54ef6733cb13927bfc4574fae4db806",
+        "notes": "libmongoc-1.0-0_1.21.0-1build1_amd64"
+      },
+      "reused_libraries": [
+        {
+          "name": "mongo-c-driver",
+          "vendor": "MongoDB Inc.",
+          "repository": "https://github.com/mongodb/mongo-c-driver",
+          "other_names": [],
+          "version": "1.21.0",
+          "description": "High-performance MongoDB client library for C",
+          "type": "Database Library",
+          "notes": "Official C driver for MongoDB database"
+        }
+      ]
+    },
+    {
+      "test_binary": {
+        "original_name": "libblas.so.3.10.0",
+        "relative_path": "libblas3_3.10.0-2ubuntu1_amd64/usr/lib/x86_64-linux-gnu/blas/libblas.so.3.10.0",
+        "file_size_kb": 657.84,
+        "sha256": "bd8a282c845e100cbb28dd31f9cf19757d508bf7a07a7f62bbe8c04cafb81646",
+        "notes": "libblas3_3.10.0-2ubuntu1_amd64"
+      },
+      "reused_libraries": [
+        {
+          "name": "blas",
+          "vendor": "netlib",
+          "repository": "https://github.com/OpenMathLib/OpenBLAS",
+          "other_names": [
+            "BLAS",
+            "OpenBLAS",
+            "openblas"
+          ],
+          "version": "3.11.0",
+          "description": "Low-level library providing standard building blocks for performing basic vector and matrix operations",
+          "type": "Scientific Computing Library",
+          "notes": "Core foundation for linear algebra software packages, including LAPACK. Defines the standard interfaces for vector and matrix operations."
+        }
+      ]
+    },
+    {
+      "test_binary": {
+        "original_name": "ffprobe",
+        "relative_path": "ffmpeg_7%3a4.4.2-0ubuntu0.22.04.1_amd64/usr/bin/ffprobe",
+        "file_size_kb": 174.64,
+        "sha256": "d4f3ef9c12be756793cad83dd2004d89f49c1c4094053bfbbe7e28925c8fa4fd",
+        "notes": "ffmpeg_7%3a4.4.2-0ubuntu0.22.04.1_amd64"
+      },
+      "reused_libraries": [
+        {
+          "name": "FFmpeg",
+          "vendor": "FFmpeg",
+          "repository": "https://github.com/FFmpeg/FFmpeg",
+          "other_names": [
+            "ffmpeg"
+          ],
+          "version": "4.4.2",
+          "description": "Complete solution for recording, converting and streaming audio and video",
+          "type": "Multimedia Library",
+          "notes": "De facto standard multimedia framework used in many applications and services"
+        }
+      ]
+    },
+    {
+      "test_binary": {
+        "original_name": "ffmpeg",
+        "relative_path": "ffmpeg_7%3a4.4.2-0ubuntu0.22.04.1_amd64/usr/bin/ffmpeg",
+        "file_size_kb": 294.48,
+        "sha256": "36d94a605d612e4090d1b8aec889d0c0801c6eafb1593c90f5c0dfd2e2966a45",
+        "notes": "ffmpeg_7%3a4.4.2-0ubuntu0.22.04.1_amd64"
+      },
+      "reused_libraries": [
+        {
+          "name": "FFmpeg",
+          "vendor": "FFmpeg",
+          "repository": "https://github.com/FFmpeg/FFmpeg",
+          "other_names": [
+            "ffmpeg"
+          ],
+          "version": "4.4.2",
+          "description": "Complete solution for recording, converting and streaming audio and video",
+          "type": "Multimedia Library",
+          "notes": "De facto standard multimedia framework used in many applications and services"
+        }
+      ]
+    },
+    {
+      "test_binary": {
+        "original_name": "ffplay",
+        "relative_path": "ffmpeg_7%3a4.4.2-0ubuntu0.22.04.1_amd64/usr/bin/ffplay",
+        "file_size_kb": 146.47,
+        "sha256": "2567eb43be71657bb64dc3157148f30b380cd140e0ea9046ae3cccd81810ff6f",
+        "notes": "ffmpeg_7%3a4.4.2-0ubuntu0.22.04.1_amd64"
+      },
+      "reused_libraries": [
+        {
+          "name": "FFmpeg",
+          "vendor": "FFmpeg",
+          "repository": "https://github.com/FFmpeg/FFmpeg",
+          "other_names": [
+            "ffmpeg"
+          ],
+          "version": "4.4.2",
+          "description": "Complete solution for recording, converting and streaming audio and video",
+          "type": "Multimedia Library",
+          "notes": "De facto standard multimedia framework used in many applications and services"
+        }
+      ]
+    },
+    {
+      "test_binary": {
+        "original_name": "libsqlite3.so.0.8.6",
+        "relative_path": "libsqlite3-0_3.37.2-2ubuntu0.3_amd64/usr/lib/x86_64-linux-gnu/libsqlite3.so.0.8.6",
+        "file_size_kb": 1326.68,
+        "sha256": "10ced68ec525f26c6f5a5208fa0e905bfe7153d4399ee49f79bc1beee99e757f",
+        "notes": "libsqlite3-0_3.37.2-2ubuntu0.3_amd64"
+      },
+      "reused_libraries": [
+        {
+          "name": "sqlite",
+          "vendor": "sqlite",
+          "repository": "https://github.com/sqlite/sqlite",
+          "other_names": [
+            "SQLite"
+          ],
+          "version": "3.37.2",
+          "description": "Self-contained, serverless, zero-configuration, transactional SQL database engine",
+          "type": "System and Utility Library",
+          "notes": "Most widely deployed SQL database engine in the world"
+        }
+      ]
+    },
+    {
+      "test_binary": {
+        "original_name": "libmp3lame.so.0.0.0",
+        "relative_path": "libmp3lame0_3.100-3build2_amd64/usr/lib/x86_64-linux-gnu/libmp3lame.so.0.0.0",
+        "file_size_kb": 282.07,
+        "sha256": "85ca65a26c2138f4c22ad7089defa6ad4c20b556a1145788c56d2efd9fdf3d04",
+        "notes": "libmp3lame0_3.100-3build2_amd64"
+      },
+      "reused_libraries": [
+        {
+          "name": "lame",
+          "vendor": "lame",
+          "repository": "https://svn.code.sf.net/p/lame/svn/trunk/lame",
+          "other_names": [
+            "LAME",
+            "libmp3lame"
+          ],
+          "version": "3.100",
+          "description": "High quality MPEG Audio Layer III (MP3) encoder",
+          "type": "Audio Library",
+          "notes": "Popular open source MP3 encoding library"
+        }
+      ]
+    },
+    {
+      "test_binary": {
+        "original_name": "libnl-3.so.200.26.0",
+        "relative_path": "libnl-3-200_3.5.0-0.1_amd64/lib/x86_64-linux-gnu/libnl-3.so.200.26.0",
+        "file_size_kb": 134.9,
+        "sha256": "458dd70122be79952cd517f469e3714ee6a972c0d96cd67954b1e37fb4830b27",
+        "notes": "libnl-3-200_3.5.0-0.1_amd64"
+      },
+      "reused_libraries": [
+        {
+          "name": "libnl",
+          "vendor": "Thomas Graf",
+          "repository": "https://github.com/thom311/libnl",
+          "other_names": [
+            "libnl3",
+            "Netlink Protocol Library"
+          ],
+          "version": "3.5.0",
+          "description": "Collection of libraries providing APIs to netlink protocol based Linux kernel interfaces",
+          "type": "Network Library",
+          "notes": "Primary interface for Linux network-related operations"
+        }
+      ]
+    },
+    {
+      "test_binary": {
+        "original_name": "libgtk-3.so.0.2404.29",
+        "relative_path": "libgtk-3-0_3.24.33-1ubuntu2.2_amd64/usr/lib/x86_64-linux-gnu/libgtk-3.so.0.2404.29",
+        "file_size_kb": 8333.42,
+        "sha256": "7d48175fd1550f8b77119e77775073f10b5fd736e62efea25f6484fb97b15c57",
+        "notes": "libgtk-3-0_3.24.33-1ubuntu2.2_amd64"
+      },
+      "reused_libraries": [
+        {
+          "name": "gtk",
+          "vendor": "GNOME",
+          "repository": "https://gitlab.gnome.org/GNOME/gtk",
+          "other_names": [
+            "GTK",
+            "GIMP Toolkit"
+          ],
+          "version": "3.24.33",
+          "description": "Multi-platform toolkit for creating graphical user interfaces",
+          "type": "GUI Library",
+          "notes": "Primary toolkit for GNOME desktop environment and related applications"
+        }
+      ]
+    },
+    {
+      "test_binary": {
+        "original_name": "libpng16.so.16.37.0",
+        "relative_path": "libpng16-16_1.6.37-3build5_amd64/usr/lib/x86_64-linux-gnu/libpng16.so.16.37.0",
+        "file_size_kb": 230.07,
+        "sha256": "210ba03c7855715a223465d36767a6a5588fe58f7192997e5f14777e4e045cde",
+        "notes": "libpng16-16_1.6.37-3build5_amd64"
+      },
+      "reused_libraries": [
+        {
+          "name": "libpng",
+          "vendor": "glennrp",
+          "repository": "https://github.com/glennrp/libpng",
+          "other_names": [
+            "LibPNG"
+          ],
+          "version": "1.6.37",
+          "description": "Official PNG reference library",
+          "type": "Multimedia Library",
+          "notes": "Reference implementation of the PNG specification"
+        }
+      ]
+    },
+    {
+      "test_binary": {
+        "original_name": "libgif.so.7.1.0",
+        "relative_path": "libgif7_5.1.9-2ubuntu0.1_amd64/usr/lib/x86_64-linux-gnu/libgif.so.7.1.0",
+        "file_size_kb": 37.99,
+        "sha256": "4be852f8a28a0ff174d8f84d2fb4f79b44c7a8876c9ba21c5be2c3d0f81dec9d",
+        "notes": "libgif7_5.1.9-2ubuntu0.1_amd64"
+      },
+      "reused_libraries": [
+        {
+          "name": "giflib",
+          "vendor": "giflib",
+          "repository": "https://git.code.sf.net/p/giflib/code",
+          "other_names": [
+            "libgif"
+          ],
+          "version": "5.1.9",
+          "description": "Library for reading and writing GIF images",
+          "type": "Multimedia Library",
+          "notes": "Provides support for all GIF formats including GIF89a"
+        }
+      ]
+    },
+    {
+      "test_binary": {
+        "original_name": "libgsl.so.27.0.0",
+        "relative_path": "libgsl27_2.7.1+dfsg-3_amd64/usr/lib/x86_64-linux-gnu/libgsl.so.27.0.0",
+        "file_size_kb": 2806.04,
+        "sha256": "9a68dab3a335ad9a23a2bc7178057b03ee6f3b9235b2002f490919179bbe564a",
+        "notes": "libgsl27_2.7.1+dfsg-3_amd64"
+      },
+      "reused_libraries": [
+        {
+          "name": "gsl",
+          "vendor": "GNU",
+          "repository": "https://git.savannah.gnu.org/cgit/gsl.git",
+          "other_names": [
+            "GSL",
+            "GNU Scientific Library"
+          ],
+          "version": "2.7.1",
+          "description": "Numerical library for C and C++ programmers",
+          "type": "Scientific Computing Library",
+          "notes": "Provides a wide range of mathematical routines for scientific computing"
+        }
+      ]
+    },
+    {
+      "test_binary": {
+        "original_name": "liblapack.so.3.10.0",
+        "relative_path": "liblapack3_3.10.0-2ubuntu1_amd64/usr/lib/x86_64-linux-gnu/lapack/liblapack.so.3.10.0",
+        "file_size_kb": 7389.87,
+        "sha256": "86b2c20720e2aafb6b84d20d252cd39c5b22a6f7452f8bb920a06d8c8439124c",
+        "notes": "liblapack3_3.10.0-2ubuntu1_amd64"
+      },
+      "reused_libraries": [
+        {
+          "name": "lapack",
+          "vendor": "lapack",
+          "repository": "https://github.com/Reference-LAPACK/lapack",
+          "other_names": [
+            "LAPACK"
+          ],
+          "version": "3.10.0",
+          "description": "Linear Algebra Package for advanced matrix operations",
+          "type": "Scientific Computing Library",
+          "notes": "Standard software library for numerical linear algebra"
+        }
+      ]
+    },
+    {
+      "test_binary": {
+        "original_name": "libarchive.so.13.6.0",
+        "relative_path": "libarchive13_3.6.0-1ubuntu1.3_amd64/usr/lib/x86_64-linux-gnu/libarchive.so.13.6.0",
+        "file_size_kb": 802.09,
+        "sha256": "3508abb036ec8a76cf8b6f1aabcb8249d4b39d5d4caaadb622dff2bd1cba7740",
+        "notes": "libarchive13_3.6.0-1ubuntu1.3_amd64"
+      },
+      "reused_libraries": [
+        {
+          "name": "libarchive",
+          "vendor": "libarchive",
+          "repository": "https://github.com/libarchive/libarchive",
+          "other_names": [
+            "LibArchive"
+          ],
+          "version": "3.6.0",
+          "description": "Multi-format archive and compression library",
+          "type": "Utility Library",
+          "notes": "Supports multiple archive formats including tar, zip, 7z, and various compression methods"
+        }
+      ]
+    },
+    {
+      "test_binary": {
+        "original_name": "libyaml-0.so.2.0.6",
+        "relative_path": "libyaml-0-2_0.2.2-1build2_amd64/usr/lib/x86_64-linux-gnu/libyaml-0.so.2.0.6",
+        "file_size_kb": 126.21,
+        "sha256": "b8a73ba01e86b12ca125d8bfa2c3efd9aae6d90f618b1bfa37b213e99c2e91d1",
+        "notes": "libyaml-0-2_0.2.2-1build2_amd64"
+      },
+      "reused_libraries": [
+        {
+          "name": "libyaml",
+          "vendor": "Kirill Simonov",
+          "repository": "https://github.com/yaml/libyaml",
+          "other_names": [
+            "LibYAML"
+          ],
+          "version": "0.2.2",
+          "description": "YAML parser and emitter library",
+          "type": "Utility Library",
+          "notes": "Fast and portable YAML 1.1 parser and emitter"
+        }
+      ]
+    },
+    {
+      "test_binary": {
+        "original_name": "libpcap.so.1.10.1",
+        "relative_path": "libpcap0.8_1.10.1-4ubuntu1.22.04.1_amd64/usr/lib/x86_64-linux-gnu/libpcap.so.1.10.1",
+        "file_size_kb": 303.31,
+        "sha256": "ebce8e76672d672abc462e6bc9affc12a05d29d55514fedc1e50ad7186ea6268",
+        "notes": "libpcap0.8_1.10.1-4ubuntu1.22.04.1_amd64"
+      },
+      "reused_libraries": [
+        {
+          "name": "pcap",
+          "vendor": "The Tcpdump Group",
+          "repository": "https://github.com/the-tcpdump-group/libpcap",
+          "other_names": [
+            "libpcap"
+          ],
+          "version": "1.10.1",
+          "description": "System-independent interface for user-level packet capture",
+          "type": "Network Library",
+          "notes": "Widely used for network traffic capture and analysis"
+        }
+      ]
+    },
+    {
+      "test_binary": {
+        "original_name": "libpulse-simple.so.0.1.1",
+        "relative_path": "libpulse0_1%3a15.99.1+dfsg1-1ubuntu2.2_amd64/usr/lib/x86_64-linux-gnu/libpulse-simple.so.0.1.1",
+        "file_size_kb": 22.23,
+        "sha256": "e92fd90a87699ceff15c45f9dd1993e6d71b3cc3a4f7ea785f260ff8e4215040",
+        "notes": "libpulse0_1%3a15.99.1+dfsg1-1ubuntu2.2_amd64"
+      },
+      "reused_libraries": [
+        {
+          "name": "pulseaudio",
+          "vendor": "Freedesktop.org",
+          "repository": "https://gitlab.freedesktop.org/pulseaudio/pulseaudio",
+          "other_names": [
+            "PulseAudio"
+          ],
+          "version": "15.99.1",
+          "description": "Network-capable sound server program for POSIX systems",
+          "type": "Audio Library",
+          "notes": "Sound system for POSIX operating systems with advanced features"
+        }
+      ]
+    },
+    {
+      "test_binary": {
+        "original_name": "libpulse.so.0.24.1",
+        "relative_path": "libpulse0_1%3a15.99.1+dfsg1-1ubuntu2.2_amd64/usr/lib/x86_64-linux-gnu/libpulse.so.0.24.1",
+        "file_size_kb": 335.2,
+        "sha256": "dc4e62204e11605b8568dede082f0f24d36b4d69b2fbc6cb5d9c10c89d748b7e",
+        "notes": "libpulse0_1%3a15.99.1+dfsg1-1ubuntu2.2_amd64"
+      },
+      "reused_libraries": [
+        {
+          "name": "pulseaudio",
+          "vendor": "Freedesktop.org",
+          "repository": "https://gitlab.freedesktop.org/pulseaudio/pulseaudio",
+          "other_names": [
+            "PulseAudio"
+          ],
+          "version": "15.99.1",
+          "description": "Network-capable sound server program for POSIX systems",
+          "type": "Audio Library",
+          "notes": "Sound system for POSIX operating systems with advanced features"
+        }
+      ]
+    },
+    {
+      "test_binary": {
+        "original_name": "libpulsecommon-15.99.so",
+        "relative_path": "libpulse0_1%3a15.99.1+dfsg1-1ubuntu2.2_amd64/usr/lib/x86_64-linux-gnu/pulseaudio/libpulsecommon-15.99.so",
+        "file_size_kb": 526.33,
+        "sha256": "34d98da64f951df8bec478523323695a198d7ca7596144f4c48c8f7568f138f5",
+        "notes": "libpulse0_1%3a15.99.1+dfsg1-1ubuntu2.2_amd64"
+      },
+      "reused_libraries": [
+        {
+          "name": "pulseaudio",
+          "vendor": "Freedesktop.org",
+          "repository": "https://gitlab.freedesktop.org/pulseaudio/pulseaudio",
+          "other_names": [
+            "PulseAudio"
+          ],
+          "version": "15.99.1",
+          "description": "Network-capable sound server program for POSIX systems",
+          "type": "Audio Library",
+          "notes": "Sound system for POSIX operating systems with advanced features"
+        }
+      ]
+    },
+    {
+      "test_binary": {
+        "original_name": "libsndfile.so.1.0.31",
+        "relative_path": "libsndfile1_1.0.31-2ubuntu0.1_amd64/usr/lib/x86_64-linux-gnu/libsndfile.so.1.0.31",
+        "file_size_kb": 496.54,
+        "sha256": "b0e914da223fb7bef5b178016e6fcc3015fc4ea381d552b686a8901b38f5b80f",
+        "notes": "libsndfile1_1.0.31-2ubuntu0.1_amd64"
+      },
+      "reused_libraries": [
+        {
+          "name": "libsndfile",
+          "vendor": "Erik de Castro Lopo",
+          "repository": "https://github.com/libsndfile/libsndfile",
+          "other_names": [
+            "LibSndFile"
+          ],
+          "version": "1.0.31",
+          "description": "C library for reading and writing files containing sampled sound",
+          "type": "Audio Library",
+          "notes": "Supports multiple audio file formats including WAV, AIFF, and Raw PCM"
+        }
+      ]
+    },
+    {
+      "test_binary": {
+        "original_name": "libmagic.so.1.0.0",
+        "relative_path": "libmagic1_1%3a5.41-3ubuntu0.1_amd64/usr/lib/x86_64-linux-gnu/libmagic.so.1.0.0",
+        "file_size_kb": 162.37,
+        "sha256": "1a3f509b0f2a9604faa622ba41f9faeb066d7cc5725205d3276f2722e0d4b074",
+        "notes": "libmagic1_1%3a5.41-3ubuntu0.1_amd64"
+      },
+      "reused_libraries": [
+        {
+          "name": "file",
+          "vendor": "file",
+          "repository": "https://github.com/file/file",
+          "other_names": [
+            "libmagic"
+          ],
+          "version": "5.41",
+          "description": "Library for determining file types",
+          "type": "Utility Library",
+          "notes": "Uses 'magic' patterns to identify file formats and types"
+        }
+      ]
+    },
+    {
+      "test_binary": {
+        "original_name": "libldap-2.5.so.0.1.13",
+        "relative_path": "libldap-2.5-0_2.5.18+dfsg-0ubuntu0.22.04.2_amd64/usr/lib/x86_64-linux-gnu/libldap-2.5.so.0.1.13",
+        "file_size_kb": 367.69,
+        "sha256": "858af7e75d4ab17516cb3b27afa8945e35fc97223964fd1cc817e9c4f254d6a7",
+        "notes": "libldap-2.5-0_2.5.18+dfsg-0ubuntu0.22.04.2_amd64"
+      },
+      "reused_libraries": [
+        {
+          "name": "openldap",
+          "vendor": "openldap",
+          "repository": "https://git.openldap.org/openldap/openldap",
+          "other_names": [
+            "libldap"
+          ],
+          "version": "2.5.18",
+          "description": "Open source implementation of the Lightweight Directory Access Protocol",
+          "type": "Network Library",
+          "notes": "Industry standard for directory services and authentication"
+        }
+      ]
+    },
+    {
+      "test_binary": {
+        "original_name": "libQt5Core.so.5.15.3",
+        "relative_path": "libqt5core5a_5.15.3+dfsg-2ubuntu0.2_amd64/usr/lib/x86_64-linux-gnu/libQt5Core.so.5.15.3",
+        "file_size_kb": 5482.41,
+        "sha256": "2947cd1e41a64bc2d6faea86e908cdd327d0ed0910b0d439e1bbe04a6be0bf82",
+        "notes": "libqt5core5a_5.15.3+dfsg-2ubuntu0.2_amd64"
+      },
+      "reused_libraries": [
+        {
+          "name": "qt",
+          "vendor": "The Qt Company",
+          "repository": "https://github.com/qt/qt5",
+          "other_names": [
+            "Qt",
+            "qt5"
+          ],
+          "version": "5.15.3",
+          "description": "Cross-platform application development framework",
+          "type": "GUI Library",
+          "notes": "Complete framework for developing applications with graphical user interfaces"
+        }
+      ]
+    },
+    {
+      "test_binary": {
+        "original_name": "libSDL2-2.0.so.0.18.2",
+        "relative_path": "libsdl2-2.0-0_2.0.20+dfsg-2ubuntu1.22.04.1_amd64/usr/lib/x86_64-linux-gnu/libSDL2-2.0.so.0.18.2",
+        "file_size_kb": 1637.24,
+        "sha256": "e929edba30ff878b9cde28c48b34aa748d3baa59a1a382504ebcf04e7c0e075c",
+        "notes": "libsdl2-2.0-0_2.0.20+dfsg-2ubuntu1.22.04.1_amd64"
+      },
+      "reused_libraries": [
+        {
+          "name": "sdl",
+          "vendor": "libsdl-org",
+          "repository": "https://github.com/libsdl-org/SDL",
+          "other_names": [
+            "sdl2",
+            "SDL",
+            "SDL2"
+          ],
+          "version": "2.0.20",
+          "description": "Multimedia framework designed to provide low level access to audio, keyboard, mouse, joystick, and graphics",
+          "type": "Multimedia Library",
+          "notes": "Widely used in game development and multimedia applications"
+        }
+      ]
+    },
+    {
+      "test_binary": {
+        "original_name": "libvorbis.so.0.4.9",
+        "relative_path": "libvorbis0a_1.3.7-1build2_amd64/usr/lib/x86_64-linux-gnu/libvorbis.so.0.4.9",
+        "file_size_kb": 174.07,
+        "sha256": "09ea7bba29ecd10714d85d8de184955e04e37112c8528319ccff25a4013bd30a",
+        "notes": "libvorbis0a_1.3.7-1build2_amd64"
+      },
+      "reused_libraries": [
+        {
+          "name": "vorbis",
+          "vendor": "Xiph.Org Foundation",
+          "repository": "https://github.com/xiph/vorbis",
+          "other_names": [
+            "libvorbis"
+          ],
+          "version": "1.3.7",
+          "description": "Reference implementation of the Ogg Vorbis audio format",
+          "type": "Audio Library",
+          "notes": "Free and open-source codec for lossy audio compression"
+        }
+      ]
+    },
+    {
+      "test_binary": {
+        "original_name": "libcurl.so.4.7.0",
+        "relative_path": "libcurl4_7.81.0-1ubuntu1.20_amd64/usr/lib/x86_64-linux-gnu/libcurl.so.4.7.0",
+        "file_size_kb": 661.77,
+        "sha256": "4a475a33fa23daeffa06d37b9f364f9a1b6b2630b887577255e58298382ce691",
+        "notes": "libcurl4_7.81.0-1ubuntu1.20_amd64"
+      },
+      "reused_libraries": [
+        {
+          "name": "curl",
+          "vendor": "Daniel Stenberg",
+          "repository": "https://github.com/curl/curl",
+          "other_names": [
+            "cURL"
+          ],
+          "version": "7.81.0",
+          "description": "Command line tool and library for transferring data with URLs",
+          "type": "System and Utility Library",
+          "notes": "Supports numerous protocols including HTTP, FTP, SMTP"
+        }
+      ]
+    },
+    {
+      "test_binary": {
+        "original_name": "libxml2.so.2.9.13",
+        "relative_path": "libxml2_2.9.13+dfsg-1ubuntu0.4_amd64/usr/lib/x86_64-linux-gnu/libxml2.so.2.9.13",
+        "file_size_kb": 1921.27,
+        "sha256": "4b4b5b24c453fbf2a03326311611d50a0c6af6ab708960ff989460d701039e9a",
+        "notes": "libxml2_2.9.13+dfsg-1ubuntu0.4_amd64"
+      },
+      "reused_libraries": [
+        {
+          "name": "libxml2",
+          "vendor": "GNOME",
+          "repository": "https://github.com/GNOME/libxml2",
+          "other_names": [
+            "LibXML2"
+          ],
+          "version": "2.9.13",
+          "description": "XML parsing and toolkit for GNOME",
+          "type": "System and Utility Library",
+          "notes": "The XML C parser and toolkit of Gnome"
+        }
+      ]
+    },
+    {
+      "test_binary": {
+        "original_name": "libhiredis.so.0.14",
+        "relative_path": "libhiredis0.14_0.14.1-2_amd64/usr/lib/x86_64-linux-gnu/libhiredis.so.0.14",
+        "file_size_kb": 66.12,
+        "sha256": "2a276979f946e0a21a5adf93bb3aa55683e452ec8648c4177e1b7f2456ec7d93",
+        "notes": "libhiredis0.14_0.14.1-2_amd64"
+      },
+      "reused_libraries": [
+        {
+          "name": "hiredis",
+          "vendor": "Redis Labs",
+          "repository": "https://github.com/redis/hiredis",
+          "other_names": [
+            "libhiredis"
+          ],
+          "version": "0.14.1",
+          "description": "Minimalistic C client library for Redis",
+          "type": "Database Library",
+          "notes": "Official C client library for Redis database"
+        }
+      ]
+    },
+    {
+      "test_binary": {
+        "original_name": "libGLEW.so.2.2.0",
+        "relative_path": "libglew2.2_2.2.0-4_amd64/usr/lib/x86_64-linux-gnu/libGLEW.so.2.2.0",
+        "file_size_kb": 730.04,
+        "sha256": "1ca90beb9fb8d036e4217574b18e2482e342ccf628038c1fccb6417db270eac7",
+        "notes": "libglew2.2_2.2.0-4_amd64"
+      },
+      "reused_libraries": [
+        {
+          "name": "glew",
+          "vendor": "GLEW Development Team",
+          "repository": "https://github.com/nigels-com/glew",
+          "other_names": [
+            "GLEW"
+          ],
+          "version": "2.2.0",
+          "description": "OpenGL Extension Wrangler Library",
+          "type": "3D Graphics Library",
+          "notes": "Cross-platform C/C++ library that helps in querying and loading OpenGL extensions"
+        }
+      ]
+    },
+    {
+      "test_binary": {
+        "original_name": "libX11.so.6.4.0",
+        "relative_path": "libx11-6_2%3a1.7.5-1ubuntu0.3_amd64/usr/lib/x86_64-linux-gnu/libX11.so.6.4.0",
+        "file_size_kb": 1275.66,
+        "sha256": "34b7869a1ba702462a1aa862fc0afe5b2608a7d5a09552c07796802fcf0c684b",
+        "notes": "libx11-6_2%3a1.7.5-1ubuntu0.3_amd64"
+      },
+      "reused_libraries": [
+        {
+          "name": "libX11",
+          "vendor": "X.Org Foundation",
+          "repository": "https://gitlab.freedesktop.org/xorg/lib/libX11",
+          "other_names": [
+            "libx11"
+          ],
+          "version": "1.7.5",
+          "description": "Core X11 protocol client library",
+          "type": "GUI Library",
+          "notes": "Foundation library for X Window System programming"
+        }
+      ]
+    },
+    {
+      "test_binary": {
+        "original_name": "libmicrohttpd.so.12.60.0",
+        "relative_path": "libmicrohttpd12_0.9.75-3ubuntu1_amd64/usr/lib/x86_64-linux-gnu/libmicrohttpd.so.12.60.0",
+        "file_size_kb": 162.22,
+        "sha256": "d76d45baf4856987dfdcb85690672a797c41be0968f5b0eb7959b59c3d42749b",
+        "notes": "libmicrohttpd12_0.9.75-3ubuntu1_amd64"
+      },
+      "reused_libraries": [
+        {
+          "name": "libmicrohttpd",
+          "vendor": "GNU Project",
+          "repository": "https://git.gnunet.org/libmicrohttpd.git",
+          "other_names": [
+            "GNU libmicrohttpd"
+          ],
+          "version": "0.9.75",
+          "description": "Small C library that makes it easy to run an HTTP server",
+          "type": "Network Library",
+          "notes": "Supports HTTP 1.1 and various features like SSL/TLS, IPv6"
+        }
+      ]
+    },
+    {
+      "test_binary": {
+        "original_name": "libvulkan.so.1.3.204",
+        "relative_path": "libvulkan1_1.3.204.1-2_amd64/usr/lib/x86_64-linux-gnu/libvulkan.so.1.3.204",
+        "file_size_kb": 434.67,
+        "sha256": "f2c637267fc08e343f3d617252e1ddcaf035dc714728fbdc35ce9ebd8fc4a453",
+        "notes": "libvulkan1_1.3.204.1-2_amd64"
+      },
+      "reused_libraries": [
+        {
+          "name": "vulkan",
+          "vendor": "Khronos Group",
+          "repository": "https://github.com/KhronosGroup/Vulkan-Docs",
+          "other_names": [
+            "Vulkan",
+            "Vulkan-Loader"
+          ],
+          "version": "1.3.204.1",
+          "description": "Low-overhead, cross-platform 3D graphics API",
+          "type": "3D Graphics Library",
+          "notes": "Modern successor to OpenGL designed for high-performance graphics"
+        }
+      ]
+    },
+    {
+      "test_binary": {
+        "original_name": "libmysqlclient.so.21.2.40",
+        "relative_path": "libmysqlclient21_8.0.40-0ubuntu0.22.04.1_amd64/usr/lib/x86_64-linux-gnu/libmysqlclient.so.21.2.40",
+        "file_size_kb": 6685.99,
+        "sha256": "e1670a2df91c78075a1bf81f5b7f6f6125e84118bb12a6331f13054868e181a4",
+        "notes": "libmysqlclient21_8.0.40-0ubuntu0.22.04.1_amd64"
+      },
+      "reused_libraries": [
+        {
+          "name": "mysql-connector-c",
+          "vendor": "Oracle Corporation",
+          "repository": "https://github.com/mysql/mysql-connector-c",
+          "other_names": [
+            "libmysqlclient"
+          ],
+          "version": "8.0.40",
+          "description": "C client library for MySQL database access",
+          "type": "Database Library",
+          "notes": "Official C client library for MySQL/MariaDB databases"
+        }
+      ]
+    },
+    {
+      "test_binary": {
+        "original_name": "libGL.so.1.7.0",
+        "relative_path": "libgl1_1.4.0-1_amd64/usr/lib/x86_64-linux-gnu/libGL.so.1.7.0",
+        "file_size_kb": 530.33,
+        "sha256": "92e6ea9f8caa3c265f3ef141a122a18f7d2e27d6e5fd2b490cfea83262df745e",
+        "notes": "libgl1_1.4.0-1_amd64"
+      },
+      "reused_libraries": [
+        {
+          "name": "opengl",
+          "vendor": "Khronos Group",
+          "repository": "https://github.com/KhronosGroup/OpenGL",
+          "other_names": [
+            "mesa",
+            "Mesa",
+            "OpenGL"
+          ],
+          "version": "1.4.0",
+          "description": "Industry standard for high-performance 2D and 3D graphics",
+          "type": "3D Graphics Library",
+          "notes": "Cross-platform API for rendering 2D and 3D vector graphics"
+        }
+      ]
+    },
+    {
+      "test_binary": {
+        "original_name": "libssh.so.4.8.7",
+        "relative_path": "libssh-4_0.9.6-2ubuntu0.22.04.3_amd64/usr/lib/x86_64-linux-gnu/libssh.so.4.8.7",
+        "file_size_kb": 431.59,
+        "sha256": "c00fffadb6647d8eb5dfadc33a9e244002f2fa4bfe68ee14c27c2fd6694bfc58",
+        "notes": "libssh-4_0.9.6-2ubuntu0.22.04.3_amd64"
+      },
+      "reused_libraries": [
+        {
+          "name": "libssh",
+          "vendor": "LibSSH Team",
+          "repository": "https://git.libssh.org/projects/libssh.git",
+          "other_names": [
+            "LibSSH"
+          ],
+          "version": "0.9.6",
+          "description": "Multiplatform C library implementing SSHv2 protocol",
+          "type": "Network Library",
+          "notes": "Provides both client and server side support for SSH protocol"
+        }
+      ]
+    },
+    {
+      "test_binary": {
+        "original_name": "libgmp.so.10.4.1",
+        "relative_path": "libgmp10_2%3a6.2.1+dfsg-3ubuntu1_amd64/usr/lib/x86_64-linux-gnu/libgmp.so.10.4.1",
+        "file_size_kb": 514.55,
+        "sha256": "4dc20a901c6951e678e216e959da2534bcef7053e6efdf1492509baf142282b0",
+        "notes": "libgmp10_2%3a6.2.1+dfsg-3ubuntu1_amd64"
+      },
+      "reused_libraries": [
+        {
+          "name": "gmp",
+          "vendor": "GNU Project",
+          "repository": "https://gmplib.org/repo/gmp/",
+          "other_names": [
+            "GMP",
+            "libgmp"
+          ],
+          "version": "6.2.1",
+          "description": "Library for arbitrary precision arithmetic",
+          "type": "Utility Library",
+          "notes": "Operates on signed integers, rational numbers, and floating-point numbers"
+        }
+      ]
+    },
+    {
+      "test_binary": {
+        "original_name": "libz.so.1.2.11",
+        "relative_path": "zlib1g_1%3a1.2.11.dfsg-2ubuntu9.2_amd64/lib/x86_64-linux-gnu/libz.so.1.2.11",
+        "file_size_kb": 106.38,
+        "sha256": "64c206f0146cc58bbddc4f22054436f4ff278f5a554aa3ce6921ddf7e9133370",
+        "notes": "zlib1g_1%3a1.2.11.dfsg-2ubuntu9.2_amd64"
+      },
+      "reused_libraries": [
+        {
+          "name": "zlib",
+          "vendor": "Jean-loup Gailly and Mark Adler",
+          "repository": "https://github.com/madler/zlib",
+          "other_names": [
+            "Zlib"
+          ],
+          "version": "1.2.11",
+          "description": "A massively spiffy yet delicately unobtrusive compression library",
+          "type": "System and Utility Library",
+          "notes": "Standard compression library used by many operating systems"
+        }
+      ]
+    }
+  ]
+}

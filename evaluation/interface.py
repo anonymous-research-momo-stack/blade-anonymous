@@ -138,6 +138,7 @@ class AnalysisResultCheck(Serializable):
     2. 记录TP, FP, FN
     """
     binary_name: str = None  # Name of the binary file
+    binary_path: str = None  # Path of the binary file, relative to the test case directory
     binary_hash: str = None  # Hash of the binary file, used for verification
 
     ground_truth_lib_names: List[str] = dataclasses.field(default_factory=list)  # Ground Truth Libraries
@@ -217,6 +218,7 @@ class SimpleEvaluationReport(Serializable):
     research_question_data: ResearchQuestionData = None
     evaluation_results_check: List[AnalysisResultCheck] = dataclasses.field(default_factory=list)
     simple_results: List[SimpleResult] = dataclasses.field(default_factory=list)
+
 
 @dataclass
 class EvaluationReport(Serializable):

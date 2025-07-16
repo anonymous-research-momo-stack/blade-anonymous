@@ -100,6 +100,7 @@ class Evaluator:
             # 生成分析结果检查对象
             analysis_result_check = AnalysisResultCheck(
                 binary_name=result.target_binary.binary_name,
+                binary_path=result.target_binary.absolute_path,
                 binary_hash=result.target_binary.hash_sha256,
                 ground_truth_lib_names=[lib.name for lib in ground_truth_reused_libraries],  # Ground Truth 库名称
                 detected_lib_names=[lib.name for lib in result.detected_libraries],  # 检测到的库名称
@@ -195,26 +196,35 @@ class Evaluator:
         return rq_data
 
 def main():
+    # 41 个常见组件
+    Famous_TPL_41_benchmark_meta = "/Users/liuchengyue/Desktop/BinarySCA Platform/Code/sca_agents/bsca-expert-agent-api/evaluation/benchmark_meta/FTPL50.json"
+    Famous_TPL_41_test_case_dir = "/Users/liuchengyue/Desktop/BinarySCA Platform/Data/Test_Cases/TPL_Test_Cases/Benchmarks/FTPL100/decompressed_deb"
+    Famous_TPL_41_evluation_report_path = "/Users/liuchengyue/Desktop/BinarySCA Platform/Code/sca_agents/bsca-expert-agent-api/tmp/evaluation_reports/FTPL_41/evaluation_report.json"
+
+    # 车载系统
+    CAR_150_benchmark_meta = "/Users/liuchengyue/Desktop/BinarySCA Platform/Code/sca_agents/bsca-expert-agent-api/evaluation/benchmark_meta/CAR150.json"
+    CAR_150_test_case_dir = "/Users/liuchengyue/Desktop/BinarySCA Platform/Data/Test_Cases/TPL_Test_Cases/BYD"
+    CAR_150_evluation_report_path = "/Users/liuchengyue/Desktop/BinarySCA Platform/Code/sca_agents/bsca-expert-agent-api/tmp/evaluation_reports/CAR_150/evaluation_report.json"
+
+    benchmark_meta = CAR_150_benchmark_meta
+    benchmark_tc_dir = CAR_150_test_case_dir
+    evaluation_report_save_path = CAR_150_evluation_report_path
+
     # Example usage
     config = EvaluationConfig(
-        benchmark_file="/Users/liuchengyue/Desktop/BinarySCA Platform/Code/sca_agents/bsca-expert-agent/evaluation/benchmark_meta/FTPL50.json",
-        test_case_dir="/Users/liuchengyue/Desktop/BinarySCA Platform/Data/Test_Cases/TPL_Test_Cases/Benchmarks/FTPL100/decompressed_deb",
+        benchmark_file=benchmark_meta,
+        test_case_dir=benchmark_tc_dir,
         concurrency=10,
         slice_start=0,
-        slice_end=-1,
+        slice_end=10,
     )
-    evaluation_report_save_path = "/Users/liuchengyue/Desktop/BinarySCA Platform/Code/sca_agents/bsca-expert-agent-api/tmp/evaluation_report.json"
-
     evaluator = Evaluator(config)
     evaluator.run_benchmark()
+    evaluator.report.dump(evaluation_report_save_path)
 
 
     # report = EvaluationReport.load_from_file(evaluation_report_save_path)
     # result_check = evaluator.check_result(evaluator.benchmark, report.evaluation_results)
-
-
-
-    evaluator.report.dump(evaluation_report_save_path)
 
 
 if __name__ == '__main__':

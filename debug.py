@@ -12,11 +12,16 @@ def demo():
     libpg_path = "/Users/liuchengyue/Desktop/BinarySCA Platform/Data/Test_Cases/TPL_Test_Cases/Benchmarks/FTPL100/decompressed_deb/libpq5_14.15-0ubuntu0.22.04.1_amd64/usr/lib/x86_64-linux-gnu/libpq.so.5.14"
     libvulkan_path = "/Users/liuchengyue/Desktop/BinarySCA Platform/Data/Test_Cases/TPL_Test_Cases/Benchmarks/FTPL100/decompressed_deb/libvulkan1_1.3.204.1-2_amd64/usr/lib/x86_64-linux-gnu/libvulkan.so.1.3.204"
 
+
+    # Car cases
+    # mbedtls
+    secverify_path = "/Users/liuchengyue/Desktop/BinarySCA Platform/Data/Test_Cases/TPL_Test_Cases/BYD/update/mdm9607-boot.img.xx_/ramdisk.xx_/usr/bin/secverify"
+
     workflow = DetectionWorkflow(
-        feature_matching_return_top_n=3,
+        feature_matching_return_top_n=5,
     )
 
-    result = workflow.run(libvulkan_path)
+    result = workflow.run(secverify_path)
 
     result.analysis_data.preview()
 
