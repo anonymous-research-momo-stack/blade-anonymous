@@ -5,7 +5,7 @@ from loguru import logger
 from app.config import settings
 from app.interface import TargetBinary, Library, AnalysisData, AnalysisResult, AnalysisConfig
 from app.tpl_detection.agent_analysis.bin_info_finder import BinaryInformationFinder
-from app.tpl_detection.agent_analysis.contex_analyzer import SoftwareContextAnalyzer
+from app.tpl_detection.agent_analysis.contex_analyzer import SoftwareContextAnalyzer, SoftwareContext
 from app.tpl_detection.agent_analysis.tpl_analyzer import TPLAnalyzer
 from app.tpl_detection.agent_analysis.validator import LibraryValidator
 from app.tpl_detection.feature_matching.feature_matching_detector import FeatureMatchingDetector
@@ -103,12 +103,12 @@ class DetectionWorkflow:
 
         self.analysis_data = AnalysisData(config=self.analysis_config)  # 分析数据对象，用于存储分析结果
 
-    def analyze_context(self, software_root_path: str):
+    def analyze_context(self, software_root_path: str)->SoftwareContext:
         software_context, context_data = self.context_analyzer.analyze_software_context(software_root_path)
         return software_context
 
     def run(self, file_path:str,
-            software_context=None) -> AnalysisResult:
+            software_context:SoftwareContext=None) -> AnalysisResult:
         """
         Run the detection workflow with the given arguments.
         """
@@ -129,7 +129,7 @@ class DetectionWorkflow:
 
         # 3. agent analysis
         validation_start_at = time.perf_counter()
-        validated_libraries = self._run_agent_analysis(target_binary, feature_matching_libraries)
+        validated_libraries = self._run_agent_analysis(target_binary, feature_matching_libraries,software_context)
         self.analysis_data.durations["agent_analysis"] = time.perf_counter() - validation_start_at
 
         # 4. Return Results
@@ -165,7 +165,8 @@ class DetectionWorkflow:
         return candidate_libraries
 
     def _run_agent_analysis(self, target_binary: TargetBinary,
-                            candidate_libraries_from_feature_matching: List[Library]) -> List[Library]:
+                            candidate_libraries_from_feature_matching: List[Library],
+                            software_context:SoftwareContext=None) -> List[Library]:
         """
         Run agent analysis including binary info analysis, TPL analysis, and validation.
 
@@ -177,7 +178,7 @@ class DetectionWorkflow:
         if self.enable_bin_info_analysis:
             bin_info_finder_start_at = time.perf_counter()
             logger.debug(f"\n=== Binary Information Analysis for {target_binary.binary_name} ===")
-            response = self.bin_info_finder.find_for(target_binary)
+            response = self.bin_info_finder.find_for(target_binary, software_context)
             bin_info_finder_duration = time.perf_counter() - bin_info_finder_start_at
             self.analysis_data.durations["bin_info_finder"] = bin_info_finder_duration
             self.analysis_data.costs["bin_info_finder"] = response.metrics

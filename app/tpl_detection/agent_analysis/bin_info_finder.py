@@ -1,3 +1,4 @@
+from typing import Optional
 from agno.agent import Agent
 from agno.knowledge.json import JSONKnowledgeBase
 from agno.vectordb.pgvector import PgVector
@@ -7,6 +8,7 @@ from app.config import settings
 from app.interface import TargetBinary
 from app.tpl_detection.agent_analysis.response_models import BinaryInformation
 from app.tpl_detection.agent_analysis.model_factory import create_model
+from app.tpl_detection.agent_analysis.contex_analyzer import SoftwareContext
 from agno.tools.duckduckgo import DuckDuckGoTools
 
 
@@ -16,12 +18,12 @@ class BinaryInformationFinder:
                  enable_web_search: bool = True,
                  enable_knowledge_base: bool = True):
 
-        # 构建工具列表
+        # Build tools list
         tools = []
         if enable_web_search:
             tools.append(DuckDuckGoTools())
 
-        # 构建知识库
+        # Build knowledge base
         knowledge = None
         if enable_knowledge_base:
             if knowledge_json_path is None:
@@ -32,50 +34,68 @@ class BinaryInformationFinder:
                 vector_db=PgVector(
                     table_name="json_documents",
                     db_url=settings.KNOWLEDGE_DATABASE_URL,
-                    search_type=SearchType.hybrid  # Hybrid Search
+                    search_type=SearchType.hybrid
                 ),
             )
 
-        # 构建instructions
+        # Enhanced instructions with context awareness
         instructions = [
-            "You are a binary analysis specialist focused on identifying the primary source and composition of binary files.",
-
-            "CORE MISSION: Determine what this binary file IS and identify its primary source library/project.",
-            "This analysis is CRITICAL for subsequent library composition analysis.",
-
+            "You are a binary analysis specialist focused on identifying binary files through external intelligence and pattern recognition.",
+            "",
+            "CORE MISSION: Quickly identify what this binary IS using file-level information and external knowledge sources.",
+            "This provides foundational context for subsequent detailed internal analysis.",
+            "",
+            "ANALYSIS STRATEGY:",
+            "- Leverage file naming patterns and conventions",
+            "- Use software context when available to improve accuracy",
+            "- Consult external knowledge sources for verification",
+            "- Focus on establishing binary identity rather than detailed composition",
+            "",
             "KEY IDENTIFICATION TASKS:",
-            "1. Binary Identity: What is this binary file (executable, library, tool, etc.)?",
-            "2. Primary Function: What is its main purpose and functionality?",
-            "3. Source Library: Does this binary come from a specific library/project whose code it contains?",
-
+            "1. BINARY IDENTITY: What type of binary file is this?",
+            "2. PRIMARY FUNCTION: What is its main purpose and functionality?",
+            "3. SOURCE LIBRARY: Does this binary come from a specific library/project?",
+            "",
             "SOURCE LIBRARY IDENTIFICATION PRINCIPLES:",
-            "- If binary name matches a known library (e.g., 'openssl' binary → OpenSSL library), this is strong evidence",
-            "- If binary is a library file (e.g., 'libssl.a'), identify which project it comes from",
-            "- If binary appears to be compiled from a specific open-source project, identify that project",
-            "- Only identify source library when there's clear evidence of the relationship",
-
+            "- Strong name-based evidence (e.g., 'openssl' binary → OpenSSL library)",
+            "- Library file conventions (e.g., 'libssl.a' → OpenSSL project)",
+            "- Known project patterns and naming conventions",
+            "- Only identify when confident about the relationship",
+            "",
+            "HANDLING UNCERTAIN CASES:",
+            "- Custom/demo binaries (e.g., 'demo', 'test', 'myapp'): Usually no identifiable source library",
+            "- Generic names (e.g., 'app', 'tool', 'main'): Unlikely to have known source library",
+            "- Unknown binaries: Acknowledge when search yields no results",
+            "- Be honest about limitations - 'not found' is a valid result",
+            "",
+            "SEARCH RESULT HANDLING:",
+            "- If web search finds no relevant information → state this clearly",
+            "- If knowledge base has no matches → acknowledge the limitation",
+            "- Don't guess or invent source libraries based on weak evidence",
+            "- Custom applications typically don't have identifiable source libraries",
+            "",
+            "CONTEXT-AWARE ANALYSIS:",
+            "- When software context is available, use it to validate findings",
+            "- Consider deployment environment for binary role assessment",
+            "- Leverage technology stack information for better identification",
+            "",
             "CRITICAL EXAMPLES:",
             "✅ Binary 'openssl' → Source Library: OpenSSL (binary IS the OpenSSL toolkit)",
             "✅ Binary 'libssl.a' → Source Library: OpenSSL (libssl is part of OpenSSL project)",
-            "✅ Binary 'libcrypto.so' → Source Library: OpenSSL (libcrypto is OpenSSL's crypto library)",
             "✅ Binary 'nginx' → Source Library: Nginx (binary IS the nginx web server)",
             "✅ Binary 'sqlite3' → Source Library: SQLite (binary IS the SQLite tool)",
-            "❓ Binary 'myapp' → Source Library: Only if clear evidence points to a specific project",
-
-            "ANALYSIS APPROACH:",
-            "- Use binary name patterns and known software projects",
-            "- Consider file naming conventions (lib prefix, common tool names)",
-            "- Look for obvious matches between binary names and well-known projects",
-            "- Be conservative: only identify source library when confident",
-
-            "SOURCE LIBRARY CRITERIA:",
-            "- Must be a real, identifiable open-source project or library",
-            "- Must have a reasonable connection to the binary file",
-            "- Should represent the primary codebase that this binary is built from",
-            "- Avoid guessing - better to leave null if uncertain",
+            "❌ Binary 'demo' → Source Library: None (custom/demo applications have no identifiable source)",
+            "❌ Binary 'myapp' → Source Library: None (unless clear evidence of specific project origin)",
+            "❌ Binary 'test123' → Source Library: None (arbitrary names indicate custom development)",
+            "",
+            "EFFICIENCY FOCUS:",
+            "- This is a rapid identification phase",
+            "- Detailed composition analysis happens in subsequent steps",
+            "- Focus on establishing clear binary identity and primary source",
+            "- Be conservative with source library identification",
         ]
 
-        # 根据开关状态添加搜索相关指令
+        # Add resource-specific instructions
         if enable_knowledge_base or enable_web_search:
             instructions.append("VERIFICATION RESOURCES:")
 
@@ -86,15 +106,13 @@ class BinaryInformationFinder:
             instructions.append("- Consult knowledge base for known binary-to-library mappings")
 
         instructions.extend([
-            "- Always provide your assessment with clear confidence indicators",
-            "- Focus on providing actionable information for library composition analysis",
             "",
             "RESPONSE REQUIREMENTS:",
             "- Binary name: Normalized name of the binary",
-            "- Description: Comprehensive but focused description covering identity, purpose, and context",
-            "- Source library: Only when confident about the primary source project (can be null)",
+            "- Description: Comprehensive description covering identity, purpose, and context",
+            "- Source library: Only when confident about the primary source project",
             "",
-            "This analysis establishes the foundation for identifying all libraries whose code is present in the binary."
+            "This analysis establishes the foundation for subsequent detailed library composition analysis."
         ])
 
         self.agent = Agent(
@@ -107,25 +125,67 @@ class BinaryInformationFinder:
             response_model=BinaryInformation,
         )
 
-        # 只有在知识库存在时才加载
+        # Load knowledge base if exists
         if knowledge is not None:
             self.agent.knowledge.load(recreate=False)
 
-    def find_for(self, target_binary: TargetBinary):
+    def find_for(self, target_binary: TargetBinary, software_context: Optional[SoftwareContext] = None):
         """
         Analyze binary file to identify its primary source and composition context
 
         :param target_binary: Target binary to analyze
+        :param software_context: Optional software context for enhanced analysis
         :return: response containing binary information
         """
 
-        task_prompt = f"""Analyze this binary file to establish the foundation for library composition analysis:
+        # Build context-aware prompt
+        task_prompt = self._build_context_aware_prompt(target_binary, software_context)
+
+        response = self.agent.run(task_prompt)
+        binary_info = response.content
+        target_binary.information = binary_info
+
+        return response
+
+    def _build_context_aware_prompt(self, target_binary: TargetBinary,
+                                    software_context: Optional[SoftwareContext]) -> str:
+        """Build context-aware analysis prompt"""
+
+        prompt = f"""BINARY IDENTIFICATION ANALYSIS
 
 BINARY DETAILS:
 - Name: {target_binary.binary_name}
 - Size: {target_binary.file_size_kb} KB
 - Path: {target_binary.relative_path}
+"""
 
+        # Add software context if available
+        if software_context and software_context.confidence_level in ["HIGH", "MEDIUM"]:
+            prompt += f"""
+SOFTWARE CONTEXT:
+- Software Type: {software_context.software_type}
+- Primary Purpose: {software_context.primary_purpose}
+- Deployment Environment: {software_context.deployment_environment}
+- Technology Stack: {', '.join(software_context.technology_stack)}
+- Architecture Pattern: {software_context.architecture_pattern}
+- Confidence: {software_context.confidence_level}
+
+CONTEXT GUIDANCE:
+Use this software context to:
+1. Validate binary identification against expected software type
+2. Consider deployment environment when assessing binary role
+3. Leverage technology stack information for better source identification
+4. Apply context-specific validation of findings
+
+Context Analysis Summary: {software_context.directory_analysis}
+"""
+        else:
+            prompt += """
+SOFTWARE CONTEXT: No reliable software context available.
+Proceed with standalone binary identification based on file-level information.
+"""
+
+        prompt += f"""
 ANALYSIS REQUIREMENTS:
 
 1. BINARY IDENTITY ANALYSIS:
@@ -135,28 +195,20 @@ ANALYSIS REQUIREMENTS:
 
 2. SOURCE LIBRARY IDENTIFICATION:
    - Does this binary come from a specific open-source project or library?
-   - Is there a clear relationship between the binary name and a known library/project?
-   - Examples of clear relationships:
-     * 'openssl' binary → OpenSSL project
-     * 'libssl.a' library → OpenSSL project  
-     * 'nginx' binary → Nginx project
-     * 'sqlite3' binary → SQLite project
+   - Is there a clear relationship between the binary name and known projects?
+   - Consider file naming conventions and common patterns
+   - If no clear evidence found through search/knowledge base → report as None
+   - Custom/demo applications typically have no identifiable source library
 
-3. COMPOSITION ANALYSIS CONTEXT:
-   - What types of libraries would reasonably be included in this binary?
-   - Any specific technical domains this binary operates in?
-   - Security considerations or notable characteristics?
+3. CONTEXT VALIDATION:
+   {"- Validate findings against the provided software context" if software_context else "- Use general software knowledge for validation"}
+   - Ensure identified purpose aligns with deployment environment
+   - Check consistency with expected technology patterns
 
-CRITICAL: The 'source_library' field should only be populated when you can confidently identify the primary open-source project that this binary is built from or belongs to. If uncertain, leave it null.
+CRITICAL: Only populate 'source_library' when confident about the primary source project.
+If uncertain, leave it null - detailed composition analysis will follow.
 
-CONFIDENCE INDICATORS: Clearly indicate your confidence level in the identification, especially for the source library determination.
+FOCUS: This is rapid external identification. Detailed internal analysis happens next.
+"""
 
-This analysis will guide subsequent steps that identify all libraries whose code is present in this binary."""
-
-        response = self.agent.run(task_prompt)
-
-        binary_info = response.content
-
-        target_binary.information = binary_info
-
-        return response
+        return prompt
