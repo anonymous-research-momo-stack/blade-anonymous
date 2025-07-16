@@ -19,8 +19,8 @@ class Evaluator:
 
         self.workflow = DetectionWorkflow(
         feature_matching_return_top_n=5,
-    )
-        self.batch_detection_workflow = BatchDetectionWorkflow(concurrency=config.concurrency)
+      )
+        self.batch_detection_workflow = BatchDetectionWorkflow(concurrency=config.concurrency, feature_matching_return_top_n=5)
 
         self.evaluation_results = []
 
@@ -221,9 +221,14 @@ def main():
     CAR_150_test_case_dir = "/Users/liuchengyue/Desktop/BinarySCA Platform/Data/Test_Cases/TPL_Test_Cases/BYD"
     CAR_150_evluation_report_path = "/Users/liuchengyue/Desktop/BinarySCA Platform/Code/sca_agents/bsca-expert-agent-api/tmp/evaluation_reports/CAR_150/evaluation_report.json"
 
-    benchmark_meta = CAR_150_benchmark_meta
-    benchmark_tc_dir = CAR_150_test_case_dir
-    evaluation_report_save_path = CAR_150_evluation_report_path
+    # Debian Binaries
+    Debian_benchmark_meta = "/Users/liuchengyue/Desktop/BinarySCA Platform/Code/sca_agents/bsca-expert-agent-api/evaluation/benchmark_meta/DDE2000.json"
+    Debian_test_case_dir = "/Users/liuchengyue/Desktop/BinarySCA Platform/Data/Test_Cases/TPL_Test_Cases/Benchmarks/DDE2000"
+    Debian_evluation_report_path = "/Users/liuchengyue/Desktop/BinarySCA Platform/Code/sca_agents/bsca-expert-agent-api/tmp/evaluation_reports/DDE_2000/evaluation_report.json"
+
+    benchmark_meta = Debian_benchmark_meta
+    benchmark_tc_dir = Debian_test_case_dir
+    evaluation_report_save_path = Debian_evluation_report_path
 
     # Example usage
     config = EvaluationConfig(
@@ -231,10 +236,10 @@ def main():
         test_case_dir=benchmark_tc_dir,
         concurrency=10,
         slice_start=0,
-        slice_end=5,
+        slice_end=100,
     )
     evaluator = Evaluator(config)
-    evaluator.run_benchmark(analyze_context=True)
+    evaluator.run_benchmark(analyze_context=False)
     evaluator.report.dump(evaluation_report_save_path)
 
 
