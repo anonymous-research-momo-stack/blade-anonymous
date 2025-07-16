@@ -17,11 +17,20 @@ def demo():
     # mbedtls
     secverify_path = "/Users/liuchengyue/Desktop/BinarySCA Platform/Data/Test_Cases/TPL_Test_Cases/BYD/update/mdm9607-boot.img.xx_/ramdisk.xx_/usr/bin/secverify"
 
+    # 根目录
+    root_path = "/Users/liuchengyue/Desktop/BinarySCA Platform/Data/Test_Cases/TPL_Test_Cases/BYD/"
+
+    # 分析工作流
     workflow = DetectionWorkflow(
         feature_matching_return_top_n=5,
     )
 
-    result = workflow.run(secverify_path)
+    # 上下文
+    context = workflow.analyze_context(root_path)
+
+    # 分析
+    # result = workflow.run(secverify_path)
+    result = workflow.run(secverify_path, software_context=context)
 
     result.analysis_data.preview()
 

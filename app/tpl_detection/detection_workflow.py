@@ -5,7 +5,8 @@ from loguru import logger
 from app.config import settings
 from app.interface import TargetBinary, Library, AnalysisData, AnalysisResult, AnalysisConfig
 from app.tpl_detection.agent_analysis.bin_info_finder import BinaryInformationFinder
-from app.tpl_detection.agent_analysis.contex_analyzer import SoftwareContextAnalyzer, SoftwareContext
+from app.tpl_detection.agent_analysis.contex_analyzer import SoftwareContextAnalyzer
+from app.tpl_detection.agent_analysis.response_models import SoftwareContext
 from app.tpl_detection.agent_analysis.tpl_analyzer import TPLAnalyzer
 from app.tpl_detection.agent_analysis.validator import LibraryValidator
 from app.tpl_detection.feature_matching.feature_matching_detector import FeatureMatchingDetector
@@ -114,6 +115,8 @@ class DetectionWorkflow:
         """
 
         all_start_at = time.perf_counter()
+        # 0. Context
+        self.analysis_data.context= software_context
 
         # 1. Prepare File
         target_binary = self.file_preprocessor.basic_analyze(file_path)

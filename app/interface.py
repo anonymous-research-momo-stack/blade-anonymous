@@ -8,7 +8,7 @@ from typing import List
 from loguru import logger
 
 from app.tpl_detection.agent_analysis.response_models import BinaryInformation, LibraryValidationResult, \
-    RedundancyAnalysisResult
+    RedundancyAnalysisResult, SoftwareContext
 
 
 @dataclass
@@ -138,7 +138,8 @@ class AnalysisConfig(Serializable):
 @dataclass
 class AnalysisData(Serializable):
     analysis_datetime: str = dataclasses.field(default_factory=lambda: datetime.now().strftime("%Y-%m-%d %H:%M:%S"))
-    config: AnalysisConfig = None  # 新增：分析配置
+    config: AnalysisConfig = None
+    context: SoftwareContext=None
     feature_matching_results: List[Library] = dataclasses.field(default_factory=list)
     tpl_analysis_results: List[Library] = dataclasses.field(default_factory=list)
     validation_step_1_results: List[LibraryValidationResult] = dataclasses.field(default_factory=list)  # e.g., {"libpng": True, "openssl": False}

@@ -6,9 +6,8 @@ from agno.vectordb.search import SearchType
 
 from app.config import settings
 from app.interface import TargetBinary
-from app.tpl_detection.agent_analysis.response_models import BinaryInformation
+from app.tpl_detection.agent_analysis.response_models import BinaryInformation, SoftwareContext
 from app.tpl_detection.agent_analysis.model_factory import create_model
-from app.tpl_detection.agent_analysis.contex_analyzer import SoftwareContext
 from agno.tools.duckduckgo import DuckDuckGoTools
 
 

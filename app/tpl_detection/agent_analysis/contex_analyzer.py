@@ -1,31 +1,15 @@
 import os
 import traceback
-from typing import List, Dict, Optional
 from pathlib import Path
 
 from agno.run.response import RunResponse
-from pydantic import BaseModel, Field
 from loguru import logger
 
 from agno.agent import Agent
 from agno.tools.file import FileTools
 from agno.tools.duckduckgo import DuckDuckGoTools
 from app.tpl_detection.agent_analysis.model_factory import create_model
-
-
-class SoftwareContext(BaseModel):
-    """Software context analysis results"""
-    software_type: str = Field(default="unknown",
-                               description="Software type: embedded_system, web_application, mobile_app, desktop_application, library, system_utility, database")
-    primary_purpose: str = Field(default="", description="Primary function and purpose description")
-    technology_stack: List[str] = Field(default_factory=list, description="Detected technology stack and frameworks")
-    deployment_environment: str = Field(default="unknown",
-                                        description="Inferred deployment environment: embedded, server, desktop, mobile, etc.")
-    key_components: List[str] = Field(default_factory=list, description="Identified key components and modules")
-    directory_analysis: str = Field(default="", description="Directory structure analysis summary")
-    architecture_pattern: str = Field(default="unknown", description="Identified software architecture pattern")
-    build_system: str = Field(default="unknown", description="Build system type: make, cmake, autotools, etc.")
-    confidence_level: str = Field(default="LOW", description="Analysis confidence level: HIGH/MEDIUM/LOW")
+from app.tpl_detection.agent_analysis.response_models import SoftwareContext
 
 
 class SoftwareContextAnalyzer:
