@@ -20,6 +20,7 @@ class TPLAnalyzer:
                  knowledge_json_path: str = None,
                  enable_web_search: bool = True,
                  enable_knowledge_base: bool = True,
+                 report_custom_components: bool = False,
                  max_paths: int = 20,
                  max_functions: int = 20,
                  max_logs: int = 15,
@@ -103,6 +104,24 @@ class TPLAnalyzer:
             "- Be conservative: better to miss a library than report false positives",
             "- Focus on major, independently-developed libraries with clear evidence",
         ]
+        
+        if report_custom_components:
+            instructions.extend([
+                "",
+                "CUSTOM/INTERNAL COMPONENT REPORTING:",
+                "- Report custom, internal, or proprietary components when identified",
+                "- Include analysis of custom tools and internal utilities",
+                "- Mark clearly as 'custom/internal' in the library name",
+            ])
+        else:
+            instructions.extend([
+                "",
+                "CUSTOM/INTERNAL COMPONENT POLICY:",
+                "- DO NOT report custom, internal, or proprietary components",
+                "- Focus ONLY on well-known open-source third-party libraries",
+                "- Exclude analysis of custom tools, internal utilities, or proprietary code",
+                "- If the binary appears to be primarily custom/internal code, report an empty library list",
+            ])
 
         if enable_knowledge_base or enable_web_search:
             instructions.append("VERIFICATION RESOURCES:")

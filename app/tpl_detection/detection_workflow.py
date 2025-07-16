@@ -5,6 +5,7 @@ from loguru import logger
 from app.config import settings
 from app.interface import TargetBinary, Library, AnalysisData, AnalysisResult, AnalysisConfig
 from app.tpl_detection.agent_analysis.bin_info_finder import BinaryInformationFinder
+from app.tpl_detection.agent_analysis.contex_analyzer import SoftwareContextAnalyzer
 from app.tpl_detection.agent_analysis.tpl_analyzer import TPLAnalyzer
 from app.tpl_detection.agent_analysis.validator import LibraryValidator
 from app.tpl_detection.feature_matching.feature_matching_detector import FeatureMatchingDetector
@@ -60,15 +61,24 @@ class DetectionWorkflow:
             library_validation_debug_mode=library_validation_debug_mode
         )
 
+        # 上下文环境分析器
+        self.context_analyzer = SoftwareContextAnalyzer(
+                enable_web_search=True,
+                debug_mode=False
+            )
+
+        # 文件预处理器
         self.file_preprocessor = FilePreprocessor()  # 预处理文件，解压，找到二进制文件等。
-        self.feature_matching_detector = FeatureMatchingDetector(  # 特征匹配检测器
+
+        # 特征匹配检测器
+        self.feature_matching_detector = FeatureMatchingDetector(
             top_n=feature_matching_return_top_n, # 返回前N个候选库
             min_match_feature_num=feature_matching_min_string_length, # 至少匹配的数量
             feature_min_length=feature_matching_min_string_length, # 有效字符串的最小长度
             feature_max_length=feature_matching_max_string_length # 有效字符串的最大长度
         )
 
-        # 二进制信息查找器（可选）
+        # 二进制信息查找器
         if self.enable_bin_info_analysis:
             self.bin_info_finder = BinaryInformationFinder(
                 enable_web_search=enable_bin_info_analysis_web_search, # 是否启用网络搜索
@@ -76,7 +86,8 @@ class DetectionWorkflow:
                 knowledge_json_path=settings.KNOWLEDGE_FILE_PATH # 知识库文件路径
             )
 
-        self.tpl_analyzer = TPLAnalyzer(  # TPL分析器
+        # TPL分析器
+        self.tpl_analyzer = TPLAnalyzer(
             enable_web_search=enable_tpl_analysis_web_search,
             enable_knowledge_base=enable_tpl_analysis_knowledge_base,
             knowledge_json_path=settings.KNOWLEDGE_FILE_PATH
@@ -89,12 +100,19 @@ class DetectionWorkflow:
             enable_db_verification=enable_library_validation_db_verification,
             debug_mode=library_validation_debug_mode
         )
+
         self.analysis_data = AnalysisData(config=self.analysis_config)  # 分析数据对象，用于存储分析结果
 
-    def run(self, file_path) -> AnalysisResult:
+    def analyze_context(self, software_root_path: str):
+        software_context, context_data = self.context_analyzer.analyze_software_context(software_root_path)
+        return software_context
+
+    def run(self, file_path:str,
+            software_context=None) -> AnalysisResult:
         """
         Run the detection workflow with the given arguments.
         """
+
         all_start_at = time.perf_counter()
 
         # 1. Prepare File
