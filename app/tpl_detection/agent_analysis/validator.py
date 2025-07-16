@@ -13,7 +13,7 @@ from agno.vectordb.search import SearchType
 from app.config import settings
 from app.interface import TargetBinary, Library
 from app.tpl_detection.agent_analysis.response_models import IndividualValidationResults, RedundancyAnalysisResult, \
-    RedundancyAnalysisResults
+    RedundancyAnalysisResults, SoftwareContext
 from app.tpl_detection.agent_analysis.model_factory import create_model
 from agno.tools.duckduckgo import DuckDuckGoTools
 
@@ -184,7 +184,7 @@ class LibraryValidator:
     def validate_libraries(self,
                            libraries: List[Library],
                            target_binary: TargetBinary,
-                           context=None) -> (List[Library], Dict):
+                           context:SoftwareContext=None) -> (List[Library], Dict):
         """
         Expert two-step validation workflow
         """
@@ -201,7 +201,8 @@ class LibraryValidator:
             # 第一步：源代码包含合理性验证
             logger.debug(f"\n--- STEP 1: SOURCE CODE INCLUSION VALIDATION ---")
             individual_results, step_1_response = self._step1_source_code_inclusion_validation(enhanced_libraries,
-                                                                                               target_binary)
+                                                                                               target_binary,
+                                                                                               context)
             reasonable_libs = [lib for lib in enhanced_libraries
                                if self._is_library_reasonable(lib.name, individual_results)]
             logger.debug(
@@ -220,7 +221,7 @@ class LibraryValidator:
                 ])
                 step_2_response = None
             else:
-                redundancy_results, step_2_response = self._step2_conflict_resolution(reasonable_libs, target_binary)
+                redundancy_results, step_2_response = self._step2_conflict_resolution(reasonable_libs, target_binary,context)
 
             # 应用最终验证结果
             validated_libraries = self._apply_expert_validation_results(individual_results, redundancy_results,
@@ -330,14 +331,14 @@ class LibraryValidator:
         return 0
 
     def _step1_source_code_inclusion_validation(self, libraries: List[Library],
-                                                target_binary: TargetBinary) -> (
+                                                target_binary: TargetBinary, software_context:SoftwareContext) -> (
     IndividualValidationResults, RunResponse):
         """第一步：源代码包含合理性验证"""
 
         # 设置响应模型
         self.agent.response_model = IndividualValidationResults
 
-        prompt = self._build_step1_expert_prompt(libraries, target_binary)
+        prompt = self._build_step1_expert_prompt(libraries, target_binary,software_context)
 
         if self.debug_mode:
             logger.debug(f"Step 1 Expert Validation Prompt Preview: {prompt[:1000]}...")
@@ -345,7 +346,7 @@ class LibraryValidator:
         response = self.agent.run(prompt)
         return response.content, response
 
-    def _build_step1_expert_prompt(self, libraries, target_binary):
+    def _build_step1_expert_prompt(self, libraries, target_binary, software_context:SoftwareContext):
         # 构建专家级验证prompt
         binary_context = self._build_comprehensive_binary_context(target_binary)
         validation_framework = self._get_detailed_validation_framework()
@@ -406,6 +407,36 @@ CANDIDATE LIBRARIES FOR EXPERT VALIDATION ({len(libraries)}):
 
             prompt += "\n"
 
+        # 上下文
+        if software_context:
+            prompt += f"""
+        SOFTWARE CONTEXT FOR INCLUSION VALIDATION:
+        - Type: {software_context.software_type}
+        - Purpose: {software_context.primary_purpose}
+        - Environment: {software_context.deployment_environment}
+        - Architecture: {software_context.architecture_pattern}
+
+        CONTEXT-BASED INCLUSION ASSESSMENT:
+
+        ARCHITECTURAL REASONABLENESS CHECK:
+        - Does this library type typically appear in {software_context.software_type} applications?
+        - Is the library scope appropriate for {software_context.deployment_environment} constraints?
+        - Does the library functionality align with stated purpose: {software_context.primary_purpose}?
+
+        DOMAIN-SPECIFIC VALIDATION:
+        - Apply domain knowledge about typical library usage patterns
+        - Consider environmental constraints (memory, processing power, real-time requirements)
+        - Evaluate functional domain matching (crypto libs in security apps, graphics libs in games)
+
+        EXAMPLES OF CONTEXT-GUIDED VALIDATION:
+        - Graphics libraries in command-line tools → Suspicious, needs strong evidence
+        - Real-time processing libraries in batch systems → Investigate architectural mismatch  
+        - Heavy framework libraries in embedded systems → Verify resource constraints compatibility
+        - Desktop UI libraries in server applications → Flag as potential false positive
+
+        Use context to enhance your architectural reasonableness assessment, not to override evidence.
+        """
+
         prompt += f"""
 EXPERT VALIDATION REQUIREMENTS:
 
@@ -438,13 +469,13 @@ PROFESSIONAL STANDARDS: Provide authoritative, well-reasoned assessments suitabl
         return prompt
 
     def _step2_conflict_resolution(self, reasonable_libraries: List[Library],
-                                   target_binary: TargetBinary) -> (RedundancyAnalysisResults, RunResponse):
+                                   target_binary: TargetBinary, software_context:SoftwareContext) -> (RedundancyAnalysisResults, RunResponse):
         """第二步：冲突解决和冗余消除"""
 
         # 设置结构化响应模型
         self.agent.response_model = RedundancyAnalysisResults
 
-        prompt = self._build_step2_expert_prompt(reasonable_libraries, target_binary)
+        prompt = self._build_step2_expert_prompt(reasonable_libraries, target_binary,software_context)
 
         if self.debug_mode:
             logger.debug(f"Step 2 Expert Conflict Resolution Prompt Preview: {prompt[:1000]}...")
@@ -452,7 +483,7 @@ PROFESSIONAL STANDARDS: Provide authoritative, well-reasoned assessments suitabl
         response = self.agent.run(prompt)
         return response.content, response
 
-    def _build_step2_expert_prompt(self, reasonable_libraries, target_binary):
+    def _build_step2_expert_prompt(self, reasonable_libraries, target_binary, software_context:SoftwareContext):
         binary_context = self._get_comprehensive_binary_context(target_binary)
         conflict_framework = self._get_conflict_resolution_framework()
 
@@ -491,7 +522,48 @@ VALIDATED LIBRARIES FROM STEP 1 ({len(reasonable_libraries)}):
                 if hasattr(lib, 'uniqueness_score'):
                     prompt += f", Uniqueness: {lib.uniqueness_score:.1%}"
                 prompt += f", Methods: {', '.join(lib.identify_methods)}\n"
+        if software_context:
+            prompt += f"""
+CONTEXT-DRIVEN CONFLICT RESOLUTION:
 
+SOFTWARE CONTEXT:
+- Type: {software_context.software_type}
+- Environment: {software_context.deployment_environment}
+- Purpose: {software_context.primary_purpose}
+- Build System: {software_context.build_system}
+
+CONTEXT-BASED PRIORITY FRAMEWORK:
+
+1. ENVIRONMENTAL OPTIMIZATION:
+   - In resource-constrained environments: prefer lightweight over feature-rich
+   - In performance-critical systems: prefer optimized over generic implementations
+   - In embedded systems: prefer deterministic over dynamic libraries
+
+2. ARCHITECTURAL PATTERN ALIGNMENT:
+   - Microservices: prefer focused, single-purpose libraries
+   - Monolithic: can accommodate comprehensive, multi-feature libraries
+   - Real-time systems: prefer predictable performance libraries
+
+3. DOMAIN-TYPICAL PREFERENCES:
+   - Consider what libraries are commonly chosen in this domain
+   - Factor in industry standards and best practices
+   - Account for compliance and certification requirements
+
+CONFLICT RESOLUTION WITH CONTEXT:
+When multiple libraries serve similar functions with comparable evidence:
+1. Apply primary evidence-based hierarchy first
+2. Use context to assess architectural appropriateness as tie-breaker
+3. Consider domain-specific optimization and compliance factors
+4. Prefer libraries that match the system's complexity and scale requirements
+
+CONTEXT APPLICATION EXAMPLES:
+- Embedded automotive: Memory-efficient crypto > Feature-complete crypto
+- Web backend: Scalable database > Embedded database  
+- Real-time system: Deterministic timing > General-purpose libraries
+- Mobile app: Battery-optimized > Server-optimized libraries
+
+Context guides decision-making but never overrides strong technical evidence.
+        """
         prompt += f"""
 {conflict_framework}
 

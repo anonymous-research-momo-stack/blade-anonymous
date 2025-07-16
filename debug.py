@@ -22,15 +22,15 @@ def demo():
 
     # 分析工作流
     workflow = DetectionWorkflow(
-        feature_matching_return_top_n=3,
+        feature_matching_return_top_n=5,
     )
 
     # 上下文
     context = workflow.analyze_context(root_path)
 
     # 分析
-    result = workflow.run(openssl_path)
-    # result = workflow.run(secverify_path, software_context=context)
+    # result = workflow.run(openssl_path)
+    result = workflow.run(secverify_path, software_context=context)
 
     result.analysis_data.preview()
 

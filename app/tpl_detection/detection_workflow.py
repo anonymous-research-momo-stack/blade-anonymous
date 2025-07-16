@@ -201,7 +201,7 @@ class DetectionWorkflow:
         if self.enable_bin_info_analysis:
             logger.debug(f"\n=== Agent TPL Analysis for {target_binary.binary_name} ===")
             tpl_analyzer_start_at = time.perf_counter()
-            candidate_libraries_from_agent, response = self.tpl_analyzer.analyze(target_binary)
+            candidate_libraries_from_agent, response = self.tpl_analyzer.analyze(target_binary, software_context)
             tpl_analyzer_duration = time.perf_counter() - tpl_analyzer_start_at
             self.analysis_data.durations["tpl_analyzer"] = tpl_analyzer_duration
             self.analysis_data.costs["tpl_analyzer"] = response.metrics
@@ -223,7 +223,8 @@ class DetectionWorkflow:
         logger.debug(f"\n=== Library Validation for {target_binary.binary_name} ===")
         validated_libraries, process_data = self.library_validator.validate_libraries(
             libraries=all_candidate_libraries,
-            target_binary=target_binary
+            target_binary=target_binary,
+            context=software_context,
         )
 
         # metrics
