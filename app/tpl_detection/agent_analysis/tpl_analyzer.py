@@ -8,7 +8,7 @@ from agno.vectordb.search import SearchType
 
 from app.config import settings
 from app.interface import TargetBinary, Library
-from app.tpl_detection.agent_analysis.response_models import TPLAnalysisResult
+from app.tpl_detection.agent_analysis.response_models import TPLAnalysisResult, SoftwareContext
 from app.tpl_detection.agent_analysis.model_factory import create_model
 from agno.tools.duckduckgo import DuckDuckGoTools
 
@@ -21,12 +21,43 @@ class TPLAnalyzer:
                  enable_web_search: bool = True,
                  enable_knowledge_base: bool = True,
                  report_custom_components: bool = False,
-                 max_paths: int = 20,
-                 max_functions: int = 20,
-                 max_logs: int = 15,
-                 max_string_length: int = 200):
 
-        self.string_filter = StringFilter(max_paths, max_functions, max_logs, max_string_length)
+                 # StringFilter相关参数
+                 max_copyright: int = 15,  # 版权信息最大显示数量
+                 max_paths: int = 20,  # 路径URL最大显示数量
+                 max_function_prefixes: int = 15,  # 函数前缀最大显示数量
+                 max_logs: int = 10,  # 日志消息最大显示数量
+                 max_versions: int = 8,  # 版本信息最大显示数量
+                 max_string_length: int = 200,  # 单个字符串最大长度
+
+                 # Prompt显示限制参数
+                 max_display_copyright: int = 10,  # Prompt中显示的版权信息数量
+                 max_display_paths: int = 8,  # Prompt中显示的路径数量
+                 max_display_function_prefixes: int = 10,  # Prompt中显示的函数前缀数量
+                 max_display_logs: int = 8,  # Prompt中显示的日志消息数量
+                 max_display_versions: int = 5,  # Prompt中显示的版本信息数量
+                 max_display_components: int = 5,  # Prompt中显示的组件数量
+                 max_matches_per_component: int = 3,  # 每个组件显示的匹配示例数量
+                 ):
+
+        # StringFilter配置
+        self.string_filter = StringFilter(
+            max_copyright=max_copyright,
+            max_paths=max_paths,
+            max_function_prefixes=max_function_prefixes,
+            max_logs=max_logs,
+            max_versions=max_versions,
+            max_string_length=max_string_length
+        )
+
+        # Prompt显示参数配置
+        self.max_display_copyright = max_display_copyright  # 版权信息显示上限
+        self.max_display_paths = max_display_paths  # 路径信息显示上限
+        self.max_display_function_prefixes = max_display_function_prefixes  # 函数前缀显示上限
+        self.max_display_logs = max_display_logs  # 日志消息显示上限
+        self.max_display_versions = max_display_versions  # 版本信息显示上限
+        self.max_display_components = max_display_components  # 组件匹配显示上限
+        self.max_matches_per_component = max_matches_per_component  # 每个组件的匹配示例数量
 
         # Build tools list
         tools = []
@@ -172,14 +203,14 @@ class TPLAnalyzer:
 
         self.method_name = "Agent Analysis"
 
-    def analyze(self, target_binary: TargetBinary) -> (List[Library], RunResponse):
+    def analyze(self, target_binary: TargetBinary, software_context:SoftwareContext=None) -> (List[Library], RunResponse):
         """Analyze binary for library source code inclusion"""
 
         # Filter and categorize strings
         filtered_strings = self.string_filter.filter_strings(target_binary.strings)
 
         # Build analysis prompt
-        prompt = self._build_analysis_prompt(target_binary, filtered_strings)
+        prompt = self._build_analysis_prompt(target_binary, filtered_strings, software_context)
 
         # Run agent analysis
         response = self.agent.run(prompt)
@@ -200,183 +231,216 @@ class TPLAnalyzer:
 
         return libraries, response
 
-    def _build_analysis_prompt(self, target_binary: TargetBinary, filtered_strings: Dict) -> str:
+    def _build_analysis_prompt(self, target_binary: TargetBinary, filtered_strings: Dict,software_context:SoftwareContext=None) -> str:
         """Build the analysis prompt for the agent"""
 
         prompt = f"""BINARY COMPOSITION ANALYSIS - STEP 2: LIBRARY SOURCE CODE IDENTIFICATION
 
-    TARGET BINARY:
-    - Name: {target_binary.binary_name}
-    - Path: {target_binary.relative_path}  
-    - Size: {target_binary.file_size_kb} KB
-    - Type: Binary file for source code composition analysis
-    """
+TARGET BINARY:
+- Name: {target_binary.binary_name}
+- Path: {target_binary.relative_path}  
+- Size: {target_binary.file_size_kb} KB
+- Type: Binary file for source code composition analysis
+"""
+        # 添加上下文信息
+        if software_context:
+            prompt += f"""
+SOFTWARE CONTEXT ANALYSIS (confidence: {software_context.confidence_level}):
+- Type: {software_context.software_type}
+- Purpose: {software_context.primary_purpose}
+- Environment: {software_context.deployment_environment}
+- Architecture: {software_context.architecture_pattern}
+- Build System: {software_context.build_system}
+- Technology Stack: {', '.join(software_context.technology_stack)}
+- Key Components: {', '.join(software_context.key_components)}
+
+CONTEXT-BASED LIBRARY EXPECTATIONS:
+Use this context to prioritize library identification and validate findings against typical patterns for this software type.
+        """
 
         # 添加主要源库信息（最重要的上下文）
         if target_binary.information and target_binary.information.source_library:
             prompt += f"""
-    PRIMARY SOURCE LIBRARY (from Step 1 analysis):
-    - Library: {target_binary.information.source_library.name}
-    - Description: {target_binary.information.source_library.description}
+PRIMARY SOURCE LIBRARY (from Step 1 analysis):
+- Library: {target_binary.information.source_library.name}
+- Description: {target_binary.information.source_library.description}
 
-    CRITICAL: This primary source library represents the main codebase and MUST be included in your analysis.
-    All evidence related to this library should be consolidated under this primary library entry.
-    """
+CRITICAL: This primary source library represents the main codebase and MUST be included in your analysis.
+All evidence related to this library should be consolidated under this primary library entry.
+"""
         elif target_binary.information:
             prompt += f"""
-    BINARY IDENTITY (from Step 1 analysis):
-    - Description: {target_binary.information.description}
+BINARY IDENTITY (from Step 1 analysis):
+- Description: {target_binary.information.description}
 
-    TASK: Identify what library projects have source code compiled into this binary.
-    """
+TASK: Identify what library projects have source code compiled into this binary.
+"""
 
         # 动态库排除信息
         if target_binary.dynamic_libraries:
             prompt += f"""
-    DYNAMIC LIBRARIES (excluded from analysis):
-    {', '.join(target_binary.dynamic_libraries)}
-    NOTE: These are runtime dependencies, NOT compiled into the binary. Do not analyze these.
-    For example: if the binary dynamically links 'libssl.so', and 'libssl.so' is from OpenSSL, 
-    you should NOT report 'OpenSSL' as a library in this binary, because 'libssl.so' is not 
-    compiled into this binary - it's just a runtime dependency.
-    """
+DYNAMIC LIBRARIES (excluded from analysis):
+{', '.join(target_binary.dynamic_libraries)}
+NOTE: These are runtime dependencies, NOT compiled into the binary. Do not analyze these.
+For example: if the binary dynamically links 'libssl.so', and 'libssl.so' is from OpenSSL, 
+you should NOT report 'OpenSSL' as a library in this binary, because 'libssl.so' is not 
+compiled into this binary - it's just a runtime dependency.
+"""
 
-        # STRING FILTERING METHODOLOGY
+        # 字符串过滤方法说明
+        total_filtered = sum(len(v) if isinstance(v, list) else len(v) for v in filtered_strings.values())
         prompt += f"""
-    STRING ANALYSIS METHODOLOGY:
-    Our advanced string filtering system extracted {sum(len(v) if isinstance(v, list) else len(v) for v in filtered_strings.values())} high-value strings from {len(target_binary.strings)} total strings using:
+STRING ANALYSIS METHODOLOGY:
+Our advanced string filtering system extracted {total_filtered} high-value strings from {len(target_binary.strings)} total strings using:
 
-    1. LICENSE/COPYRIGHT DETECTION: Broad pattern matching for copyright, license, author information
-    2. PATH/URL ANALYSIS: Source paths, repository URLs, library file references  
-    3. FUNCTION PREFIX ANALYSIS: Statistical analysis of function naming patterns
-    4. LOG MESSAGE EXTRACTION: Error messages, debug info, initialization strings
-    5. VERSION INFORMATION: Version strings, build info, release identifiers
-    6. COMPONENT NAME MATCHING: Two-phase matching against {len(self.string_filter.known_component_names)} known library names:
-       - Phase 1: Fast filtering using substring matching
-       - Phase 2: Precise word-boundary matching to avoid false positives
+1. LICENSE/COPYRIGHT DETECTION: Broad pattern matching for copyright, license, author information
+2. PATH/URL ANALYSIS: Source paths, repository URLs, library file references  
+3. FUNCTION PREFIX ANALYSIS: Statistical analysis of function naming patterns
+4. LOG MESSAGE EXTRACTION: Error messages, debug info, initialization strings
+5. VERSION INFORMATION: Version strings, build info, release identifiers
+6. COMPONENT NAME MATCHING: Two-phase matching against {len(self.string_filter.known_component_names)} known library names:
+   - Phase 1: Fast filtering using substring matching
+   - Phase 2: Precise word-boundary matching to avoid false positives
 
-    COMPONENT MATCHING INTERPRETATION:
-    The component matches below show potential library references, but require careful analysis:
-    ✓ STRONG INDICATORS: Multiple matches with library-specific patterns, version info, copyright
-    ✓ MEDIUM INDICATORS: Function prefixes, API patterns, but could be external dependencies  
-    ✗ WEAK INDICATORS: Generic terms, single matches, common words that may be coincidental
+COMPONENT MATCHING INTERPRETATION:
+The component matches below show potential library references, but require careful analysis:
+✓ STRONG INDICATORS: Multiple matches with library-specific patterns, version info, copyright
+✓ MEDIUM INDICATORS: Function prefixes, API patterns, but could be external dependencies  
+✗ WEAK INDICATORS: Generic terms, single matches, common words that may be coincidental
 
-    CRITICAL DISTINCTION:
-    - Component matches may indicate SOURCE CODE INCLUSION (what we want)
-    - OR they may indicate EXTERNAL DEPENDENCIES (exclude from results)
-    - OR they may indicate INTERNAL FUNCTIONALITY (exclude from results)
-    Your task is to distinguish between these cases using all available evidence.
-    """
+CRITICAL DISTINCTION:
+- Component matches may indicate SOURCE CODE INCLUSION (what we want)
+- OR they may indicate EXTERNAL DEPENDENCIES (exclude from results)
+- OR they may indicate INTERNAL FUNCTIONALITY (exclude from results)
+Your task is to distinguish between these cases using all available evidence.
+"""
 
-        # 字符串证据分析
+        # 版权许可证据
         if filtered_strings.get('license_copyright'):
-            prompt += f"\nLICENSE/COPYRIGHT EVIDENCE ({len(filtered_strings['license_copyright'])} items):\n"
-            for item in filtered_strings['license_copyright'][:10]:  # 限制显示数量
+            copyright_items = filtered_strings['license_copyright']
+            prompt += f"\nLICENSE/COPYRIGHT EVIDENCE ({len(copyright_items)} items):\n"
+            for item in copyright_items[:self.max_display_copyright]:
                 prompt += f"• {item}\n"
-            if len(filtered_strings['license_copyright']) > 10:
-                prompt += f"... and {len(filtered_strings['license_copyright']) - 10} more copyright/license strings\n"
+            if len(copyright_items) > self.max_display_copyright:
+                remaining = len(copyright_items) - self.max_display_copyright
+                prompt += f"... and {remaining} more copyright/license strings\n"
 
+        # 路径URL证据
         if filtered_strings.get('paths_urls'):
-            prompt += f"\nPATH/URL EVIDENCE ({len(filtered_strings['paths_urls'])} items):\n"
-            for item in filtered_strings['paths_urls'][:8]:
+            path_items = filtered_strings['paths_urls']
+            prompt += f"\nPATH/URL EVIDENCE ({len(path_items)} items):\n"
+            for item in path_items[:self.max_display_paths]:
                 prompt += f"• {item}\n"
-            if len(filtered_strings['paths_urls']) > 8:
-                prompt += f"... and {len(filtered_strings['paths_urls']) - 8} more path/URL strings\n"
+            if len(path_items) > self.max_display_paths:
+                remaining = len(path_items) - self.max_display_paths
+                prompt += f"... and {remaining} more path/URL strings\n"
 
+        # 函数前缀模式
         if filtered_strings.get('function_prefixes'):
-            prompt += f"\nFUNCTION PREFIX PATTERNS ({len(filtered_strings['function_prefixes'])} patterns):\n"
-            for prefix in filtered_strings['function_prefixes'][:10]:
+            prefix_items = filtered_strings['function_prefixes']
+            prompt += f"\nFUNCTION PREFIX PATTERNS ({len(prefix_items)} patterns):\n"
+            for prefix in prefix_items[:self.max_display_function_prefixes]:
                 prompt += f"• {prefix}\n"
-            if len(filtered_strings['function_prefixes']) > 10:
-                prompt += f"... and {len(filtered_strings['function_prefixes']) - 10} more function prefixes\n"
+            if len(prefix_items) > self.max_display_function_prefixes:
+                remaining = len(prefix_items) - self.max_display_function_prefixes
+                prompt += f"... and {remaining} more function prefixes\n"
 
+        # 日志错误消息
         if filtered_strings.get('log_messages'):
-            prompt += f"\nLOG/ERROR MESSAGES ({len(filtered_strings['log_messages'])} items):\n"
-            for msg in filtered_strings['log_messages'][:8]:
+            log_items = filtered_strings['log_messages']
+            prompt += f"\nLOG/ERROR MESSAGES ({len(log_items)} items):\n"
+            for msg in log_items[:self.max_display_logs]:
                 prompt += f"• {msg}\n"
-            if len(filtered_strings['log_messages']) > 8:
-                prompt += f"... and {len(filtered_strings['log_messages']) - 8} more log messages\n"
+            if len(log_items) > self.max_display_logs:
+                remaining = len(log_items) - self.max_display_logs
+                prompt += f"... and {remaining} more log messages\n"
 
+        # 版本信息
         if filtered_strings.get('version_info'):
-            prompt += f"\nVERSION INFORMATION ({len(filtered_strings['version_info'])} items):\n"
-            for version in filtered_strings['version_info'][:5]:
+            version_items = filtered_strings['version_info']
+            prompt += f"\nVERSION INFORMATION ({len(version_items)} items):\n"
+            for version in version_items[:self.max_display_versions]:
                 prompt += f"• {version}\n"
-            if len(filtered_strings['version_info']) > 5:
-                prompt += f"... and {len(filtered_strings['version_info']) - 5} more version strings\n"
+            if len(version_items) > self.max_display_versions:
+                remaining = len(version_items) - self.max_display_versions
+                prompt += f"... and {remaining} more version strings\n"
 
-        # COMPONENT MATCHING RESULTS
+        # 组件名匹配结果
         component_matches = filtered_strings.get('component_matches', {})
         if component_matches:
-            # Sort components by evidence strength (number of matches)
+            # 按证据强度排序（匹配数量）
             sorted_components = sorted(component_matches.items(),
                                        key=lambda x: len(x[1]), reverse=True)
 
             prompt += f"\nCOMPONENT NAME MATCHES ({len(component_matches)} components detected):\n"
             prompt += "Format: [Component] → Evidence strings (showing top matches)\n\n"
 
-            for component, matches in sorted_components[:15]:  # Show top 15 components
+            # 显示顶部组件
+            for component, matches in sorted_components[:self.max_display_components]:
                 match_count = len(matches)
-                display_matches = matches[:3]  # Show top 3 matches per component
+                display_matches = matches[:self.max_matches_per_component]
 
                 prompt += f"[{component}] ({match_count} matches):\n"
                 for match in display_matches:
                     prompt += f"  • {match}\n"
-                if match_count > 3:
-                    prompt += f"  ... and {match_count - 3} more matches\n"
+                if match_count > self.max_matches_per_component:
+                    remaining_matches = match_count - self.max_matches_per_component
+                    prompt += f"  ... and {remaining_matches} more matches\n"
                 prompt += "\n"
 
-            if len(sorted_components) > 15:
-                remaining = len(sorted_components) - 15
-                prompt += f"... and {remaining} more components with fewer matches\n\n"
+            # 如果还有更多组件未显示
+            if len(sorted_components) > self.max_display_components:
+                remaining_components = len(sorted_components) - self.max_display_components
+                prompt += f"... and {remaining_components} more components with fewer matches\n\n"
 
-            # Analysis guidance for component matches
+            # 组件匹配分析指导
             prompt += "COMPONENT MATCH ANALYSIS GUIDANCE:\n"
             prompt += "• HIGH CONFIDENCE: Components with many matches, specific function patterns, version info\n"
             prompt += "• MEDIUM CONFIDENCE: Components with moderate matches, some specific patterns\n"
             prompt += "• LOW CONFIDENCE: Components with few matches, generic terms, or common words\n"
             prompt += "• FALSE POSITIVES: Generic terms (like 'file', 'server', 'check') that appear in many contexts\n\n"
 
-            # Suggest dominant library analysis
+            # 主导模式分析
             if sorted_components:
                 top_component = sorted_components[0]
                 prompt += f"DOMINANT PATTERN: '{top_component[0]}' has the most matches ({len(top_component[1])})\n"
                 prompt += "Consider whether other matches might be internal modules of this dominant library.\n\n"
 
-        prompt += f"""
-    ANALYSIS INSTRUCTIONS:
+        prompt += """
+ANALYSIS INSTRUCTIONS:
 
-    1. EVIDENCE INTEGRATION:
-       - Synthesize ALL evidence types: copyright, paths, functions, logs, versions, component matches
-       - Component matches are HINTS, not definitive proof - validate with other evidence
-       - Look for CONSISTENT PATTERNS across multiple evidence types
+1. EVIDENCE INTEGRATION:
+   - Synthesize ALL evidence types: copyright, paths, functions, logs, versions, component matches
+   - Component matches are HINTS, not definitive proof - validate with other evidence
+   - Look for CONSISTENT PATTERNS across multiple evidence types
 
-    2. COMPONENT MATCH INTERPRETATION:
-       - COMPILED-IN LIBRARIES: Strong evidence across multiple categories, library-specific patterns
-       - EXTERNAL DEPENDENCIES: Component matches but no copyright/path evidence of inclusion
-       - INTERNAL MODULES: Component matches that are actually features of a larger library
-       - FALSE POSITIVES: Generic terms without supporting technical evidence
+2. COMPONENT MATCH INTERPRETATION:
+   - COMPILED-IN LIBRARIES: Strong evidence across multiple categories, library-specific patterns
+   - EXTERNAL DEPENDENCIES: Component matches but no copyright/path evidence of inclusion
+   - INTERNAL MODULES: Component matches that are actually features of a larger library
+   - FALSE POSITIVES: Generic terms without supporting technical evidence
 
-    3. CONSOLIDATION PRIORITY:
-       - Start with the primary source library (if identified in Step 1)
-       - Group related component matches under their parent library project
-       - Example: If binary is 'openssl', then 'base64', 'ed25519' matches are likely OpenSSL features
-       - Do NOT create separate entries for sub-components of the same library
+3. CONSOLIDATION PRIORITY:
+   - Start with the primary source library (if identified in Step 1)
+   - Group related component matches under their parent library project
+   - Example: If binary is 'openssl', then 'base64', 'ed25519' matches are likely OpenSSL features
+   - Do NOT create separate entries for sub-components of the same library
 
-    4. EVIDENCE STRENGTH HIERARCHY:
-       - STRONGEST: Copyright statements + source paths + version info + component matches
-       - STRONG: Function prefixes + library-specific error messages + component matches  
-       - MEDIUM: Component matches + generic function patterns
-       - WEAK: Component matches alone without supporting evidence
+4. EVIDENCE STRENGTH HIERARCHY:
+   - STRONGEST: Copyright statements + source paths + version info + component matches
+   - STRONG: Function prefixes + library-specific error messages + component matches  
+   - MEDIUM: Component matches + generic function patterns
+   - WEAK: Component matches alone without supporting evidence
 
-    5. QUALITY CONTROL:
-       - Be conservative: better to miss a library than report false positives
-       - Focus on libraries with multiple types of supporting evidence
-       - Exclude generic matches without technical substance
-       - Consider the binary's primary purpose when evaluating matches
+5. QUALITY CONTROL:
+   - Be conservative: better to miss a library than report false positives
+   - Focus on libraries with multiple types of supporting evidence
+   - Exclude generic matches without technical substance
+   - Consider the binary's primary purpose when evaluating matches
 
-    TASK: Identify all library projects whose source code is compiled into this binary.
-    Use component matches as starting points, but validate with comprehensive evidence analysis.
-    Focus on independent libraries with strong, consistent evidence across multiple categories.
-    """
+TASK: Identify all library projects whose source code is compiled into this binary.
+Use component matches as starting points, but validate with comprehensive evidence analysis.
+Focus on independent libraries with strong, consistent evidence across multiple categories.
+"""
 
         return prompt

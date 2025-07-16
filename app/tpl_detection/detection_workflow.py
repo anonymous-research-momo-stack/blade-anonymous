@@ -123,7 +123,7 @@ class DetectionWorkflow:
         prepare_file_duration = time.perf_counter() - all_start_at
         self.analysis_data.durations["file_preparation"] = prepare_file_duration
 
-        # 2. feature matching detection
+        # 2. feature matching detection # TODO 这里直接默认返回了匹配数量最多的前三个，应该优化一下，按照匹配的字符串分组（匹配的基本都相似的每个组里，返回前三个）
         feature_matching_start_at = time.perf_counter()
         feature_matching_libraries = self._run_tpl_detection(target_binary)
         feature_matching_duration = time.perf_counter() - feature_matching_start_at
