@@ -250,7 +250,7 @@ class DetectionWorkflow:
             self.analysis_data.durations[sub_stage] = duration
         # total
         validation_duration = time.perf_counter() - validation_start_at
-        self.analysis_data.durations["library_validation"] = validation_duration
+        self.analysis_data.durations["_library_validation"] = validation_duration
 
         # 输出验证结果统计
         passed_count = sum(1 for lib in validated_libraries if lib.validation_passed)

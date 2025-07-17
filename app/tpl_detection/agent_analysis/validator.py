@@ -246,9 +246,9 @@ class LibraryValidator:
                 "step_2_response": step_2_response,
                 "redundancy_results": redundancy_results.results,
                 "duration": {
-                    "_validation_enhance": validate_enhance_duration,
-                    "_validation_step_1": step_1_duration,
-                    "_validation_step_2": step_2_duration
+                    "__validation_enhance": validate_enhance_duration,
+                    "__validation_step_1": step_1_duration,
+                    "__validation_step_2": step_2_duration
                 }
             }
 

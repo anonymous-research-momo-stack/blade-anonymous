@@ -1,5 +1,6 @@
 import copy
 import os.path
+import subprocess
 import time
 from typing import List
 
@@ -11,6 +12,7 @@ from app.tpl_detection.batch_detection_workflow import BatchDetectionWorkflow
 from app.tpl_detection.detection_workflow import DetectionWorkflow
 from evaluation.interface import EvaluationConfig, Benchmark, EvaluationReport, AnalysisResultCheck, \
     ResearchQuestionData, EffectivenessData, EfficiencyData, AblationData
+from evaluation.visualization import generate_analysis_report
 
 
 class Evaluator:
@@ -138,7 +140,7 @@ class Evaluator:
         # reanalyze
         results_check_lst, rq_data = self.analyze_result(
             evaluation_results=report.evaluation_results,
-            evaluation_duration=report.research_question_data.rq_3_data.total_actual_duration,
+            evaluation_duration=report.research_question_data.efficiency.total_actual_duration,
             input_token_price_per_1M=self.evaluation_config.input_token_price_per_1M,  # 每百万输入token的价格, OpenAI GPT-4.1
             output_token_price_per_1M=self.evaluation_config.output_token_price_per_1M,
         )
@@ -170,21 +172,21 @@ class Evaluator:
         results_check_lst = self.check_result(evaluation_results)
 
         # RQ 1，效率
-        rq_1_data = self._cal_effectiveness(results_check_lst)
+        effectiveness = self._cal_effectiveness(results_check_lst)
 
         # RQ 2 消融实验
-        rq_2_data = self._cal_ablation_data(evaluation_results)
+        effectiveness_ablation_study = self._cal_ablation_data(evaluation_results)
 
         # RQ 3 效率和成本
-        rq_3_data = self._cal_efficiency(evaluation_results,
+        efficiency = self._cal_efficiency(evaluation_results,
                                          evaluation_duration,
                                          input_token_price_per_1M,
                                          output_token_price_per_1M)
 
         rq_data = ResearchQuestionData(
-            rq_1_data=rq_1_data,
-            rq_2_data=rq_2_data,
-            rq_3_data=rq_3_data
+            effectiveness=effectiveness,
+            effectiveness_ablation_study=effectiveness_ablation_study,
+            efficiency=efficiency
         )
 
         return results_check_lst, rq_data
@@ -209,7 +211,7 @@ class Evaluator:
         return rq_1_data
 
     def _cal_ablation_data(self, evaluation_results):
-        # 消融掉Agent 全部分析
+        # 消融掉Agent 全部分析, 特征匹配取top_n
         evaluation_results_wo_agent_analysis = copy.deepcopy(evaluation_results)
         for evaluation_result in evaluation_results_wo_agent_analysis:
             # 只保留检测到的库
@@ -220,14 +222,34 @@ class Evaluator:
         effectiveness_wo_agent_analysis = self._cal_effectiveness(results_check_lst)
 
         # 消融掉Agent 全部分析, 且特征匹配只取top_1
-        evaluation_results_wo_agent_analysis_top_1 = copy.deepcopy(evaluation_results)
-        for evaluation_result in evaluation_results_wo_agent_analysis_top_1:
+        evaluation_results_wo_agent_analysis = copy.deepcopy(evaluation_results)
+        for evaluation_result in evaluation_results_wo_agent_analysis:
             # 只保留检测到的库
             evaluation_result.detected_libraries = [tpl for tpl in evaluation_result.analysis_data.all_candidate_libraries
                                                     if self.workflow.feature_matching_detector.method_name in tpl.identify_methods][:1]
 
-        results_check_lst = self.check_result(evaluation_results_wo_agent_analysis_top_1)
+        results_check_lst = self.check_result(evaluation_results_wo_agent_analysis)
         effectiveness_wo_agent_analysis_top_1 = self._cal_effectiveness(results_check_lst)
+
+        # 消融掉Agent 全部分析, 且特征匹配只取top_2
+        evaluation_results_wo_agent_analysis = copy.deepcopy(evaluation_results)
+        for evaluation_result in evaluation_results_wo_agent_analysis:
+            # 只保留检测到的库
+            evaluation_result.detected_libraries = [tpl for tpl in evaluation_result.analysis_data.all_candidate_libraries
+                                                    if self.workflow.feature_matching_detector.method_name in tpl.identify_methods][:2]
+
+        results_check_lst = self.check_result(evaluation_results_wo_agent_analysis)
+        effectiveness_wo_agent_analysis_top_2 = self._cal_effectiveness(results_check_lst)
+
+        # 消融掉Agent 全部分析, 且特征匹配只取top_3
+        evaluation_results_wo_agent_analysis = copy.deepcopy(evaluation_results)
+        for evaluation_result in evaluation_results_wo_agent_analysis:
+            # 只保留检测到的库
+            evaluation_result.detected_libraries = [tpl for tpl in evaluation_result.analysis_data.all_candidate_libraries
+                                                    if self.workflow.feature_matching_detector.method_name in tpl.identify_methods][:3]
+
+        results_check_lst = self.check_result(evaluation_results_wo_agent_analysis)
+        effectiveness_wo_agent_analysis_top_3 = self._cal_effectiveness(results_check_lst)
 
         # 消融实验1： 消融 Agent TPL分析
         # 计算消融后的结果
@@ -277,6 +299,8 @@ class Evaluator:
         return AblationData(
             wo_agent_analysis=effectiveness_wo_agent_analysis,
             wo_agent_analysis_top_1=effectiveness_wo_agent_analysis_top_1,
+            wo_agent_analysis_top_2=effectiveness_wo_agent_analysis_top_2,
+            wo_agent_analysis_top_3=effectiveness_wo_agent_analysis_top_3,
             wo_agent_tpl_analysis=effectiveness_wo_agent_tpl_analysis,
             wo_validation_step_1=effectiveness_wo_validation_step_1,
             wo_validation_step_2=effectiveness_wo_validation_step_2,
@@ -375,21 +399,30 @@ def main():
     benchmark_tc_dir = Debian_test_case_dir
     evaluation_report_save_path = Debian_evluation_report_path
 
-    # Example usage
+    # 评估配置
     config = EvaluationConfig(
         benchmark_file=benchmark_meta,
         test_case_dir=benchmark_tc_dir,
-        concurrency=10,
-        slice_start=0,
-        slice_end=2,
+        concurrency=30,
+        slice_start=100,
+        slice_end=130,
     )
+
+    # 初始化评估器
     evaluator = Evaluator(config)
+
+    # 评估
     # evaluator.run_benchmark(analyze_context=False)
     # evaluator.report.dump(evaluation_report_save_path)
 
-
+    # 重新分析结果
     report = evaluator.reanalyze_report(evaluation_report_save_path)
 
+    # 可视化分析结果
+    visualization_html = "/Users/liuchengyue/Desktop/BinarySCA Platform/Code/sca_agents/bsca-expert-agent-api/tmp/visualization.html"
+    generate_analysis_report(report.research_question_data,
+                             visualization_html
+                             )
 
 if __name__ == '__main__':
     main()

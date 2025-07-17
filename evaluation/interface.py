@@ -172,7 +172,7 @@ class AblationData(Serializable):
     """
     分析几个主要环节的贡献
 
-    1. 消融整个Agent分析
+    1. 消融整个Agent分析 (仅保留特征匹配结果）
     2. 消融 Agent 识别
     3. 消融 Agent 验证
         3.1 消融 合理性 验证
@@ -181,7 +181,9 @@ class AblationData(Serializable):
     """
 
     wo_agent_analysis: EffectivenessData = None  # Effectiveness data without agent analysis
-    wo_agent_analysis_top_1:EffectivenessData = None # Effectiveness data without agent analysis, only top 1
+    wo_agent_analysis_top_1:EffectivenessData = None # Effectiveness data without agent analysis, only keep the top 1 results
+    wo_agent_analysis_top_2:EffectivenessData = None # Effectiveness data without agent analysis, only keep the top 2 results
+    wo_agent_analysis_top_3:EffectivenessData = None # Effectiveness data without agent analysis, only keep the top 3 results
     wo_agent_tpl_analysis: EffectivenessData = None  # Effectiveness data without agent analysis
     wo_validation_step_1: EffectivenessData = None  # Effectiveness data without validation step 1
     wo_validation_step_2: EffectivenessData = None  # Effectiveness data without validation step 2
@@ -224,13 +226,13 @@ class ResearchQuestionData(Serializable):
     Data structure for research question data
     """
     # rq 1 效果
-    rq_1_data: EffectivenessData = None  # Data for research question 1
+    effectiveness: EffectivenessData = None  # Data for research question 1
 
     # rq 2 消融实验
-    rq_2_data: AblationData = None  # Data for research question 2
+    effectiveness_ablation_study: AblationData = None  # Data for research question 2
 
     # rq 3 效率
-    rq_3_data: EfficiencyData = None  # Data for research question 3
+    efficiency: EfficiencyData = None  # Data for research question 3
 
     # rq 4 实例实验
 
