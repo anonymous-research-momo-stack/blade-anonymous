@@ -79,7 +79,7 @@ class Evaluator:
         for result in evaluation_results:
             ground_truth_reused_libraries = ground_truth_dict.get(result.binary_sha256, [])
 
-            undetected_gt_libraries = ground_truth_reused_libraries
+            undetected_gt_libraries = copy.deepcopy(ground_truth_reused_libraries)
             detected_gt_libraries = []
 
             tp_library_names = []
@@ -130,6 +130,26 @@ class Evaluator:
     # 正规化名称
     def normalize_lib_name(self, lib_name: str):
         return lib_name.lower().strip()
+
+    def reanalyze_report(self, evaluation_report_save_path:str):
+        # load
+        report = EvaluationReport.load_from_file(evaluation_report_save_path)
+
+        # reanalyze
+        results_check_lst, rq_data = self.analyze_result(
+            evaluation_results=report.evaluation_results,
+            evaluation_duration=report.research_question_data.rq_3_data.total_actual_duration,
+            input_token_price_per_1M=self.evaluation_config.input_token_price_per_1M,  # 每百万输入token的价格, OpenAI GPT-4.1
+            output_token_price_per_1M=self.evaluation_config.output_token_price_per_1M,
+        )
+
+        # update
+        report.evaluation_results_check = results_check_lst
+        report.research_question_data = rq_data
+
+        # save
+        report.dump(evaluation_report_save_path)
+        return report
 
     def analyze_result(self,
                     evaluation_results: List[AnalysisResult],
@@ -189,13 +209,33 @@ class Evaluator:
         return rq_1_data
 
     def _cal_ablation_data(self, evaluation_results):
-        # 消融实验1： 消融 Agent TPL 分析步骤
+        # 消融掉Agent 全部分析
+        evaluation_results_wo_agent_analysis = copy.deepcopy(evaluation_results)
+        for evaluation_result in evaluation_results_wo_agent_analysis:
+            # 只保留检测到的库
+            evaluation_result.detected_libraries = [tpl for tpl in evaluation_result.analysis_data.all_candidate_libraries
+                                                    if self.workflow.feature_matching_detector.method_name in tpl.identify_methods]
+
+        results_check_lst = self.check_result(evaluation_results_wo_agent_analysis)
+        effectiveness_wo_agent_analysis = self._cal_effectiveness(results_check_lst)
+
+        # 消融掉Agent 全部分析, 且特征匹配只取top_1
+        evaluation_results_wo_agent_analysis_top_1 = copy.deepcopy(evaluation_results)
+        for evaluation_result in evaluation_results_wo_agent_analysis_top_1:
+            # 只保留检测到的库
+            evaluation_result.detected_libraries = [tpl for tpl in evaluation_result.analysis_data.all_candidate_libraries
+                                                    if self.workflow.feature_matching_detector.method_name in tpl.identify_methods][:1]
+
+        results_check_lst = self.check_result(evaluation_results_wo_agent_analysis_top_1)
+        effectiveness_wo_agent_analysis_top_1 = self._cal_effectiveness(results_check_lst)
+
+        # 消融实验1： 消融 Agent TPL分析
         # 计算消融后的结果
         evaluation_results_wo_agent_tpl_analysis = copy.deepcopy(evaluation_results)
         for evaluation_result in evaluation_results_wo_agent_tpl_analysis:
-            # 过滤掉 Agent TPL 分析方法检测到的库
+            # 过滤掉 Agent TPL 分析方法检测到的库，即：有特征匹配的就可以。
             evaluation_result.detected_libraries = [tpl for tpl in evaluation_result.detected_libraries
-                                           if self.workflow.tpl_analyzer.method_name not in tpl.identify_methods]
+                                           if self.workflow.feature_matching_detector.method_name in tpl.identify_methods]
         # 重新检查
         results_check_lst = self.check_result(evaluation_results_wo_agent_tpl_analysis)
 
@@ -225,7 +265,7 @@ class Evaluator:
         effectiveness_wo_validation_step_2 = self._cal_effectiveness(results_check_lst)
 
 
-        # 消融全部验证步骤
+        # 消融Agent 全部验证步骤
         evaluation_results_wo_validation_step_1_and_2 = copy.deepcopy(evaluation_results)
         for evaluation_result in evaluation_results_wo_validation_step_1_and_2:
             # 不冗余且合理即可
@@ -234,19 +274,9 @@ class Evaluator:
         results_check_lst = self.check_result(evaluation_results_wo_validation_step_1_and_2)
         effectiveness_wo_validation_step_1_and_2 = self._cal_effectiveness(results_check_lst)
 
-        # 消融掉全部的Agent 分析
-        evaluation_results_wo_agent_analysis = copy.deepcopy(evaluation_results)
-        for evaluation_result in evaluation_results_wo_agent_analysis:
-            # 只保留检测到的库
-            evaluation_result.detected_libraries = [tpl for tpl in evaluation_result.analysis_data.all_candidate_libraries
-                                                    if self.workflow.feature_matching_detector.method_name in tpl.identify_methods]
-
-        results_check_lst = self.check_result(evaluation_results_wo_agent_analysis)
-        effectiveness_wo_agent_analysis = self._cal_effectiveness(results_check_lst)
-
-
         return AblationData(
             wo_agent_analysis=effectiveness_wo_agent_analysis,
+            wo_agent_analysis_top_1=effectiveness_wo_agent_analysis_top_1,
             wo_agent_tpl_analysis=effectiveness_wo_agent_tpl_analysis,
             wo_validation_step_1=effectiveness_wo_validation_step_1,
             wo_validation_step_2=effectiveness_wo_validation_step_2,
@@ -351,14 +381,14 @@ def main():
         test_case_dir=benchmark_tc_dir,
         concurrency=10,
         slice_start=0,
-        slice_end=3,
+        slice_end=2,
     )
     evaluator = Evaluator(config)
-    evaluator.run_benchmark(analyze_context=False)
-    evaluator.report.dump(evaluation_report_save_path)
+    # evaluator.run_benchmark(analyze_context=False)
+    # evaluator.report.dump(evaluation_report_save_path)
 
-    # report = EvaluationReport.load_from_file(evaluation_report_save_path)
-    # result_check = evaluator.check_result(evaluator.benchmark, report.evaluation_results)
+
+    report = evaluator.reanalyze_report(evaluation_report_save_path)
 
 
 if __name__ == '__main__':
