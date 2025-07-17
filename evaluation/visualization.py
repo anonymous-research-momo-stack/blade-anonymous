@@ -1,14 +1,12 @@
 import json
 
-from evaluation.interface import ResearchQuestionData
 
-
-def generate_analysis_report(data: ResearchQuestionData, output_filename: str) -> None:
+def generate_analysis_report(report, output_filename: str) -> None:
     """
     生成研究数据的可视化分析报告
 
     Args:
-        data: ResearchQuestionData 实例
+        report: EvaluationReport实例
         output_filename: 输出的HTML文件名（如 "analysis_report.html"）
     """
 
@@ -29,6 +27,58 @@ def generate_analysis_report(data: ResearchQuestionData, output_filename: str) -
             return f"{minutes:.2f} min"
         return f"{seconds:.2f} sec"
 
+    def prepare_evaluation_info(report):
+        """准备评估基本信息"""
+        return {
+            'start_at': report.start_at if report.start_at else 'N/A',
+            'finished_at': report.finished_at if report.finished_at else 'N/A',
+        }
+
+    def prepare_evaluation_config(config):
+        """准备评估配置信息"""
+        if config is None:
+            return {
+                'benchmark_file': 'N/A',
+                'test_case_dir': 'N/A',
+                'llm_provider': 'N/A',
+                'llm_model_id': 'N/A',
+                'input_token_price_per_1M': 'N/A',
+                'output_token_price_per_1M': 'N/A',
+                'concurrency': 'N/A',
+                'slice_start': 'N/A',
+                'slice_end': 'N/A'
+            }
+
+        return {
+            'benchmark_file': config.benchmark_file,
+            'test_case_dir': config.test_case_dir,
+            'llm_provider': config.llm_provider,
+            'llm_model_id': config.llm_model_id,
+            'input_token_price_per_1M': f"${config.input_token_price_per_1M:.2f}",
+            'output_token_price_per_1M': f"${config.output_token_price_per_1M:.2f}",
+            'concurrency': str(config.concurrency),
+            'slice_start': str(config.slice_start),
+            'slice_end': str(config.slice_end) if config.slice_end != -1 else 'End'
+        }
+
+    def prepare_benchmark_meta(benchmark):
+        """准备benchmark元数据"""
+        if benchmark is None:
+            return {
+                'name': 'N/A',
+                'test_case_num': 'N/A',
+                'covered_library_num': 'N/A',
+                'version': 'N/A'
+            }
+
+        meta = benchmark.get_meta()
+        return {
+            'name': meta.name,
+            'test_case_num': str(meta.test_case_num),
+            'covered_library_num': str(meta.covered_library_num),
+            'version': meta.version
+        }
+
     def prepare_effectiveness_data(eff_data):
         """准备效果数据"""
         if eff_data is None:
@@ -46,7 +96,7 @@ def generate_analysis_report(data: ResearchQuestionData, output_filename: str) -
             'f1_score': safe_format(eff_data.f1_score)
         }
 
-    def prepare_ablation_data(ablation_data):
+    def prepare_ablation_data(ablation_data, effectiveness_data):
         """准备消融实验数据"""
         if ablation_data is None:
             return {
@@ -57,7 +107,7 @@ def generate_analysis_report(data: ResearchQuestionData, output_filename: str) -
             }
 
         configurations = [
-            ('Complete System', data.effectiveness),
+            ('Complete System', effectiveness_data),
             ('w/o Agent Analysis', ablation_data.wo_agent_analysis),
             ('w/o Agent Analysis (Top-1)', ablation_data.wo_agent_analysis_top_1),
             ('w/o Agent Analysis (Top-2)', ablation_data.wo_agent_analysis_top_2),
@@ -94,9 +144,7 @@ def generate_analysis_report(data: ResearchQuestionData, output_filename: str) -
                 'file_stats': {'total': 'N/A', 'average': 'N/A'},
                 'time_stats': {'total_theoretical': 'N/A', 'average_theoretical': 'N/A',
                                'total_actual': 'N/A', 'average_actual': 'N/A'},
-                'duration_breakdown': {'top_level': {}, 'sub_level': {}, 'subsub_level': {}},
-                'token_stats': {'input': 'N/A', 'output': 'N/A', 'total': 'N/A'},
-                'cost_stats': {'total': 'N/A', 'average': 'N/A'}
+                'duration_breakdown': {'top_level': {}, 'sub_level': {}, 'subsub_level': {}}
             }
 
         # 用于多层展示的数据结构
@@ -131,6 +179,7 @@ def generate_analysis_report(data: ResearchQuestionData, output_filename: str) -
 
                 friendly_label = label_mapping.get(key, key)
 
+                # 保证 value 是 float/int 类型，不用 safe_format
                 if key.startswith('__'):  # 二级子阶段 (library_validation的子阶段)
                     subsub_level_data[friendly_label] = actual_value
                 elif key.startswith('_'):  # 一级子阶段 (agent_analysis的子阶段)
@@ -153,22 +202,40 @@ def generate_analysis_report(data: ResearchQuestionData, output_filename: str) -
                 'top_level': top_level_data,
                 'sub_level': sub_level_data,
                 'subsub_level': subsub_level_data
-            },
+            }
+        }
+
+    def prepare_cost_data(cost_data):
+        """准备成本数据"""
+        if cost_data is None:
+            return {
+                'token_stats': {'input': 'N/A', 'output': 'N/A', 'total': 'N/A'},
+                'cost_stats': {'total': 'N/A', 'average': 'N/A'}
+            }
+
+        return {
             'token_stats': {
-                'input': safe_format(eff_data.input_token_count, 0),
-                'output': safe_format(eff_data.output_token_count, 0),
-                'total': safe_format(eff_data.total_token_count, 0)
+                'input': safe_format(cost_data.input_token_count, 0),
+                'output': safe_format(cost_data.output_token_count, 0),
+                'total': safe_format(cost_data.total_token_count, 0)
             },
             'cost_stats': {
-                'total': f"${safe_format(eff_data.total_cost)}" if eff_data.total_cost is not None else "N/A",
-                'average': f"${safe_format(eff_data.average_cost)}" if eff_data.average_cost is not None else "N/A"
+                'total': f"${safe_format(cost_data.total_cost)}" if cost_data.total_cost is not None else "N/A",
+                'average': f"${safe_format(cost_data.average_cost)}" if cost_data.average_cost is not None else "N/A"
             }
         }
 
     # 准备数据
+    evaluation_info = prepare_evaluation_info(report)
+    evaluation_config = prepare_evaluation_config(report.evaluation_config)
+    benchmark_meta = prepare_benchmark_meta(report.benchmark)
+
+    # 从 report.research_question_data 获取分析数据
+    data = report.research_question_data
     effectiveness_data = prepare_effectiveness_data(data.effectiveness)
-    ablation_data = prepare_ablation_data(data.effectiveness_ablation_study)
+    ablation_data = prepare_ablation_data(data.effectiveness_ablation_study, data.effectiveness)
     efficiency_data = prepare_efficiency_data(data.efficiency)
+    cost_data = prepare_cost_data(data.cost)
 
     # 生成HTML内容
     html_content = f"""
@@ -177,7 +244,7 @@ def generate_analysis_report(data: ResearchQuestionData, output_filename: str) -
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Evaluation Report</title>
+    <title>Evaluation Result Analysis Report</title>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/3.9.1/chart.min.js"></script>
     <style>
         body {{
@@ -326,7 +393,90 @@ def generate_analysis_report(data: ResearchQuestionData, output_filename: str) -
 </head>
 <body>
     <div class="container">
-        <h1>Evaluation Report</h1>
+        <h1>Evaluation Result Analysis Report</h1>
+
+        <!-- Evaluation Overview Section -->
+        <div class="section">
+            <h2>Evaluation Overview</h2>
+
+            <div class="two-column">
+                <div>
+                    <h3>Evaluation Information</h3>
+                    <table class="stats-table">
+                        <tr>
+                            <th>Metric</th>
+                            <th>Value</th>
+                        </tr>
+                        <tr>
+                            <td>Start Time</td>
+                            <td>{evaluation_info['start_at']}</td>
+                        </tr>
+                        <tr>
+                            <td>Finish Time</td>
+                            <td>{evaluation_info['finished_at']}</td>
+                        </tr>
+                    </table>
+
+                    <h3>Benchmark Information</h3>
+                    <table class="stats-table">
+                        <tr>
+                            <th>Metric</th>
+                            <th>Value</th>
+                        </tr>
+                        <tr>
+                            <td>Name</td>
+                            <td>{benchmark_meta['name']}</td>
+                        </tr>
+                        <tr>
+                            <td>Version</td>
+                            <td>{benchmark_meta['version']}</td>
+                        </tr>
+                        <tr>
+                            <td>Test Cases</td>
+                            <td>{benchmark_meta['test_case_num']}</td>
+                        </tr>
+                        <tr>
+                            <td>Covered Libraries</td>
+                            <td>{benchmark_meta['covered_library_num']}</td>
+                        </tr>
+                    </table>
+                </div>
+
+                <div>
+                    <h3>Evaluation Configuration</h3>
+                    <table class="stats-table">
+                        <tr>
+                            <th>Parameter</th>
+                            <th>Value</th>
+                        </tr>
+                        <tr>
+                            <td>LLM Provider</td>
+                            <td>{evaluation_config['llm_provider']}</td>
+                        </tr>
+                        <tr>
+                            <td>LLM Model</td>
+                            <td>{evaluation_config['llm_model_id']}</td>
+                        </tr>
+                        <tr>
+                            <td>Input Token Price (per 1M)</td>
+                            <td>{evaluation_config['input_token_price_per_1M']}</td>
+                        </tr>
+                        <tr>
+                            <td>Output Token Price (per 1M)</td>
+                            <td>{evaluation_config['output_token_price_per_1M']}</td>
+                        </tr>
+                        <tr>
+                            <td>Concurrency</td>
+                            <td>{evaluation_config['concurrency']}</td>
+                        </tr>
+                        <tr>
+                            <td>Test Range</td>
+                            <td>{evaluation_config['slice_start']} - {evaluation_config['slice_end']}</td>
+                        </tr>
+                    </table>
+                </div>
+            </div>
+        </div>
 
         <!-- Effectiveness Analysis Section -->
         <div class="section">
@@ -423,10 +573,7 @@ def generate_analysis_report(data: ResearchQuestionData, output_filename: str) -
                 </div>
 
                 <div>
-                    <div class="chart-container">
-                        <div class="chart-title">Token Distribution</div>
-                        <canvas id="tokenChart"></canvas>
-                    </div>
+                    <!-- 移除了Token Distribution，因为已经移到Cost章节 -->
                 </div>
             </div>
 
@@ -451,22 +598,58 @@ def generate_analysis_report(data: ResearchQuestionData, output_filename: str) -
                     <canvas id="validationStagesChart"></canvas>
                 </div>
             </div>
+        </div>
 
-            <h3>Cost Analysis</h3>
-            <table class="stats-table">
-                <tr>
-                    <th>Metric</th>
-                    <th>Value</th>
-                </tr>
-                <tr>
-                    <td>Total Cost</td>
-                    <td>{efficiency_data['cost_stats']['total']}</td>
-                </tr>
-                <tr>
-                    <td>Average Cost per Analysis</td>
-                    <td>{efficiency_data['cost_stats']['average']}</td>
-                </tr>
-            </table>
+        <!-- Cost Analysis Section -->
+        <div class="section">
+            <h2>4. Cost Analysis</h2>
+
+            <div class="two-column">
+                <div>
+                    <h3>Token Usage</h3>
+                    <table class="stats-table">
+                        <tr>
+                            <th>Type</th>
+                            <th>Count</th>
+                        </tr>
+                        <tr>
+                            <td>Input Tokens</td>
+                            <td>{cost_data['token_stats']['input']}</td>
+                        </tr>
+                        <tr>
+                            <td>Output Tokens</td>
+                            <td>{cost_data['token_stats']['output']}</td>
+                        </tr>
+                        <tr>
+                            <td>Total Tokens</td>
+                            <td>{cost_data['token_stats']['total']}</td>
+                        </tr>
+                    </table>
+
+                    <h3>Cost Breakdown</h3>
+                    <table class="stats-table">
+                        <tr>
+                            <th>Metric</th>
+                            <th>Value</th>
+                        </tr>
+                        <tr>
+                            <td>Total Cost</td>
+                            <td>{cost_data['cost_stats']['total']}</td>
+                        </tr>
+                        <tr>
+                            <td>Average Cost per Analysis</td>
+                            <td>{cost_data['cost_stats']['average']}</td>
+                        </tr>
+                    </table>
+                </div>
+
+                <div>
+                    <div class="chart-container">
+                        <div class="chart-title">Token Distribution</div>
+                        <canvas id="tokenChart"></canvas>
+                    </div>
+                </div>
+            </div>
         </div>
     </div>
 
@@ -714,10 +897,10 @@ def generate_analysis_report(data: ResearchQuestionData, output_filename: str) -
             validationStagesCtx.canvas.parentElement.innerHTML = '<p style="text-align: center; color: #666; margin-top: 50px;">No data available</p>';
         }}
 
-        // 4. Token Distribution Chart
+        // 4. Token Distribution Chart (现在在Cost章节)
         const tokenCtx = document.getElementById('tokenChart').getContext('2d');
-        const inputTokens = {efficiency_data['token_stats']['input'].replace(',', '') if efficiency_data['token_stats']['input'] != 'N/A' else 0};
-        const outputTokens = {efficiency_data['token_stats']['output'].replace(',', '') if efficiency_data['token_stats']['output'] != 'N/A' else 0};
+        const inputTokens = {cost_data['token_stats']['input'].replace(',', '') if cost_data['token_stats']['input'] != 'N/A' else 0};
+        const outputTokens = {cost_data['token_stats']['output'].replace(',', '') if cost_data['token_stats']['output'] != 'N/A' else 0};
 
         new Chart(tokenCtx, {{
             type: 'doughnut',

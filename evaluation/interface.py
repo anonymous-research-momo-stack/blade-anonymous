@@ -208,9 +208,13 @@ class EfficiencyData(Serializable):
 
     duration_breakdown: dict = dataclasses.field(default_factory=dict)  # Breakdown of duration by step, e.g., {'agent_analysis': 10.5, 'tpl_analysis': 5.0, 'validation': 2.0}
 
-    # cost
 
 
+@dataclass
+class CostData(Serializable):
+    """
+    Data structure for research question data
+    """
     # token
     input_token_count:int = None  # Input token count
     output_token_count:int = None  # Output token count
@@ -234,7 +238,8 @@ class ResearchQuestionData(Serializable):
     # rq 3 效率
     efficiency: EfficiencyData = None  # Data for research question 3
 
-    # rq 4 实例实验
+    # rq 4 成本
+    cost: CostData = None
 
 @dataclass
 class EvaluationConfig(Serializable):

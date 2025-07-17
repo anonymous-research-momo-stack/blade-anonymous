@@ -11,7 +11,7 @@ from app.interface import AnalysisResult, AnalysisData
 from app.tpl_detection.batch_detection_workflow import BatchDetectionWorkflow
 from app.tpl_detection.detection_workflow import DetectionWorkflow
 from evaluation.interface import EvaluationConfig, Benchmark, EvaluationReport, AnalysisResultCheck, \
-    ResearchQuestionData, EffectivenessData, EfficiencyData, AblationData
+    ResearchQuestionData, EffectivenessData, EfficiencyData, AblationData, CostData
 from evaluation.visualization import generate_analysis_report
 
 
@@ -182,11 +182,17 @@ class Evaluator:
                                          evaluation_duration,
                                          input_token_price_per_1M,
                                          output_token_price_per_1M)
+        cost = self._cal_cost(
+                evaluation_results,
+                input_token_price_per_1M,
+                output_token_price_per_1M
+        )
 
         rq_data = ResearchQuestionData(
             effectiveness=effectiveness,
             effectiveness_ablation_study=effectiveness_ablation_study,
-            efficiency=efficiency
+            efficiency=efficiency,
+            cost=cost,
         )
 
         return results_check_lst, rq_data
@@ -343,6 +349,22 @@ class Evaluator:
         for step, (step_total_theoretical_duration, step_proportion) in zip(step_total_theoretical_duration.keys(), step_total_theoretical_duration_proportions.items()):
             duration_breakdown[step] = (step_total_theoretical_duration, step_proportion)
 
+
+        rq_3_data = EfficiencyData(
+            total_file_size_kb=total_file_size,
+            average_file_size_kb=average_file_size,
+            total_theoretical_duration=total_theoretical_duration,
+            average_theoretical_duration=average_theoretical_duration,
+            total_actual_duration=total_actual_duration,
+            average_actual_duration=average_actual_duration,
+            duration_breakdown=duration_breakdown,
+        )
+        return rq_3_data
+
+    def _cal_cost(self,
+                        evaluation_results,
+                        input_token_price_per_1M,
+                        output_token_price_per_1M):
         # ----- 成本 -----
         input_token_count = 0
         output_token_count = 0
@@ -363,20 +385,16 @@ class Evaluator:
                 total_cost += input_cost + output_cost
 
         average_cost = total_cost / len(evaluation_results) if evaluation_results else 0.0  # 平均成本
-        rq_3_data = EfficiencyData(
-            total_file_size_kb=total_file_size,
-            average_file_size_kb=average_file_size,
-            total_theoretical_duration=total_theoretical_duration,
-            average_theoretical_duration=average_theoretical_duration,
-            total_actual_duration=total_actual_duration,
-            average_actual_duration=average_actual_duration,
-            duration_breakdown=duration_breakdown,
+
+        cost_data = CostData(
             input_token_count=input_token_count,
             output_token_count=output_token_count,
+            total_token_count=input_token_count+output_token_count,
             total_cost=total_cost,
             average_cost=average_cost
         )
-        return rq_3_data
+
+        return cost_data
 
 
 def main():
@@ -420,8 +438,8 @@ def main():
 
     # 可视化分析结果
     visualization_html = "/Users/liuchengyue/Desktop/BinarySCA Platform/Code/sca_agents/bsca-expert-agent-api/tmp/visualization.html"
-    generate_analysis_report(report.research_question_data,
-                             visualization_html
+    generate_analysis_report(report,
+                            visualization_html
                              )
 
 if __name__ == '__main__':
