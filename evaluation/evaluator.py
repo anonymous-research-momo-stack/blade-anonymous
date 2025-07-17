@@ -4,6 +4,7 @@ import time
 from typing import List
 
 from loguru import logger
+from sqlalchemy.testing.util import total_size
 
 from app.interface import AnalysisResult, AnalysisData
 from app.tpl_detection.batch_detection_workflow import BatchDetectionWorkflow
@@ -43,44 +44,40 @@ class Evaluator:
         # run test cases
         start_time = time.perf_counter()
         self.report.start_at = time.strftime("%Y-%m-%d %H:%M:%S", time.localtime(start_time))
-
         context = None
         if analyze_context:
             logger.info("分析软件上下文...")
             context = self.workflow.analyze_context(self.evaluation_config.test_case_dir)
-        logger.info(f"开始分析")
+            self.report.software_context = context
+
+        logger.info(f"开始运行测试用例")
         results = self.batch_detection_workflow.run_batch(absolute_paths, software_context=context)
         total_time = time.perf_counter() - start_time
         self.report.finished_at = time.strftime("%Y-%m-%d %H:%M:%S", time.localtime(start_time + total_time))
-
         self.report.evaluation_results = results
 
-        # 检查结果
-        logger.info("检查结果...")
-        results_check_lst = self.check_result(self.benchmark, results)
-        self.report.evaluation_results_check = results_check_lst
-
         # 生成RQ数据
-        logger.info("生成研究问题数据...")
-        rq_data = self.cal_rq_data(
+        logger.info("分析测试结果")
+        results_check_lst, rq_data = self.analyze_result(
             evaluation_results=results,
-            result_check_lst=results_check_lst,
+            evaluation_duration=total_time,
             input_token_price_per_1M=self.evaluation_config.input_token_price_per_1M,  # 每百万输入token的价格, OpenAI GPT-4.1
             output_token_price_per_1M=self.evaluation_config.output_token_price_per_1M,
         )
+        self.report.evaluation_results_check = results_check_lst
         self.report.research_question_data = rq_data
         logger.info(f"All Done, total time: {total_time:.2f} seconds")
 
-    def check_result(self, benchmark: Benchmark, evaluation_results: List[AnalysisResult]) -> List[AnalysisResultCheck]:
+    def check_result(self, evaluation_results: List[AnalysisResult]) -> List[AnalysisResultCheck]:
         """
         检查结果，与Ground Truth进行对比
         :return:
         """
         ground_truth_dict = {test_case.test_binary.sha256: test_case.reused_libraries for test_case in
-                             benchmark.test_cases}
+                             self.benchmark.test_cases}
         results_check_lst = []
         for result in evaluation_results:
-            ground_truth_reused_libraries = ground_truth_dict.get(result.target_binary.hash_sha256, [])
+            ground_truth_reused_libraries = ground_truth_dict.get(result.binary_sha256, [])
 
             undetected_gt_libraries = ground_truth_reused_libraries
             detected_gt_libraries = []
@@ -116,9 +113,9 @@ class Evaluator:
 
             # 生成分析结果检查对象
             analysis_result_check = AnalysisResultCheck(
-                binary_name=result.target_binary.binary_name,
-                binary_path=result.target_binary.absolute_path,
-                binary_hash=result.target_binary.hash_sha256,
+                binary_name=result.binary_name,
+                binary_path=result.binary_path,
+                binary_hash=result.binary_sha256,
                 ground_truth_lib_names=[lib.name for lib in ground_truth_reused_libraries],  # Ground Truth 库名称
                 detected_lib_names=[lib.name for lib in result.detected_libraries],  # 检测到的库名称
                 hs_fn=len(fn_library_names) > 0,  # 是否有漏报
@@ -134,12 +131,12 @@ class Evaluator:
     def normalize_lib_name(self, lib_name: str):
         return lib_name.lower().strip()
 
-    def cal_rq_data(self,
+    def analyze_result(self,
                     evaluation_results: List[AnalysisResult],
-                    result_check_lst: List[AnalysisResultCheck],
+                    evaluation_duration: float,
                     input_token_price_per_1M: float=2,  # 每百万输入token的价格, OpenAI GPT-4.1
                     output_token_price_per_1M: float=8,  # 每百万输出token的价格, OpenAI GPT-4.1
-                    ) -> ResearchQuestionData:
+                    ) -> tuple[list[AnalysisResultCheck], ResearchQuestionData]:
         """
         生成报告
         1. 效果
@@ -148,22 +145,29 @@ class Evaluator:
 
         :return:
         """
+        # 检查结果
+        logger.info("检查结果...")
+        results_check_lst = self.check_result(evaluation_results)
 
         # RQ 1，效率
-        rq_1_data = self._cal_effectiveness(result_check_lst)
+        rq_1_data = self._cal_effectiveness(results_check_lst)
 
         # RQ 2 消融实验
         rq_2_data = self._cal_ablation_data(evaluation_results)
 
         # RQ 3 效率和成本
-        rq_3_data = self._cal_efficiency(evaluation_results, input_token_price_per_1M, output_token_price_per_1M)
+        rq_3_data = self._cal_efficiency(evaluation_results,
+                                         evaluation_duration,
+                                         input_token_price_per_1M,
+                                         output_token_price_per_1M)
+
         rq_data = ResearchQuestionData(
             rq_1_data=rq_1_data,
             rq_2_data=rq_2_data,
             rq_3_data=rq_3_data
         )
 
-        return rq_data
+        return results_check_lst, rq_data
 
     def _cal_effectiveness(self, result_check_lst):
         # TP, FP, FN,
@@ -186,42 +190,106 @@ class Evaluator:
 
     def _cal_ablation_data(self, evaluation_results):
         # 消融实验1： 消融 Agent TPL 分析步骤
+        # 计算消融后的结果
         evaluation_results_wo_agent_tpl_analysis = copy.deepcopy(evaluation_results)
         for evaluation_result in evaluation_results_wo_agent_tpl_analysis:
             # 过滤掉 Agent TPL 分析方法检测到的库
-            evaluation_result.detected_libraries = [tpl.name for tpl in evaluation_result.detected_libraries
+            evaluation_result.detected_libraries = [tpl for tpl in evaluation_result.detected_libraries
                                            if self.workflow.tpl_analyzer.method_name not in tpl.identify_methods]
         # 重新检查
-        results_check_lst = self.check_result(self.benchmark, evaluation_results_wo_agent_tpl_analysis)
+        results_check_lst = self.check_result(evaluation_results_wo_agent_tpl_analysis)
+
         # 重新计算effectiveness
         effectiveness_wo_agent_tpl_analysis = self._cal_effectiveness(results_check_lst)
 
         # 消融实验2： 消融验证步骤
         # 消融验证步骤 1
+        # 计算消融后的结果
         evaluation_results_wo_validation_step_1 = copy.deepcopy(evaluation_results)
         for evaluation_result in evaluation_results_wo_validation_step_1:
-            # 过滤掉验证步骤1检测到的库
-            evaluation_result.detected_libraries = [tpl.name for tpl in evaluation_result.detected_libraries
-                                           if self.workflow.validation_step_1.method_name not in tpl.identify_methods]
-        results_check_lst = self.check_result(self.benchmark, evaluation_results_wo_validation_step_1)
+            # 不冗余即可
+            evaluation_result.detected_libraries = [tpl for tpl in evaluation_result.analysis_data.all_candidate_libraries if not tpl.is_redundant]
+
+        results_check_lst = self.check_result(evaluation_results_wo_validation_step_1)
+
         effectiveness_wo_validation_step_1 = self._cal_effectiveness(results_check_lst)
 
+        # 消融验证步骤 2
+        evaluation_results_wo_validation_step_2 = copy.deepcopy(evaluation_results)
+        for evaluation_result in evaluation_results_wo_validation_step_2:
+            # 合理即可
+            evaluation_result.detected_libraries =  [tpl for tpl in evaluation_result.analysis_data.all_candidate_libraries if tpl.is_reasonable]
+
+        results_check_lst = self.check_result(evaluation_results_wo_validation_step_2)
+
+        effectiveness_wo_validation_step_2 = self._cal_effectiveness(results_check_lst)
+
+
+        # 消融全部验证步骤
+        evaluation_results_wo_validation_step_1_and_2 = copy.deepcopy(evaluation_results)
+        for evaluation_result in evaluation_results_wo_validation_step_1_and_2:
+            # 不冗余且合理即可
+            evaluation_result.detected_libraries = evaluation_result.analysis_data.all_candidate_libraries
+
+        results_check_lst = self.check_result(evaluation_results_wo_validation_step_1_and_2)
+        effectiveness_wo_validation_step_1_and_2 = self._cal_effectiveness(results_check_lst)
+
+        # 消融掉全部的Agent 分析
+        evaluation_results_wo_agent_analysis = copy.deepcopy(evaluation_results)
+        for evaluation_result in evaluation_results_wo_agent_analysis:
+            # 只保留检测到的库
+            evaluation_result.detected_libraries = [tpl for tpl in evaluation_result.analysis_data.all_candidate_libraries
+                                                    if self.workflow.feature_matching_detector.method_name in tpl.identify_methods]
+
+        results_check_lst = self.check_result(evaluation_results_wo_agent_analysis)
+        effectiveness_wo_agent_analysis = self._cal_effectiveness(results_check_lst)
+
+
         return AblationData(
+            wo_agent_analysis=effectiveness_wo_agent_analysis,
             wo_agent_tpl_analysis=effectiveness_wo_agent_tpl_analysis,
-            wo_validation_step_1=EffectivenessData(),
-            wo_validation_step_2=EffectivenessData(),
-            wo_validation_step_1_and_2=EffectivenessData(),
-            wo_agent_analysis=EffectivenessData(),
+            wo_validation_step_1=effectiveness_wo_validation_step_1,
+            wo_validation_step_2=effectiveness_wo_validation_step_2,
+            wo_validation_step_1_and_2=effectiveness_wo_validation_step_1_and_2,
         )
 
-    def _cal_efficiency(self, evaluation_results, input_token_price_per_1M, output_token_price_per_1M):
-        # 文件大小
-        total_file_size = sum(result.target_binary.file_size_kb for result in evaluation_results)  # 总文件大小
+    def _cal_efficiency(self,
+                        evaluation_results,
+                        evaluation_duration,
+                        input_token_price_per_1M,
+                        output_token_price_per_1M):
+        # ----- 文件大小 -----
+        total_file_size = sum(result.analysis_data.target_binary.file_size_kb for result in evaluation_results)  # 总文件大小
         average_file_size = total_file_size / len(evaluation_results) if evaluation_results else 0.0  # 平均文件大小
-        # 时间开销
-        total_duration = sum(result.analysis_data.durations['total'] for result in evaluation_results)  # 总检测时间
-        average_duration = total_duration / len(evaluation_results) if evaluation_results else 0.0  # 平均检测时间
-        # 成本
+
+        # ----- 时间开销 -----
+        # 理论实践开销
+        total_theoretical_duration = sum(result.analysis_data.durations['total'] for result in evaluation_results)  # 总检测时间
+        average_theoretical_duration = total_theoretical_duration / len(evaluation_results) if evaluation_results else 0.0  # 平均检测时间
+
+        # 实际检测时间
+        total_actual_duration = evaluation_duration  # 实际总检测时间
+        average_actual_duration = evaluation_duration / len(evaluation_results) if evaluation_results else 0.0  # 实际平均检测时间
+
+        # 每个步骤的时间的 break down
+        step_total_theoretical_duration = {}
+        for result in evaluation_results:
+            for step, duration in result.analysis_data.durations.items():
+                if step not in step_total_theoretical_duration:
+                    step_total_theoretical_duration[step] = 0.0
+                step_total_theoretical_duration[step] += duration
+
+        # 计算比例
+        step_total_theoretical_duration_proportions = {}
+        for step, duration in step_total_theoretical_duration.items():
+            step_total_theoretical_duration_proportions[step] = round((duration / total_theoretical_duration) * 100, 2) if total_theoretical_duration > 0 else 0.0
+
+        # 合并break down数据
+        duration_breakdown = {}
+        for step, (step_total_theoretical_duration, step_proportion) in zip(step_total_theoretical_duration.keys(), step_total_theoretical_duration_proportions.items()):
+            duration_breakdown[step] = (step_total_theoretical_duration, step_proportion)
+
+        # ----- 成本 -----
         input_token_count = 0
         output_token_count = 0
         total_cost = 0.0
@@ -239,10 +307,16 @@ class Evaluator:
                 input_cost = (input_tokens / 1_000_000) * input_token_price_per_1M
                 output_cost = (output_tokens / 1_000_000) * output_token_price_per_1M
                 total_cost += input_cost + output_cost
+
         average_cost = total_cost / len(evaluation_results) if evaluation_results else 0.0  # 平均成本
         rq_3_data = EfficiencyData(
             total_file_size_kb=total_file_size,
             average_file_size_kb=average_file_size,
+            total_theoretical_duration=total_theoretical_duration,
+            average_theoretical_duration=average_theoretical_duration,
+            total_actual_duration=total_actual_duration,
+            average_actual_duration=average_actual_duration,
+            duration_breakdown=duration_breakdown,
             input_token_count=input_token_count,
             output_token_count=output_token_count,
             total_cost=total_cost,
@@ -277,7 +351,7 @@ def main():
         test_case_dir=benchmark_tc_dir,
         concurrency=10,
         slice_start=0,
-        slice_end=100,
+        slice_end=3,
     )
     evaluator = Evaluator(config)
     evaluator.run_benchmark(analyze_context=False)

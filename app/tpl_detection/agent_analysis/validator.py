@@ -1,4 +1,5 @@
 import os
+import time
 import traceback
 from collections import Counter
 from typing import List, Dict
@@ -188,10 +189,14 @@ class LibraryValidator:
         logger.debug(f"\n=== EXPERT VALIDATION WORKFLOW - {target_binary.binary_name} ===")
         logger.debug(f"Validating {len(libraries)} candidate libraries through two-step expert analysis")
 
+        # TODO 记录这三个小步骤的时间
         # 预处理和特征分析
+        start_at = time.perf_counter()
         enhanced_libraries = self._enhance_libraries_with_analysis(libraries, target_binary)
+        validate_enhance_duration = time.perf_counter() - start_at
 
         try:
+            step_1_start_at = time.perf_counter()
             # 第一步：源代码包含合理性验证
             logger.debug(f"\n--- STEP 1: SOURCE CODE INCLUSION VALIDATION ---")
             individual_results, step_1_response = self._step1_source_code_inclusion_validation(enhanced_libraries,
@@ -212,7 +217,9 @@ class LibraryValidator:
 
             logger.debug(
                 f"Source code inclusion assessment: {len(reasonable_libs)}/{len(enhanced_libraries)} libraries validated")
+            step_1_duration = time.perf_counter() - step_1_start_at
 
+            step_2_start_at = time.perf_counter()
             # 第二步：冲突解决和冗余消除
             logger.debug(f"\n--- STEP 2: CONFLICT RESOLUTION AND REDUNDANCY ELIMINATION ---")
             if len(reasonable_libs) <= 1:
@@ -232,11 +239,17 @@ class LibraryValidator:
             validated_libraries = self._apply_expert_validation_results(individual_results, redundancy_results,
                                                                         enhanced_libraries)
 
+            step_2_duration = time.perf_counter() - step_2_start_at
             process_data = {
                 "step_1_response": step_1_response,
                 "individual_results": individual_results.results,
                 "step_2_response": step_2_response,
                 "redundancy_results": redundancy_results.results,
+                "duration": {
+                    "_validation_enhance": validate_enhance_duration,
+                    "_validation_step_1": step_1_duration,
+                    "_validation_step_2": step_2_duration
+                }
             }
 
             return validated_libraries, process_data

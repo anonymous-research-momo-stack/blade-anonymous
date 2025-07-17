@@ -63,7 +63,6 @@ def demo():
     # result = workflow.run(secverify_path, software_context=context)
 
     # 预览分析结果
-    result.target_binary.preview()
     result.analysis_data.preview()
 
     result_save_path = "/Users/liuchengyue/Desktop/BinarySCA Platform/Code/sca_agents/bsca-expert-agent-api/tmp/analysis_result.json"

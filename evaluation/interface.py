@@ -10,6 +10,7 @@ from typing import List
 from loguru import logger
 
 from app.interface import SimpleResult, AnalysisResult
+from app.tpl_detection.agent_analysis.response_models import SoftwareContext
 
 
 @dataclass
@@ -171,36 +172,41 @@ class AblationData(Serializable):
     """
     分析几个主要环节的贡献
 
-    # 消融验证环节
-    1. Ablate Validation Step 2
-    2. Ablate Validation Step 1
-    3. Ablate Validation Step 1 + 2
-
-    # 消融发现环节
-    4. Ablate Agent TPL Analysis
-
-    # 消融整个Agent分析
-    5. Ablate Agent Analysis
+    1. 消融整个Agent分析
+    2. 消融 Agent 识别
+    3. 消融 Agent 验证
+        3.1 消融 合理性 验证
+        3.2 消融 冗余性 验证
+        3.3 消融全部验证
     """
 
+    wo_agent_analysis: EffectivenessData = None  # Effectiveness data without agent analysis
     wo_agent_tpl_analysis: EffectivenessData = None  # Effectiveness data without agent analysis
     wo_validation_step_1: EffectivenessData = None  # Effectiveness data without validation step 1
     wo_validation_step_2: EffectivenessData = None  # Effectiveness data without validation step 2
     wo_validation_step_1_and_2: EffectivenessData = None  # Effectiveness data without validation step 1 and 2
-    wo_agent_analysis: EffectivenessData = None  # Effectiveness data without agent analysis
+
 
 @dataclass
 class EfficiencyData(Serializable):
     """
     Data structure for research question data
     """
-    # rq 3
-    total_detection_duration: float = None  # Total detection duration in seconds
-    average_detection_duration: float = None  # Average detection duration in seconds
-
-    # cost
+    # file size
     total_file_size_kb: float = None  # Total file size in KB
     average_file_size_kb: float = None  # Average file size in KB
+
+    # duration
+    total_theoretical_duration: float = None  # Total detection duration in seconds
+    average_theoretical_duration: float = None  # Average detection duration in seconds
+
+    total_actual_duration: float = None  # Total actual duration in seconds
+    average_actual_duration: float = None  # Average actual duration in seconds
+
+    duration_breakdown: dict = dataclasses.field(default_factory=dict)  # Breakdown of duration by step, e.g., {'agent_analysis': 10.5, 'tpl_analysis': 5.0, 'validation': 2.0}
+
+    # cost
+
 
     # token
     input_token_count:int = None  # Input token count
@@ -269,6 +275,7 @@ class EvaluationReport(Serializable):
     evaluation_config: EvaluationConfig = None
     research_question_data: ResearchQuestionData = None
     evaluation_results_check: List[AnalysisResultCheck] = dataclasses.field(default_factory=list)
+    software_context: SoftwareContext = None
     evaluation_results: List[AnalysisResult] = None
     benchmark: Benchmark = None
 

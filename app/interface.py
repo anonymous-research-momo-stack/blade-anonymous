@@ -161,6 +161,8 @@ class AnalysisData(Serializable):
     analysis_datetime: str = dataclasses.field(default_factory=lambda: datetime.now().strftime("%Y-%m-%d %H:%M:%S"))
     config: AnalysisConfig = None
     context: SoftwareContext=None
+    target_binary: TargetBinary = None
+    all_candidate_libraries: List[Library] = dataclasses.field(default_factory=list)  # 所有候选库列表
     feature_matching_results: List[Library] = dataclasses.field(default_factory=list)
     tpl_analysis_results: List[Library] = dataclasses.field(default_factory=list)
     validation_step_1_results: List[LibraryValidationResult] = dataclasses.field(default_factory=list)  # e.g., {"libpng": True, "openssl": False}
@@ -171,9 +173,11 @@ class AnalysisData(Serializable):
     def preview(self):
         """预览分析结果"""
         print("\n" + "="*60)
-        print("📊 分析结果预览")
+        print("📊 分析结果预览 for {}".format(self.target_binary.binary_name))
         print("="*60)
-        
+        # 0. 二年制文件预览
+        self.target_binary.preview()
+
         # 1. 预览特征匹配结果
         print("\n🔍 特征匹配结果:")
         print(f"   匹配到的TPL数量: {len(self.feature_matching_results)}")
@@ -263,12 +267,15 @@ class AnalysisData(Serializable):
 @dataclass
 class SimpleResult(Serializable):
     target_binary_name: str = None
+    target_binary_sha256: str = None
     target_binary_path: str = None
     detected_library_names: List[str] = dataclasses.field(default_factory=list)
 
 @dataclass
 class AnalysisResult(Serializable):
-    target_binary: TargetBinary
+    binary_name: str
+    binary_sha256: str
+    binary_path: str
     detected_libraries: List[Library] = dataclasses.field(default_factory=list)
     analysis_data: AnalysisData = None
 
@@ -295,8 +302,9 @@ class AnalysisResult(Serializable):
         获取简化的分析结果
         """
         return SimpleResult(
-            target_binary_name=self.target_binary.binary_name,
-            target_binary_path=self.target_binary.absolute_path,
+            target_binary_name=self.binary_name,
+            target_binary_sha256=self.binary_sha256,
+            target_binary_path=self.binary_path,
             detected_library_names=[lib.name for lib in self.detected_libraries]
         )
 
