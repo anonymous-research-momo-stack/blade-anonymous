@@ -21,3 +21,4 @@ pylance
 ddgs
 pgvector
 duckduckgo-search
+conan
