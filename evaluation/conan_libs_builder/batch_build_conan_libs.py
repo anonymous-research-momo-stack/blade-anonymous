@@ -4,6 +4,7 @@ import shutil
 import subprocess
 import sys
 import tempfile
+import time
 from dataclasses import dataclass, asdict
 from datetime import datetime
 from typing import Dict, List, Any, Optional
@@ -26,6 +27,8 @@ class BuildMetadata:
     total_libraries: int
     evaluation_dir: str
     profile_dir: str
+    total_build_time: float  # 新增：总构建时间（秒）
+    average_build_time: float  # 新增：平均构建时间（秒）
 
 
 @dataclass
@@ -56,6 +59,8 @@ class LibraryBuildStats:
     total_profiles: int
     build_details: Dict[str, ProfileBuildDetail]
     error_summary: Dict[str, List[ErrorDetail]]
+    build_time: float  # 新增：构建耗时（秒）
+    build_time_formatted: str  # 新增：格式化的构建耗时
 
 
 @dataclass
@@ -67,6 +72,10 @@ class GlobalSummary:
     fully_successful_libraries: List[str]
     partially_successful_libraries: List[str]
     completely_failed_libraries: List[str]
+    total_build_time: float  # 新增：总构建时间（秒）
+    total_build_time_formatted: str  # 新增：格式化的总构建时间
+    average_build_time: float  # 新增：平均构建时间（秒）
+    average_build_time_formatted: str  # 新增：格式化的平均构建时间
 
 
 @dataclass
@@ -75,6 +84,23 @@ class BuildStatistics:
     metadata: BuildMetadata
     library_details: Dict[str, LibraryBuildStats]
     global_summary: GlobalSummary
+
+
+def format_time(seconds: float) -> str:
+    """
+    格式化时间显示
+
+    :param seconds: 秒数
+    :return: 格式化的时间字符串
+    """
+    if seconds < 60:
+        return f"{seconds:.1f}秒"
+    elif seconds < 3600:
+        minutes = seconds / 60
+        return f"{minutes:.1f}分钟"
+    else:
+        hours = seconds / 3600
+        return f"{hours:.1f}小时"
 
 
 def load_conan_list(conan_libs_json: str) -> Dict[str, List[str]]:
@@ -102,7 +128,9 @@ def create_initial_statistics(evaluation_dir: str, profile_dir: str, total_libra
         build_time=datetime.now().isoformat(),
         total_libraries=total_libraries,
         evaluation_dir=evaluation_dir,
-        profile_dir=profile_dir
+        profile_dir=profile_dir,
+        total_build_time=0.0,
+        average_build_time=0.0
     )
 
     global_summary = GlobalSummary(
@@ -111,7 +139,11 @@ def create_initial_statistics(evaluation_dir: str, profile_dir: str, total_libra
         completely_failed=0,
         fully_successful_libraries=[],
         partially_successful_libraries=[],
-        completely_failed_libraries=[]
+        completely_failed_libraries=[],
+        total_build_time=0.0,
+        total_build_time_formatted="0秒",
+        average_build_time=0.0,
+        average_build_time_formatted="0秒"
     )
 
     return BuildStatistics(
@@ -166,7 +198,7 @@ def process_build_results(results: Dict[str, Dict]) -> tuple[
 
 def create_library_stats(library_version: str, successful_profiles: List[str], failed_profiles: List[str],
                          build_details: Dict[str, ProfileBuildDetail],
-                         error_summary: Dict[str, List[ErrorDetail]]) -> LibraryBuildStats:
+                         error_summary: Dict[str, List[ErrorDetail]], build_time: float) -> LibraryBuildStats:
     """
     创建单个库的统计信息
 
@@ -175,6 +207,7 @@ def create_library_stats(library_version: str, successful_profiles: List[str], f
     :param failed_profiles: 失败的profile列表
     :param build_details: 构建详情
     :param error_summary: 错误摘要
+    :param build_time: 构建耗时（秒）
     :return: 库统计信息
     """
     successful_count = len(successful_profiles)
@@ -198,7 +231,9 @@ def create_library_stats(library_version: str, successful_profiles: List[str], f
         failed_count=failed_count,
         total_profiles=total_profiles,
         build_details=build_details,
-        error_summary=error_summary
+        error_summary=error_summary,
+        build_time=build_time,
+        build_time_formatted=format_time(build_time)
     )
 
 
@@ -221,12 +256,13 @@ def update_global_summary(global_summary: GlobalSummary, library_name: str, libr
         global_summary.partially_successful_libraries.append(library_name)
 
 
-def handle_build_exception(library_name: str, exception: Exception) -> LibraryBuildStats:
+def handle_build_exception(library_name: str, exception: Exception, build_time: float) -> LibraryBuildStats:
     """
     处理构建异常，创建失败的库统计信息
 
     :param library_name: 库名
     :param exception: 异常对象
+    :param build_time: 构建耗时（秒）
     :return: 失败的库统计信息
     """
     error_type = type(exception).__name__
@@ -243,7 +279,9 @@ def handle_build_exception(library_name: str, exception: Exception) -> LibraryBu
         failed_count=0,
         total_profiles=0,
         build_details={},
-        error_summary=error_summary
+        error_summary=error_summary,
+        build_time=build_time,
+        build_time_formatted=format_time(build_time)
     )
 
 
@@ -258,6 +296,8 @@ def build_single_library(library_name: str, library_version: str, profile_dir: s
     :param base_output_dir: 输出基础目录
     :return: 库统计信息
     """
+    start_time = time.time()  # 记录开始时间
+
     try:
         logger.info(f"开始构建库: {library_name} v{library_version}")
 
@@ -272,13 +312,16 @@ def build_single_library(library_name: str, library_version: str, profile_dir: s
         # 处理构建结果
         successful_profiles, failed_profiles, build_details, error_summary = process_build_results(results)
 
+        # 计算构建耗时
+        build_time = time.time() - start_time
+
         # 创建库统计信息
         library_stats = create_library_stats(
-            library_version, successful_profiles, failed_profiles, build_details, error_summary
+            library_version, successful_profiles, failed_profiles, build_details, error_summary, build_time
         )
 
         # 记录构建结果
-        logger.info(f"✅ {library_name} 库构建完成!")
+        logger.info(f"✅ {library_name} 库构建完成! 耗时: {format_time(build_time)}")
         logger.info(f"成功编译: {len(successful_profiles)} 个profile")
         logger.info(f"失败编译: {len(failed_profiles)} 个profile")
 
@@ -288,14 +331,16 @@ def build_single_library(library_name: str, library_version: str, profile_dir: s
         return library_stats
 
     except ConanBuildError as e:
-        logger.error(f"❌ {library_name} 构建失败: {e}")
-        return handle_build_exception(library_name, e)
+        build_time = time.time() - start_time
+        logger.error(f"❌ {library_name} 构建失败: {e} (耗时: {format_time(build_time)})")
+        return handle_build_exception(library_name, e, build_time)
 
     except Exception as e:
-        logger.error(f"❌ {library_name} 未知错误: {e}")
+        build_time = time.time() - start_time
+        logger.error(f"❌ {library_name} 未知错误: {e} (耗时: {format_time(build_time)})")
         import traceback
         traceback.print_exc()
-        return handle_build_exception(library_name, e)
+        return handle_build_exception(library_name, e, build_time)
 
 
 def log_profile_details(results: Dict[str, Dict]):
@@ -313,6 +358,30 @@ def log_profile_details(results: Dict[str, Dict]):
             logger.error(f"  {profile_name}: 编译失败 - {result['error']}")
 
 
+def finalize_global_summary(statistics: BuildStatistics):
+    """
+    完善全局统计摘要，计算总耗时和平均耗时
+
+    :param statistics: 构建统计数据
+    """
+    # 计算总构建时间
+    total_time = sum(lib_stats.build_time for lib_stats in statistics.library_details.values())
+
+    # 计算平均构建时间
+    library_count = len(statistics.library_details)
+    average_time = total_time / library_count if library_count > 0 else 0.0
+
+    # 更新全局摘要
+    statistics.global_summary.total_build_time = total_time
+    statistics.global_summary.total_build_time_formatted = format_time(total_time)
+    statistics.global_summary.average_build_time = average_time
+    statistics.global_summary.average_build_time_formatted = format_time(average_time)
+
+    # 更新元数据
+    statistics.metadata.total_build_time = total_time
+    statistics.metadata.average_build_time = average_time
+
+
 def log_global_summary(statistics: BuildStatistics):
     """
     记录全局统计摘要
@@ -326,6 +395,8 @@ def log_global_summary(statistics: BuildStatistics):
     logger.info(f"完全成功: {statistics.global_summary.fully_successful} 个")
     logger.info(f"部分成功: {statistics.global_summary.partially_successful} 个")
     logger.info(f"完全失败: {statistics.global_summary.completely_failed} 个")
+    logger.info(f"总构建时间: {statistics.global_summary.total_build_time_formatted}")
+    logger.info(f"平均构建时间: {statistics.global_summary.average_build_time_formatted}")
 
     if statistics.global_summary.fully_successful_libraries:
         logger.info(f"完全成功的库: {', '.join(statistics.global_summary.fully_successful_libraries)}")
@@ -335,6 +406,17 @@ def log_global_summary(statistics: BuildStatistics):
 
     if statistics.global_summary.completely_failed_libraries:
         logger.info(f"完全失败的库: {', '.join(statistics.global_summary.completely_failed_libraries)}")
+
+    # 显示耗时最长的前5个库
+    if statistics.library_details:
+        sorted_libs = sorted(
+            statistics.library_details.items(),
+            key=lambda x: x[1].build_time,
+            reverse=True
+        )
+        logger.info(f"\n耗时最长的前5个库:")
+        for i, (lib_name, lib_stats) in enumerate(sorted_libs[:5], 1):
+            logger.info(f"  {i}. {lib_name}: {lib_stats.build_time_formatted}")
 
 
 def save_build_statistics(statistics: BuildStatistics, output_file: str):
@@ -363,9 +445,10 @@ def batch_build_conan_libs() -> BuildStatistics:
     """
     批量构建Conan库，并生成详细统计报告
 
-    :param stats_output_file: 统计结果输出文件路径，如果为None则不保存
     :return: 构建统计数据
     """
+    overall_start_time = time.time()  # 记录整体开始时间
+
     # 获取路径配置
     evaluation_dir = env.str("EVALUATION_DIR_PATH")
     conan_libs_builder_output_dir = os.path.join(evaluation_dir, "conan_libs_builder_output")
@@ -395,7 +478,15 @@ def batch_build_conan_libs() -> BuildStatistics:
         statistics.library_details[library_name] = library_stats
         update_global_summary(statistics.global_summary, library_name, library_stats)
 
-        logger.info(f"构建 第{count}/{len(conan_libs)}个库: {library_name} v{library_version} 完成，状态: {library_stats.status}")
+        logger.success(
+            f"构建 第{count}/{len(conan_libs)}个库: {library_name} v{library_version} 完成，状态: {library_stats.status}，耗时: {library_stats.build_time_formatted}")
+
+    # 完善全局统计摘要（计算总耗时和平均耗时）
+    finalize_global_summary(statistics)
+
+    # 记录整体构建结束
+    overall_build_time = time.time() - overall_start_time
+    logger.info(f"\n🎉 全部库构建完成! 总耗时: {format_time(overall_build_time)}")
 
     # 记录全局统计摘要
     log_global_summary(statistics)
