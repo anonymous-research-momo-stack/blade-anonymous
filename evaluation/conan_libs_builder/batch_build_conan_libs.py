@@ -466,6 +466,9 @@ def batch_build_conan_libs() -> BuildStatistics:
     # 逐个构建库
     count = 0
     for library_name, versions in conan_libs.items():
+        if library_name != "grpc":
+            continue
+
         count += 1
         library_version = versions[-1]
 
@@ -480,6 +483,7 @@ def batch_build_conan_libs() -> BuildStatistics:
 
         logger.success(
             f"构建 第{count}/{len(conan_libs)}个库: {library_name} v{library_version} 完成，状态: {library_stats.status}，耗时: {library_stats.build_time_formatted}")
+
 
     # 完善全局统计摘要（计算总耗时和平均耗时）
     finalize_global_summary(statistics)

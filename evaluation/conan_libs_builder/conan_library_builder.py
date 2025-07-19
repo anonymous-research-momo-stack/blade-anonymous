@@ -218,6 +218,11 @@ class TempConan(ConanFile):
             result = self._run_command(cmd)
             graph_data = json.loads(result.stdout)
 
+            # 添加调试输出
+            # logger.debug("=== 原始依赖图数据 ===")
+            # logger.debug(json.dumps(graph_data, indent=2))
+
+
             # 解析依赖图谱
             return self._parse_dependency_graph(graph_data, library_name)
 
@@ -232,27 +237,22 @@ class TempConan(ConanFile):
         # 找到目标库节点
         target_node_id = None
         for node_id, node in nodes.items():
-            if node.get('name') == target_lib and node.get('recipe') != 'Cli':
+            if node.get('name') == target_lib and node.get('recipe') != 'Consumer':
                 target_node_id = node_id
                 break
 
         if not target_node_id:
             raise ConanBuildError(f"未找到目标库 {target_lib}")
 
-        # 构建依赖关系图
+        # 构建依赖关系图 - 修复：使用 dependencies 字段而不是 requires
         adjacency = {}
         for node_id in nodes:
             adjacency[node_id] = []
 
         for node_id, node in nodes.items():
-            requires = node.get('requires', [])
-            for req in requires:
-                if isinstance(req, str):
-                    for req_node_id, req_node in nodes.items():
-                        req_name = req.split('/')[0] if '/' in req else req
-                        if req_node.get('name') == req_name:
-                            adjacency[node_id].append(req_node_id)
-                            break
+            dependencies = node.get('dependencies', {})  # 修复：使用正确的字段
+            for dep_node_id in dependencies.keys():
+                adjacency[node_id].append(dep_node_id)
 
         # 生成扁平依赖列表
         flat_deps = {}
@@ -269,6 +269,11 @@ class TempConan(ConanFile):
             # 获取链接类型
             shared_option = node.get('options', {}).get('shared', False)
             link_type = 'shared' if shared_option else 'static'
+
+            # 对于 header-only 库，从 package_type 判断
+            package_type = node.get('package_type', '')
+            if package_type == 'header-library':
+                link_type = 'header-only'
 
             if key not in flat_deps:
                 flat_deps[key] = {
@@ -295,7 +300,8 @@ class TempConan(ConanFile):
             'direct_dependencies': len([d for d in dependency_list if d['level'] == 1]),
             'max_depth': max([d['level'] for d in dependency_list]) if dependency_list else 0,
             'shared_libraries': [d['name'] for d in dependency_list if d['link_type'] == 'shared'],
-            'static_libraries': [d['name'] for d in dependency_list if d['link_type'] == 'static']
+            'static_libraries': [d['name'] for d in dependency_list if d['link_type'] == 'static'],
+            'header_only_libraries': [d['name'] for d in dependency_list if d['link_type'] == 'header-only']
         }
 
         return {
