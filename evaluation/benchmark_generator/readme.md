@@ -72,7 +72,7 @@ EOF
 
 ### Running the Code
 ```bash
-python build_tpl.py
+python conan_library_builder.py
 ```
 
 ### Generated Build Configurations

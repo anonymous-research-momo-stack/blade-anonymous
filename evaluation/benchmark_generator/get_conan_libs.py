@@ -2,14 +2,11 @@
 """
 Conan包和版本搜索工具
 """
-import os
-
-from pydantic_settings import BaseSettings
-from environs import Env
-
 import json
+import os
 import subprocess
 
+from environs import Env
 
 env = Env()
 env.read_env()
