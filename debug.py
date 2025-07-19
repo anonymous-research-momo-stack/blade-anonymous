@@ -47,6 +47,10 @@ def demo():
     # 根目录
     root_path = "/Users/liuchengyue/Desktop/BinarySCA Platform/Data/Test_Cases/TPL_Test_Cases/BYD/"
 
+    # conan test cases
+    grpc_cpp_plugin_static = "/Users/liuchengyue/Desktop/BinarySCA Platform/Code/sca_agents/bsca-expert-agent-api/evaluation/conan_libs_builder_output/grpc/1.72.0/grpc_1.72.0_x86_64-gcc-release-static/full_deploy/host/grpc/1.72.0/Release/x86_64/bin/grpc_cpp_plugin"
+    grpc_cpp_plugin_shared = "/Users/liuchengyue/Desktop/BinarySCA Platform/Code/sca_agents/bsca-expert-agent-api/evaluation/conan_libs_builder_output/grpc/1.72.0/grpc_1.72.0_x86_64-gcc-release-shared/full_deploy/host/grpc/1.72.0/Release/x86_64/bin/grpc_cpp_plugin"
+
     # 分析工作流
     workflow = DetectionWorkflow(
         enable_bin_info_analysis_web_search=False,
@@ -56,7 +60,7 @@ def demo():
 
 
     # 分析
-    result = workflow.run(libdevmapper_so_path)
+    result = workflow.run(grpc_cpp_plugin_shared)
 
     # 结合上下文分析
     # context = workflow.analyze_context(root_path)
