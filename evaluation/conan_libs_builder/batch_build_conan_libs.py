@@ -444,11 +444,9 @@ def save_build_statistics(statistics: BuildStatistics, output_file: str):
 def batch_build_conan_libs() -> BuildStatistics:
     """
     批量构建Conan库，并生成详细统计报告
-
     :return: 构建统计数据
     """
     overall_start_time = time.time()  # 记录整体开始时间
-
     # 获取路径配置
     evaluation_dir = env.str("EVALUATION_DIR_PATH")
     conan_libs_builder_output_dir = os.path.join(evaluation_dir, "conan_libs_builder_output")
@@ -456,49 +454,53 @@ def batch_build_conan_libs() -> BuildStatistics:
     profile_dir = os.path.join(conan_libs_builder_dir, "profiles")
     conan_libs_json = os.path.join(conan_libs_builder_dir, "conan_libs.json")
     stats_output_file = os.path.join(conan_libs_builder_output_dir, "build_summary.json")
-
     # 加载库列表
     conan_libs = load_conan_list(conan_libs_json)
-
     # 初始化统计数据
     statistics = create_initial_statistics(evaluation_dir, profile_dir, len(conan_libs))
-
     # 逐个构建库
     count = 0
     for library_name, versions in conan_libs.items():
-        if library_name != "grpc":
-            continue
+        if count == 100:
+            break
 
         count += 1
         library_version = versions[-1]
+
+        # 检查硬盘剩余空间
+        total, used, free = shutil.disk_usage(conan_libs_builder_output_dir)
+        free_gb = free / (1024 ** 3)  # 转换为GB
+
+        if free_gb < 10:
+            logger.warning(f"硬盘剩余空间不足10GB (当前剩余: {free_gb:.2f}GB)，停止构建")
+            break
 
         # 构建单个库
         library_stats = build_single_library(
             library_name, library_version, profile_dir, conan_libs_builder_output_dir
         )
-
         # 更新统计信息
         statistics.library_details[library_name] = library_stats
         update_global_summary(statistics.global_summary, library_name, library_stats)
-
+        overall_build_time = time.time() - overall_start_time
         logger.success(
-            f"构建 第{count}/{len(conan_libs)}个库: {library_name} v{library_version} 完成，状态: {library_stats.status}，耗时: {library_stats.build_time_formatted}")
-
+            f"构建 第{count}/{len(conan_libs)}个库: {library_name} v{library_version} 完成，"
+            f"状态: {library_stats.status}，"
+            f"本库耗时: {library_stats.build_time_formatted}，"
+            f"累计耗时: {format_time(overall_build_time)}，"
+            f"平均耗时: {format_time(overall_build_time / count)}，"
+            f"剩余空间: {free_gb:.2f}GB")
 
     # 完善全局统计摘要（计算总耗时和平均耗时）
     finalize_global_summary(statistics)
-
     # 记录整体构建结束
     overall_build_time = time.time() - overall_start_time
     logger.info(f"\n🎉 全部库构建完成! 总耗时: {format_time(overall_build_time)}")
-
     # 记录全局统计摘要
     log_global_summary(statistics)
-
     # 保存统计结果
     if stats_output_file:
         save_build_statistics(statistics, stats_output_file)
-
     return statistics
 
 
