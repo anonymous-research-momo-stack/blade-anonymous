@@ -1,6 +1,11 @@
+{% set compiler, version, compiler_exe = detect_api.detect_default_compiler() %}
+
 [settings]
 arch=armv8
 compiler=gcc
+compiler.version={{detect_api.default_compiler_version('gcc', version)}}
+compiler.libcxx={{detect_api.detect_libcxx('gcc', version, compiler_exe)}}
+compiler.cppstd={{detect_api.default_cppstd('gcc', version)}}
 build_type=Release
 os=Linux
 
