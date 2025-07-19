@@ -464,9 +464,9 @@ def build_multiple_profiles(library_name: str,
 def demo_single_build():
     """单个profile编译示例"""
     evaluation_dir = env.str("EVALUATION_DIR_PATH")
-    benchmark_data_dir = os.path.join(evaluation_dir, "benchmark_data")
-    benchmark_generator_dir = os.path.join(evaluation_dir, "benchmark_generator")
-    profile_dir = os.path.join(benchmark_generator_dir, "profiles")
+    conan_libs_builder_output_dir = os.path.join(evaluation_dir, "conan_libs_builder_output")
+    conan_libs_builder_dir = os.path.join(evaluation_dir, "conan_libs_builder")
+    profile_dir = os.path.join(conan_libs_builder_dir, "profiles")
     profile = "x86_64-gcc-release-shared"
     profile_path =  os.path.join(profile_dir, profile)
 
@@ -481,7 +481,7 @@ def demo_single_build():
             library_name=library_name,
             library_version=library_version,
             profile=profile_path,
-            output_dir=os.path.join(benchmark_data_dir, library_name)
+            output_dir=os.path.join(conan_libs_builder_output_dir, library_name)
         )
 
         logger.info("✅ 单个profile编译成功!")
@@ -497,9 +497,9 @@ def demo_single_build():
 def demo_multiple_profiles():
     """多profile编译示例"""
     evaluation_dir = env.str("EVALUATION_DIR_PATH")
-    benchmark_data_dir = os.path.join(evaluation_dir, "benchmark_data")
-    benchmark_generator_dir = os.path.join(evaluation_dir, "benchmark_generator")
-    profile_dir = os.path.join(benchmark_generator_dir, "profiles")
+    conan_libs_builder_output_dir = os.path.join(evaluation_dir, "conan_libs_builder_output")
+    conan_libs_builder_dir = os.path.join(evaluation_dir, "conan_libs_builder")
+    profile_dir = os.path.join(conan_libs_builder_dir, "profiles")
 
     library_name = "fmt"
     library_version = "9.1.0"
@@ -512,7 +512,7 @@ def demo_multiple_profiles():
             library_name=library_name,
             library_version=library_version,
             profile_dir=profile_dir,
-            base_output_dir=os.path.join(benchmark_data_dir, library_name, library_version)
+            base_output_dir=os.path.join(conan_libs_builder_output_dir, library_name, library_version)
         )
 
         logger.info(f"✅ {library_name} 库多profile编译完成!")

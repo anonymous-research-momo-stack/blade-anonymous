@@ -11,7 +11,7 @@ from typing import Dict, List, Any, Optional
 from environs import Env
 from loguru import logger
 
-from evaluation.benchmark_generator.conan_library_builder import build_multiple_profiles, ConanBuildError
+from evaluation.conan_libs_builder.conan_library_builder import build_multiple_profiles, ConanBuildError
 
 env = Env()
 env.read_env()
@@ -368,11 +368,11 @@ def batch_build_conan_libs() -> BuildStatistics:
     """
     # 获取路径配置
     evaluation_dir = env.str("EVALUATION_DIR_PATH")
-    benchmark_data_dir = os.path.join(evaluation_dir, "benchmark_data")
-    benchmark_generator_dir = os.path.join(evaluation_dir, "benchmark_generator")
-    profile_dir = os.path.join(benchmark_generator_dir, "profiles")
-    conan_libs_json = os.path.join(benchmark_generator_dir, "conan_libs.json")
-    stats_output_file = os.path.join(benchmark_data_dir, "build_summary.json")
+    conan_libs_builder_output_dir = os.path.join(evaluation_dir, "conan_libs_builder_output")
+    conan_libs_builder_dir = os.path.join(evaluation_dir, "conan_libs_builder")
+    profile_dir = os.path.join(conan_libs_builder_dir, "profiles")
+    conan_libs_json = os.path.join(conan_libs_builder_dir, "conan_libs.json")
+    stats_output_file = os.path.join(conan_libs_builder_output_dir, "build_summary.json")
 
     # 加载库列表
     conan_libs = load_conan_list(conan_libs_json)
@@ -388,7 +388,7 @@ def batch_build_conan_libs() -> BuildStatistics:
 
         # 构建单个库
         library_stats = build_single_library(
-            library_name, library_version, profile_dir, benchmark_data_dir
+            library_name, library_version, profile_dir, conan_libs_builder_output_dir
         )
 
         # 更新统计信息
