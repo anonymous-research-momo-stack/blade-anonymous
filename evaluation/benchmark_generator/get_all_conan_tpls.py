@@ -2,10 +2,17 @@
 """
 Conan包和版本搜索工具
 """
+import os
+
+from pydantic_settings import BaseSettings
+from environs import Env
 
 import json
 import subprocess
 
+
+env = Env()
+env.read_env()
 
 def get_raw_output():
     """调用命令，获取原始输出，保存到txt"""
@@ -53,12 +60,13 @@ def parse_to_json(raw_output, json_path):
 
 def main():
     # 从conan官方获取列表，然后保存到json
-    base_path = "/Users/liuchengyue/Desktop/BinarySCA Platform/Code/sca_agents/bsca-expert-agent-api/evaluation/benchmark_generator"
-    json_path = f"{base_path}/conan_libs.json"
+    evaluation_dir = env.str("EVALUATION_DIR_PATH")
+    benchmark_meta_dir = os.path.join(evaluation_dir, "benchmark_meta")
+    conan_libs_json = os.path.join(benchmark_meta_dir, "conan_libs.json")
 
     # 1. 获取原始输出
     raw_output = get_raw_output()
-    parse_to_json(raw_output, json_path)
+    parse_to_json(raw_output, conan_libs_json)
 
 
 if __name__ == '__main__':
