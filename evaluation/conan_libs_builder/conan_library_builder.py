@@ -319,7 +319,7 @@ class TempConan(ConanFile):
         # 构建conan install命令（使用profile）
         cmd = [
             'conan', 'install', '.',
-            '--build=*',
+            '--build=missing',
             '--deployer=full_deploy',
             f'--deployer-folder={output_dir}',
             f'--profile:host={profile}',
