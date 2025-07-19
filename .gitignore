@@ -20,7 +20,7 @@ wheels/
 .installed.cfg
 *.egg
 MANIFEST
-tmp
+
 
 # Virtual environments
 .env
@@ -71,4 +71,8 @@ coverage.xml
 # mypy
 .mypy_cache/
 .dmypy.json
-dmypy.json 
+dmypy.json
+
+# custom files
+tmp
+evaluation/conan_libs_builder_output
