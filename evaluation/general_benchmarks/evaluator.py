@@ -10,9 +10,9 @@ from sqlalchemy.testing.util import total_size
 from app.interface import AnalysisResult, AnalysisData
 from app.tpl_detection.batch_detection_workflow import BatchDetectionWorkflow
 from app.tpl_detection.detection_workflow import DetectionWorkflow
-from evaluation.interface import EvaluationConfig, Benchmark, EvaluationReport, AnalysisResultCheck, \
+from evaluation.general_benchmarks.interface import EvaluationConfig, Benchmark, EvaluationReport, AnalysisResultCheck, \
     ResearchQuestionData, EffectivenessData, EfficiencyData, AblationData, CostData
-from evaluation.visualization import generate_analysis_report
+from evaluation.general_benchmarks.visualization import generate_analysis_report
 
 
 class Evaluator:

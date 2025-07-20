@@ -449,11 +449,15 @@ def batch_build_conan_libs() -> BuildStatistics:
     overall_start_time = time.time()  # 记录整体开始时间
     # 获取路径配置
     evaluation_dir = env.str("EVALUATION_DIR_PATH")
-    conan_libs_builder_output_dir = os.path.join(evaluation_dir, "conan_libs_builder_output")
-    conan_libs_builder_dir = os.path.join(evaluation_dir, "conan_libs_builder")
+    conan_benchmark_dir = os.path.join(evaluation_dir, "conan_benchmark")
+
+    conan_libs_builder_dir = os.path.join(conan_benchmark_dir, "conan_libs_builder")
+    conan_libs_builder_output_dir = os.path.join(conan_benchmark_dir, "conan_libs_builder_output")
+
     profile_dir = os.path.join(conan_libs_builder_dir, "profiles")
     conan_libs_json = os.path.join(conan_libs_builder_dir, "conan_libs.json")
     stats_output_file = os.path.join(conan_libs_builder_output_dir, "build_summary.json")
+
     # 加载库列表
     conan_libs = load_conan_list(conan_libs_json)
     # 初始化统计数据
