@@ -197,6 +197,17 @@ class Benchmark(Serializable):
         print(f"二进制文件数量: {num_binaries}")
         print(f"hash去重后的二进制文件数量: {num_unique_binaries}")
 
+        # 统计不同的编译profile各自产生了多少个二进制文件
+        profile_bin_count = {}
+        for ts in self.test_software:
+            for suite in ts.test_binary_suites:
+                profile = suite.compile_config.profile if suite.compile_config else 'unknown'
+                num_bins = sum(len(binaries) for binaries in suite.binaries.values())
+                profile_bin_count[profile] = profile_bin_count.get(profile, 0) + num_bins
+        print("不同编译profile产生的二进制文件数量：")
+        for profile, count in profile_bin_count.items():
+            print(f"  profile: {profile} -> 二进制文件数量: {count}")
+
 
 # ===== 新增数据结构用于评估 =====
 
