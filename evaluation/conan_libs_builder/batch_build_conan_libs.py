@@ -460,9 +460,12 @@ def batch_build_conan_libs() -> BuildStatistics:
     statistics = create_initial_statistics(evaluation_dir, profile_dir, len(conan_libs))
     # 逐个构建库
     count = 0
+
+    # 初始空间
+    total, used, free = shutil.disk_usage(conan_libs_builder_output_dir)
+    initial_free_gb = free / (1024 ** 3)  # 转换为GB
+
     for library_name, versions in conan_libs.items():
-        if count == 100:
-            break
 
         count += 1
         library_version = versions[-1]
@@ -489,7 +492,7 @@ def batch_build_conan_libs() -> BuildStatistics:
             f"本库耗时: {library_stats.build_time_formatted}，"
             f"累计耗时: {format_time(overall_build_time)}，"
             f"平均耗时: {format_time(overall_build_time / count)}，"
-            f"剩余空间: {free_gb:.2f}GB")
+            f"剩余空间: {free_gb:.2f}GB， 初始空间: {initial_free_gb:.2f}GB")
 
     # 完善全局统计摘要（计算总耗时和平均耗时）
     finalize_global_summary(statistics)
