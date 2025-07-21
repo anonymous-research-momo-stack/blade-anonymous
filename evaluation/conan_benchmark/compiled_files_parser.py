@@ -11,6 +11,7 @@ from typing import Dict, List, Any
 
 from environs import Env
 from loguru import logger
+from tqdm import tqdm
 
 env = Env()
 env.read_env()
@@ -91,12 +92,12 @@ def _get_binaries(path):
     binary_paths = {}
     for entry in os.listdir(path):
         full_path = os.path.join(path, entry)
-        print()
-        print(entry)
-        print(full_path)
-        print(os.path.getsize(full_path))
-        print(f"is file: {os.path.isfile(full_path)}")
-        print(f"is link: {os.path.islink(full_path)}")
+        # print()
+        # print(entry)
+        # print(full_path)
+        # print(os.path.getsize(full_path))
+        # print(f"is file: {os.path.isfile(full_path)}")
+        # print(f"is link: {os.path.islink(full_path)}")
         if os.path.isfile(full_path) and not os.path.islink(full_path) and not entry.startswith("."):
             binary_sha256 = cal_sha256(full_path)
             if (binaries:= binary_paths.get(binary_sha256)) is None:
@@ -122,8 +123,8 @@ def parse_tpl_dir(tpl_name, tpl_path: str):
     # 获取二进制文件路径
     bin_bin_paths, lib_bin_paths = get_binaries(tpl_root_path)
 
-    print(f"bin_bin_paths: {bin_bin_paths}")
-    print(f"lib_bin_paths: {lib_bin_paths}")
+    # print(f"bin_bin_paths: {bin_bin_paths}")
+    # print(f"lib_bin_paths: {lib_bin_paths}")
 
     return {
         "tpl_name": tpl_name,
@@ -172,14 +173,14 @@ def main():
 
     conan_benchmark_dir = os.path.join(evaluation_dir, "conan_benchmark")
 
-    conan_libs_builder_output_dir = os.path.join(conan_benchmark_dir, "conan_libs_builder_output")
+    conan_libs_builder_output_dir = env.str("CONAN_LIBS_BUILDER_OUTPUT")
 
     benchmark_meta_dir = os.path.join(conan_benchmark_dir, "benchmark_meta")
     conan_lib_info_json = os.path.join(benchmark_meta_dir, "conan_lib_info.json")
 
     # 解析每个库的信息
     lib_info_dict= {}
-    for lib_name in list_dirs(conan_libs_builder_output_dir):
+    for lib_name in tqdm(list(list_dirs(conan_libs_builder_output_dir)), desc='Parsing libraries'):
         lib_dir = os.path.join(conan_libs_builder_output_dir, lib_name)
         lib_info = parse_lib_dir(lib_name, lib_dir)
         lib_info_dict[lib_name] = lib_info

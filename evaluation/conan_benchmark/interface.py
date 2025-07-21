@@ -155,33 +155,42 @@ class Benchmark(Serializable):
 
     def stat(self):
         """
-        统计benchmark的基本信息，并打印。
+        生成面向论文的详细benchmark统计报告
         """
-        num_software = len(self.test_software)
+        print("=" * 80)
+        print(f"CONAN LIBRARY BENCHMARK - 数据集统计报告")
+        print("=" * 80)
 
-        # 所有真实复用的第三方库
-        reused_lib_list = [
-            (reuse.library.name, reuse.library.version)
+        # ===== 1. 总体概览 =====
+        print("\n📊 总体概览")
+        print("-" * 50)
+
+        # 基础统计
+        total_software = len(self.test_software)
+        total_profiles = len(set(
+            suite.compile_config.profile
             for ts in self.test_software
             for suite in ts.test_binary_suites
-            for reuse in suite.library_reuses
-            if reuse.is_real_used
-        ]
-        num_reused_libs = len(reused_lib_list)
+        ))
 
-        # 去重后的第三方库数量
-        reused_lib_set = set(reused_lib_list)
-        num_unique_reused_libs = len(reused_lib_set)
+        # 统计所有第三方库
+        all_dependencies = set()
+        real_dependencies = set()
+        for ts in self.test_software:
+            for suite in ts.test_binary_suites:
+                for reuse in suite.library_reuses:
+                    all_dependencies.add((reuse.library.name, reuse.library.version))
+                    if reuse.is_real_used:
+                        real_dependencies.add((reuse.library.name, reuse.library.version))
 
-        # 统计所有二进制文件数量
-        num_binaries = sum(
+        # 统计所有二进制文件
+        total_binaries = sum(
             len(binaries)
             for ts in self.test_software
             for suite in ts.test_binary_suites
             for binaries in suite.binaries.values()
         )
 
-        # hash去重后的二进制文件数量（全局unique）
         unique_binaries = set(
             (binary.name, binary.sha256)
             for ts in self.test_software
@@ -189,80 +198,100 @@ class Benchmark(Serializable):
             for binaries in suite.binaries.values()
             for binary in binaries
         )
-        num_unique_binaries = len(unique_binaries)
 
-        print(f"软件数量: {num_software}")
-        print(f"编译的第三方库数量: {num_reused_libs}")
-        print(f"去重后的第三方库数量: {num_unique_reused_libs}")
-        print(f"二进制文件数量: {num_binaries}")
-        print(f"hash去重后的二进制文件数量: {num_unique_binaries}")
+        print(f"源软件数量: {total_software}")
+        print(f"编译配置数: {total_profiles}")
+        print(f"涉及第三方库总数: {len(all_dependencies)}")
+        print(f"实际使用的第三方库数: {len(real_dependencies)}")
+        print(f"二进制文件总数: {total_binaries:,}")
+        print(f"去重后二进制文件数: {len(unique_binaries):,}")
 
-        # 统计每个profile的所有二进制文件（包括重复的）
-        profile_binary_count = {}
-        profile_all_binaries = {}  # 包含重复的二进制文件计数
+        # ===== 2. 编译配置详情 =====
+        print(f"\n🔧 编译配置详情")
+        print("-" * 50)
 
-        for ts in self.test_software:
-            for suite in ts.test_binary_suites:
-                profile = suite.compile_config.profile
-                if profile not in profile_binary_count:
-                    profile_binary_count[profile] = set()
-                    profile_all_binaries[profile] = 0
+        profiles = sorted(set(
+            suite.compile_config.profile
+            for ts in self.test_software
+            for suite in ts.test_binary_suites
+        ))
 
-                for binaries in suite.binaries.values():
-                    profile_all_binaries[profile] += len(binaries)
-                    for binary in binaries:
-                        profile_binary_count[profile].add((binary.name, binary.sha256))
+        # 分析架构和编译器
+        architectures = set()
+        compilers = set()
+        for profile in profiles:
+            parts = profile.split('-')
+            if len(parts) >= 2:
+                arch = parts[0]  # arm_64, x86_64
+                compiler = parts[1]  # gcc, clang
+                architectures.add(arch)
+                compilers.add(compiler)
 
-        # 找出每个二进制文件出现在哪些profile中
-        binary_to_profiles = {}
-        for profile, binaries in profile_binary_count.items():
-            for binary in binaries:
-                if binary not in binary_to_profiles:
-                    binary_to_profiles[binary] = set()
-                binary_to_profiles[binary].add(profile)
+        print(f"支持架构: {', '.join(sorted(architectures))}")
+        print(f"支持编译器: {', '.join(sorted(compilers))}")
+        print(f"编译配置列表:")
+        for i, profile in enumerate(profiles, 1):
+            print(f"  {i}. {profile}")
 
-        # 找出只在单个profile中出现的二进制文件（profile独有）
-        profile_unique_binaries = {}
-        for profile in profile_binary_count:
-            profile_unique_binaries[profile] = set()
+        # ===== 3. 每个Profile的详细统计 =====
+        print(f"\n📋 各编译配置统计详情")
+        print("-" * 50)
 
-        for binary, profiles in binary_to_profiles.items():
-            if len(profiles) == 1:
-                profile = list(profiles)[0]
-                profile_unique_binaries[profile].add(binary)
+        profile_stats = {}
+        for profile in profiles:
+            # 统计该profile下的数据
+            profile_software = set()
+            profile_dependencies = set()
+            profile_real_dependencies = set()
+            profile_binaries = []
 
-        print("\n=== Profile统计 ===")
-        for profile in sorted(profile_binary_count.keys()):
-            total_binaries = profile_all_binaries[profile]
-            unique_binaries_in_profile = len(profile_binary_count[profile])
-            exclusive_binaries = len(profile_unique_binaries[profile])
+            for ts in self.test_software:
+                for suite in ts.test_binary_suites:
+                    if suite.compile_config.profile == profile:
+                        profile_software.add(ts.source_library.name)
 
-            print(f"Profile '{profile}':")
-            print(f"  - 总二进制文件数量: {total_binaries}")
-            print(f"  - 去重后二进制文件数量: {unique_binaries_in_profile}")
-            print(f"  - 该profile独有的二进制文件数量: {exclusive_binaries}")
+                        # 统计依赖
+                        for reuse in suite.library_reuses:
+                            profile_dependencies.add((reuse.library.name, reuse.library.version))
+                            if reuse.is_real_used:
+                                profile_real_dependencies.add((reuse.library.name, reuse.library.version))
 
-        # 统计跨profile共享的二进制文件
-        shared_binaries = set(binary for binary, profiles in binary_to_profiles.items() if len(profiles) > 1)
-        print(f"\n跨profile共享的二进制文件数量: {len(shared_binaries)}")
+                        # 统计二进制文件
+                        for binaries in suite.binaries.values():
+                            profile_binaries.extend(binaries)
 
-        # 统计每种二进制类型的数量
-        print("\n=== 二进制文件类型统计 ===")
-        binary_types = {}
-        for ts in self.test_software:
-            for suite in ts.test_binary_suites:
-                for binaries in suite.binaries.values():
-                    for binary in binaries:
-                        binary_type = binary.type
-                        if binary_type not in binary_types:
-                            binary_types[binary_type] = set()
-                        binary_types[binary_type].add((binary.name, binary.sha256))
+            # 去重后的二进制文件
+            profile_unique_binaries = set(
+                (binary.name, binary.sha256) for binary in profile_binaries
+            )
 
-        for binary_type, binaries in sorted(binary_types.items()):
-            print(f"类型 '{binary_type}' 的唯一二进制文件数量: {len(binaries)}")
+            # 按类型统计
+            bin_count = len([b for b in profile_binaries if b.type == 'bin'])
+            lib_count = len([b for b in profile_binaries if b.type == 'lib'])
 
-        # 统计文件大小信息
-        print("\n=== 文件大小统计 ===")
+            profile_stats[profile] = {
+                'software_count': len(profile_software),
+                'total_deps': len(profile_dependencies),
+                'real_deps': len(profile_real_dependencies),
+                'total_binaries': len(profile_binaries),
+                'unique_binaries': len(profile_unique_binaries),
+                'bin_files': bin_count,
+                'lib_files': lib_count
+            }
+
+            print(f"\n{profile}:")
+            print(f"  成功编译软件数: {len(profile_software)}")
+            print(f"  涉及第三方库总数: {len(profile_dependencies)}")
+            print(f"  实际使用第三方库数: {len(profile_real_dependencies)}")
+            print(f"  二进制文件总数: {len(profile_binaries):,}")
+            print(f"  去重后二进制文件数: {len(profile_unique_binaries):,}")
+            print(f"    - 可执行文件(bin): {bin_count:,}")
+            print(f"    - 库文件(lib): {lib_count:,}")
+
+        # ===== 4. 文件大小统计 =====
+        print(f"\n💾 存储空间统计")
+        print("-" * 50)
+
         total_size_kb = sum(
             binary.file_size_kb
             for ts in self.test_software
@@ -271,23 +300,266 @@ class Benchmark(Serializable):
             for binary in binaries
         )
 
-        unique_total_size_kb = sum(
-            binary.file_size_kb
-            for ts in self.test_software
-            for suite in ts.test_binary_suites
-            for binaries in suite.binaries.values()
-            for binary in binaries
-            if (binary.name, binary.sha256) in unique_binaries
-        )
+        # 计算去重后的文件大小
+        unique_binary_sizes = {}
+        for ts in self.test_software:
+            for suite in ts.test_binary_suites:
+                for binaries in suite.binaries.values():
+                    for binary in binaries:
+                        binary_key = (binary.name, binary.sha256)
+                        if binary_key not in unique_binary_sizes:
+                            unique_binary_sizes[binary_key] = binary.file_size_kb
 
-        print(f"所有二进制文件总大小: {total_size_kb:.2f} KB ({total_size_kb / 1024:.2f} MB)")
-        print(f"去重后二进制文件总大小: {unique_total_size_kb:.2f} KB ({unique_total_size_kb / 1024:.2f} MB)")
+        unique_total_size_kb = sum(unique_binary_sizes.values())
 
-        if num_binaries > 0:
-            print(f"平均文件大小: {total_size_kb / num_binaries:.2f} KB")
-        if num_unique_binaries > 0:
-            print(f"去重后平均文件大小: {unique_total_size_kb / num_unique_binaries:.2f} KB")
+        print(
+            f"总存储空间: {total_size_kb:,.2f} KB ({total_size_kb / 1024:.2f} MB, {total_size_kb / 1024 / 1024:.2f} GB)")
+        print(
+            f"去重后存储空间: {unique_total_size_kb:,.2f} KB ({unique_total_size_kb / 1024:.2f} MB, {unique_total_size_kb / 1024 / 1024:.2f} GB)")
+        print(f"空间节省率: {(1 - unique_total_size_kb / total_size_kb) * 100:.1f}%")
+        print(f"平均文件大小: {total_size_kb / total_binaries:.2f} KB")
+        print(f"去重后平均文件大小: {unique_total_size_kb / len(unique_binaries):.2f} KB")
 
+        # ===== 5. 软件来源分析 =====
+        print(f"\n📚 软件来源分析")
+        print("-" * 50)
+
+        # 统计每个软件的编译成功情况
+        software_compile_success = {}
+        for ts in self.test_software:
+            software_name = ts.source_library.name
+            if software_name not in software_compile_success:
+                software_compile_success[software_name] = set()
+
+            for suite in ts.test_binary_suites:
+                software_compile_success[software_name].add(suite.compile_config.profile)
+
+        # 统计编译成功率
+        full_success = 0  # 所有profile都成功
+        partial_success = 0  # 部分profile成功
+
+        for software, success_profiles in software_compile_success.items():
+            if len(success_profiles) == len(profiles):
+                full_success += 1
+            else:
+                partial_success += 1
+
+        print(f"软件编译成功率统计:")
+        print(f"  全平台编译成功: {full_success} 个软件")
+        print(f"  部分平台编译成功: {partial_success} 个软件")
+        print(
+            f"  平均每软件支持平台数: {sum(len(profiles) for profiles in software_compile_success.values()) / len(software_compile_success):.1f}")
+
+        # ===== 6. 第三方库覆盖度分析 =====
+        print(f"\n🔍 第三方库覆盖度分析")
+        print("-" * 50)
+
+        # 统计第三方库在各profile中的出现频率
+        lib_profile_count = {}
+        for ts in self.test_software:
+            for suite in ts.test_binary_suites:
+                profile = suite.compile_config.profile
+                for reuse in suite.library_reuses:
+                    if reuse.is_real_used:
+                        lib_key = (reuse.library.name, reuse.library.version)
+                        if lib_key not in lib_profile_count:
+                            lib_profile_count[lib_key] = set()
+                        lib_profile_count[lib_key].add(profile)
+
+        # 按覆盖度分类
+        coverage_stats = {i: 0 for i in range(1, len(profiles) + 1)}
+        for lib_key, lib_profiles in lib_profile_count.items():
+            coverage_stats[len(lib_profiles)] += 1
+
+        print(f"第三方库跨平台覆盖度:")
+        for profile_count, lib_count in coverage_stats.items():
+            if lib_count > 0:
+                print(f"  在{profile_count}个平台中使用: {lib_count} 个库")
+
+        # ===== 7. 论文数据总结 =====
+        print(f"\n📄 论文数据摘要")
+        print("-" * 50)
+        print(f"本数据集基于{total_software}个开源软件项目构建，")
+        print(
+            f"覆盖{len(architectures)}种CPU架构({', '.join(sorted(architectures))})和{len(compilers)}种编译器({', '.join(sorted(compilers))})，")
+        print(f"共{total_profiles}种编译配置。")
+        print(f"数据集包含{len(real_dependencies)}个不同的第三方库，")
+        print(f"生成了{total_binaries:,}个二进制文件，去重后为{len(unique_binaries):,}个唯一文件，")
+        print(f"总大小{unique_total_size_kb / 1024 / 1024:.1f}GB。")
+
+        print("=" * 80)
+
+    def check_suspicious_shared_files(self):
+        """
+        检查可疑的跨profile共享文件，特别是跨架构的共享文件
+        """
+        print("=" * 60)
+        print("可疑文件检查报告")
+        print("=" * 60)
+
+        # 构建二进制文件到profile的映射
+        binary_to_profiles = {}
+        binary_details = {}  # 存储文件的详细信息
+
+        for ts in self.test_software:
+            for suite in ts.test_binary_suites:
+                profile = suite.compile_config.profile
+                for binaries in suite.binaries.values():
+                    for binary in binaries:
+                        binary_key = (binary.name, binary.sha256)
+
+                        if binary_key not in binary_to_profiles:
+                            binary_to_profiles[binary_key] = set()
+                            binary_details[binary_key] = {
+                                'type': binary.type,
+                                'size_kb': binary.file_size_kb,
+                                'rel_path': binary.rel_path,
+                                'tpl_name': binary.tpl_name,
+                                'profiles': []
+                            }
+
+                        binary_to_profiles[binary_key].add(profile)
+                        if profile not in binary_details[binary_key]['profiles']:
+                            binary_details[binary_key]['profiles'].append(profile)
+
+        total_profiles = len(set(profile for profiles in binary_to_profiles.values() for profile in profiles))
+
+        # 1. 检查跨所有profile的共享文件（最可疑）
+        fully_shared = [(binary_key, profiles) for binary_key, profiles in binary_to_profiles.items()
+                        if len(profiles) == total_profiles]
+
+        print(f"\n1. 跨所有架构共享的文件 ({len(fully_shared)} 个) - 极度可疑:")
+        print("-" * 50)
+        for i, (binary_key, profiles) in enumerate(fully_shared[:30]):  # 显示前30个
+            name, sha256 = binary_key
+            details = binary_details[binary_key]
+            print(f"{i + 1:2d}. {name}")
+            print(f"    SHA256: {sha256}")
+            print(f"    类型: {details['type']}")
+            print(f"    大小: {details['size_kb']} KB")
+            print(f"    相对路径: {details['rel_path']}")
+            print(f"    模板名: {details['tpl_name']}")
+            print(f"    出现在: {sorted(list(profiles))}")
+            print()
+
+        if len(fully_shared) > 30:
+            print(f"    ... 还有 {len(fully_shared) - 30} 个文件未显示")
+            print()
+
+        # 2. 检查跨ARM64和x86_64的共享文件
+        cross_arch_shared = []
+        for binary_key, profiles in binary_to_profiles.items():
+            has_arm = any('arm_64' in profile for profile in profiles)
+            has_x86 = any('x86_64' in profile for profile in profiles)
+            if has_arm and has_x86:
+                cross_arch_shared.append((binary_key, profiles))
+
+        print(f"\n2. 跨ARM64和x86_64架构的共享文件 ({len(cross_arch_shared)} 个) - 高度可疑:")
+        print("-" * 50)
+        for i, (binary_key, profiles) in enumerate(cross_arch_shared[:20]):  # 显示前20个
+            name, sha256 = binary_key
+            details = binary_details[binary_key]
+            print(f"{i + 1:2d}. {name}")
+            print(f"    类型: {details['type']}, 大小: {details['size_kb']} KB")
+            print(f"    路径: {details['rel_path']}")
+            print(f"    出现在: {sorted(list(profiles))}")
+            print()
+
+        # 3. 检查同架构不同编译器的共享文件 (x86_64 clang vs gcc)
+        same_arch_shared = []
+        for binary_key, profiles in binary_to_profiles.items():
+            profiles_list = list(profiles)
+            # 检查是否只在x86_64的clang和gcc之间共享
+            if (len(profiles_list) == 2 and
+                    'x86_64-clang-release-shared' in profiles_list and
+                    'x86_64-gcc-release-shared' in profiles_list):
+                same_arch_shared.append((binary_key, profiles))
+
+        print(f"\n3. x86_64架构下clang和gcc共享的文件 ({len(same_arch_shared)} 个):")
+        print("-" * 50)
+        for i, (binary_key, profiles) in enumerate(same_arch_shared):  # 显示全部
+            name, sha256 = binary_key
+            details = binary_details[binary_key]
+            print(f"{i + 1:2d}. {name}")
+            print(f"    SHA256: {sha256}")
+            print(f"    类型: {details['type']}, 大小: {details['size_kb']} KB")
+            print(f"    路径: {details['rel_path']}")
+            print(f"    模板名: {details['tpl_name']}")
+            print()
+
+        # 3. 按文件扩展名和特征分析可疑度
+        print(f"\n3. 按文件特征分析:")
+        print("-" * 50)
+
+        suspicious_patterns = {
+            'zero_size': [],
+            'very_small': [],  # < 1KB
+            'text_extensions': [],
+            'config_like': [],
+            'no_extension': []
+        }
+
+        for binary_key, profiles in binary_to_profiles.items():
+            if len(profiles) > 1:  # 只看共享文件
+                name, sha256 = binary_key
+                details = binary_details[binary_key]
+                size = details['size_kb']
+
+                if size == 0:
+                    suspicious_patterns['zero_size'].append((binary_key, details))
+                elif size < 1:
+                    suspicious_patterns['very_small'].append((binary_key, details))
+
+                # 检查文件扩展名
+                if '.' in name:
+                    ext = name.split('.')[-1].lower()
+                    if ext in ['txt', 'cfg', 'conf', 'ini', 'xml', 'json', 'yml', 'yaml', 'md', 'rst']:
+                        suspicious_patterns['text_extensions'].append((binary_key, details))
+                    elif ext in ['config', 'properties', 'settings']:
+                        suspicious_patterns['config_like'].append((binary_key, details))
+                else:
+                    suspicious_patterns['no_extension'].append((binary_key, details))
+
+        for pattern, files in suspicious_patterns.items():
+            if files:
+                print(f"\n{pattern.replace('_', ' ').title()} ({len(files)} 个):")
+                for binary_key, details in files[:10]:  # 只显示前10个
+                    name, sha256 = binary_key
+                    profiles = binary_to_profiles[binary_key]
+                    print(f"  - {name} ({details['size_kb']} KB) -> {len(profiles)} profiles")
+                if len(files) > 10:
+                    print(f"  ... 还有 {len(files) - 10} 个")
+
+        # 4. 统计总结
+        print(f"\n4. 总结:")
+        print("-" * 50)
+        total_shared = sum(1 for profiles in binary_to_profiles.values() if len(profiles) > 1)
+        print(f"总共享文件数: {total_shared}")
+        print(f"跨所有架构共享: {len(fully_shared)} ({len(fully_shared) / total_shared * 100:.1f}%)")
+        print(f"跨ARM64+x86_64共享: {len(cross_arch_shared)} ({len(cross_arch_shared) / total_shared * 100:.1f}%)")
+
+        # 按大小分布
+        size_ranges = {'0KB': 0, '0-1KB': 0, '1-10KB': 0, '10-100KB': 0, '100KB+': 0}
+        for binary_key, profiles in binary_to_profiles.items():
+            if len(profiles) > 1:
+                size = binary_details[binary_key]['size_kb']
+                if size == 0:
+                    size_ranges['0KB'] += 1
+                elif size < 1:
+                    size_ranges['0-1KB'] += 1
+                elif size < 10:
+                    size_ranges['1-10KB'] += 1
+                elif size < 100:
+                    size_ranges['10-100KB'] += 1
+                else:
+                    size_ranges['100KB+'] += 1
+
+        print(f"\n共享文件大小分布:")
+        for range_name, count in size_ranges.items():
+            if count > 0:
+                print(f"  {range_name}: {count} 个 ({count / total_shared * 100:.1f}%)")
+
+        print("=" * 60)
 # ===== 新增数据结构用于评估 =====
 
 @dataclass

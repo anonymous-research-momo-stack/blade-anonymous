@@ -34,6 +34,64 @@ def load_json(file_path: str) -> dict:
     return lib_info
 
 
+import subprocess
+import os
+from typing import List, Dict
+
+
+def is_elf_binary(file_path: str) -> bool:
+    """
+    使用file命令检查文件是否是ELF二进制文件
+    """
+    try:
+        # 检查文件是否存在
+        if not os.path.exists(file_path):
+            print(f"文件不存在: {file_path}")
+            return False
+
+        # 使用file命令检查文件类型
+        result = subprocess.run(['file', file_path],
+                                capture_output=True,
+                                text=True,
+                                timeout=5)
+
+        if result.returncode != 0:
+            print(f"file命令执行失败: {file_path}")
+            return False
+
+        file_output = result.stdout.strip()
+        file_output = file_output.replace(file_path, '').lower()
+        # 额外检查：排除明确的脚本类型
+        script_indicators = [
+            'shell script',
+            'perl script',
+            'python script',
+            'text executable',
+            'ascii text'
+        ]
+
+        for script_type in script_indicators:
+            if script_type in file_output:
+                # print(f"过滤脚本文件: {os.path.basename(file_path)} -> {file_output}")
+                return False
+
+        # 只要包含ELF就认为是二进制文件
+        if 'elf' in file_output:
+            return True
+
+
+
+        # 如果不是ELF也不是明确的脚本，打印警告但保留
+        print(f"未知文件类型: {os.path.basename(file_path)} -> {file_output}, 已过滤")
+        return False
+
+    except subprocess.TimeoutExpired:
+        print(f"file命令超时: {file_path}")
+        return False
+    except Exception as e:
+        print(f"检查文件时出错 {file_path}: {e}")
+        return False
+
 def generate_benchmark(conan_libs_builder_output_dir, src_lib_info: dict, min_reused_lib_num: int = 3) -> List[
     TestSoftware]:
     test_software_dict = {}
@@ -41,6 +99,8 @@ def generate_benchmark(conan_libs_builder_output_dir, src_lib_info: dict, min_re
         for src_lib_ver, src_lib_ver_data in src_lib_data.items():
             for compile_config, compile_data in src_lib_ver_data.items():
                 metadata_json_path = compile_data.get("metadata_json")
+                if not os.path.exists(metadata_json_path):
+                    continue
                 metadata = load_json(metadata_json_path) if metadata_json_path else {}
 
                 binary_info = compile_data.get("binary_info")
@@ -104,8 +164,14 @@ def generate_benchmark(conan_libs_builder_output_dir, src_lib_info: dict, min_re
                     tpl_info = tpl_data.get("tpl_info")
 
                     # 找到所有路径
-                    bin_bin_paths = tpl_info.get("bin_bins", [])
-                    lib_bin_paths = tpl_info.get("lib_bins", [])
+                    bin_bin_paths = {}
+                    if tpl_info.get("bin_bins", {}):
+                        for sha256, paths in tpl_info.get("bin_bins", {}).items():
+                            paths = [path for path in paths if is_elf_binary(path)]  # 需要验证是二进制文件，不然有很多的脚本文件。
+                            if paths:
+                                bin_bin_paths[sha256] = paths
+
+                    lib_bin_paths = tpl_info.get("lib_bins", {})
                     bin_paths = {}
                     if bin_bin_paths:
                         bin_paths.update(bin_bin_paths)
@@ -187,6 +253,7 @@ def main():
 
     # stats
     benchmark.stat()
+    benchmark.check_suspicious_shared_files()
 
     # dump
     with open(benchmark_path, "w") as f:
@@ -195,3 +262,5 @@ def main():
 
 if __name__ == '__main__':
     main()
+    # path = "/home/chengyue/data/conan_libs_builder_output/atk/2.38.0/atk_2.38.0_arm_64-gcc-release-shared/full_deploy/host/elfutils/0.190/Release/armv8/bin/eu-make-debug-archive"
+    # print(is_elf_binary(path))
