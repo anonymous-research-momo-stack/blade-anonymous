@@ -1,8 +1,7 @@
 import json
-import os
+import re
 import sys
 from datetime import datetime
-from typing import List
 
 from environs import Env
 from loguru import logger
@@ -92,6 +91,64 @@ def is_elf_binary(file_path: str) -> bool:
         print(f"检查文件时出错 {file_path}: {e}")
         return False
 
+
+
+
+
+def find_target_bin(library_name: str,
+                    binary_files: List[str],
+                    whitelist: Dict[str, str] = None) -> List[str]:
+    """
+    找到匹配的主要二进制文件
+
+    Args:
+        library_name: 库名（如 "grpc", "protobuf", "openssl"）
+        binary_files: 所有二进制文件名的列表（包括bin和lib目录下的）
+        whitelist: 白名单字典，键为库名，值为对应的二进制文件名
+
+    Returns:
+        匹配的二进制文件名列表，如果没找到返回空列表
+    """
+
+    # 1. 检查白名单
+    if whitelist and library_name in whitelist:
+        target_file = whitelist[library_name]
+        if target_file in binary_files:
+            return [target_file]
+        else:
+            return []
+
+    # 2. 按规则匹配
+    matches = []
+
+    for binary_file in binary_files:
+        # 提取文件名（去掉路径）
+        filename = binary_file.split('/')[-1]
+
+        # 规则1: 和库的名字完全一样
+        if filename == library_name:
+            matches.append(binary_file)
+            continue
+
+        # 规则2: 库.so
+        if filename == f"{library_name}.so":
+            matches.append(binary_file)
+            continue
+
+        # 规则3: lib库.so
+        if filename == f"lib{library_name}.so":
+            matches.append(binary_file)
+            continue
+
+        # 规则4: lib库.so.xxxx (版本号)
+        pattern = f"^lib{re.escape(library_name)}\\.so\\."
+        if re.match(pattern, filename):
+            matches.append(binary_file)
+            continue
+
+    return matches
+
+
 def generate_benchmark(conan_libs_builder_output_dir, src_lib_info: dict, min_reused_lib_num: int = 3) -> List[
     TestSoftware]:
     test_software_dict = {}
@@ -107,47 +164,11 @@ def generate_benchmark(conan_libs_builder_output_dir, src_lib_info: dict, min_re
                 real_reused_tpl_names = list(binary_info.keys())
 
                 # 1. 源库信息
-                if (test_software:= test_software_dict.get(src_lib_name)) is None:
-                    source_library = metadata.get("target_library", {})
-                    source_library = Library(
-                        name=src_lib_name,
-                        version=src_lib_ver,
-                        description=source_library.get("description", ""),
-                        license=source_library.get("license", ""),
-                        homepage=source_library.get("homepage", ""),
-                        url=source_library.get("url", ""),
-                        topics=source_library.get("topics", []),
-                    )
-                    test_software_dict[src_lib_name] = test_software = TestSoftware(
-                        source_library=source_library,
-                        test_binary_suites=[]
-                    )
+                test_software = get_test_software(metadata, src_lib_name, src_lib_ver, test_software_dict)
 
-                    # 2. 复用的第三方组件
 
                 # 2. reused_libraries
-                dependencies = metadata.get("dependencies", {}).get("dependencies", [])
-                library_reuses = []
-                for dep in dependencies:
-                    tpl_name = dep.get("name", "")
-                    if tpl_name == src_lib_name:
-                        link_type = "self"
-                    else:
-                        link_type = dep.get("link_type", "")
-
-                    reuse = LibraryReuse(
-                        library=Library(
-                            name=tpl_name,
-                            version=dep.get("version", "")
-                        ),
-                        is_real_used=tpl_name in real_reused_tpl_names and link_type != "header-only",
-                        link_type=link_type,
-                        level=dep.get("level", ""),
-                        reuse_paths=dep.get("paths", [])
-                    )
-
-                    library_reuses.append(reuse)
-
+                library_reuses = get_library_reuses(metadata, real_reused_tpl_names, src_lib_name)
                 rel_reused_lib_num = len([reuse for reuse in library_reuses if reuse.is_real_used])
 
 
@@ -159,43 +180,9 @@ def generate_benchmark(conan_libs_builder_output_dir, src_lib_info: dict, min_re
 
 
                 # 4. 编译好的二进制文件
-                binary_dict = {}
-                for tpl_name, tpl_data in binary_info.items():
-                    tpl_info = tpl_data.get("tpl_info")
+                binary_dict = get_target_binaries(binary_info, conan_libs_builder_output_dir)
 
-                    # 找到所有路径
-                    bin_bin_paths = {}
-                    if tpl_info.get("bin_bins", {}):
-                        for sha256, paths in tpl_info.get("bin_bins", {}).items():
-                            paths = [path for path in paths if is_elf_binary(path)]  # 需要验证是二进制文件，不然有很多的脚本文件。
-                            if paths:
-                                bin_bin_paths[sha256] = paths
-
-                    lib_bin_paths = tpl_info.get("lib_bins", {})
-                    bin_paths = {}
-                    if bin_bin_paths:
-                        bin_paths.update(bin_bin_paths)
-                    if lib_bin_paths:
-                        bin_paths.update(lib_bin_paths)
-
-                    # 构成 Binary 对象
-                    binaries = []
-                    for bin_bin_sha256, paths in bin_paths.items():
-                        bin_bin_path: str = paths[0]
-                        binary_name = os.path.basename(bin_bin_path)
-                        # TODO: 筛选类型只要这几种
-                        if "." not in binary_name or '.so' in binary_name:
-                            binary = Binary(
-                                name=binary_name,
-                                type='lib' if '.so' in binary_name else 'bin',
-                                tpl_name=tpl_name,
-                                rel_path=os.path.relpath(bin_bin_path, conan_libs_builder_output_dir),
-                                file_size_kb=os.path.getsize(bin_bin_path) / 1024,  # size in KB
-                                sha256=bin_bin_sha256
-                            )
-                            binaries.append(binary)
-                    binary_dict[tpl_name] = binaries
-
+                # 5. 生成测试套件
                 test_suite = TestBinarySuite(
                     stat=TestBinarySuiteStat(
                         total_reused_library=rel_reused_lib_num,
@@ -208,8 +195,7 @@ def generate_benchmark(conan_libs_builder_output_dir, src_lib_info: dict, min_re
                     binaries=binary_dict
                 )
 
-                # ----- 过滤条件 -----
-                # TODO: 筛选要包含的第三方库的数量，以及编译配置
+                # ------------- 过滤条件 -------------
                 # test_suite 至少 3 个第三方库
                 if rel_reused_lib_num < min_reused_lib_num:
                     continue  # Skip this test case if reused libraries are less than the minimum required
@@ -218,11 +204,107 @@ def generate_benchmark(conan_libs_builder_output_dir, src_lib_info: dict, min_re
                 if "-static" in compile_config.profile:
                     continue
 
+                # 6. 添加到测试软件
                 test_software.test_binary_suites.append(test_suite)
 
     # 过滤掉空的
     test_softwares = [ts for ts in test_software_dict.values() if ts.test_binary_suites]
     return test_softwares
+
+
+def get_target_binaries(binary_info, conan_libs_builder_output_dir):
+    white_dict = {}
+    binary_dict = {}
+    path_dict = {}
+    for tpl_name, tpl_data in binary_info.items():
+        tpl_info = tpl_data.get("tpl_info")
+
+        # 1. 找到所有二进制文件的路径，并做hash去重
+        # bin 目录下的所有路径
+        bin_bin_paths = {}
+        if tpl_info.get("bin_bins", {}):
+            for sha256, paths in tpl_info.get("bin_bins", {}).items():
+                paths = [path for path in paths if is_elf_binary(path)]  # 需要验证是二进制文件，不然有很多的脚本文件。
+                if paths:
+                    bin_bin_paths[sha256] = paths
+
+        # lib 目录下的所有路径
+        lib_bin_paths = tpl_info.get("lib_bins", {})
+
+        if bin_bin_paths:
+            path_dict.update(bin_bin_paths)
+        if lib_bin_paths:
+            path_dict.update(lib_bin_paths)
+
+        # 2. 找到目标二进制文件
+        path_to_sha256 = {path: sha256 for sha256, paths in path_dict.items() for path in paths}
+        all_paths = [paths[0] for bin_sha256, paths in path_dict.items()]
+        name_to_path = {os.path.basename(path): path for path in all_paths}
+        all_names = list(name_to_path.keys())
+        target_bin_names = find_target_bin(tpl_name, all_names, white_dict)
+        target_bin_paths = name_to_path.get(target_bin_names[0]) if target_bin_names else None
+        if not target_bin_paths:
+            print(f"未找到目标二进制文件: {tpl_name}，请检查白名单或路径. 全部候选文件：{all_names}")
+
+        # 3. 创建 Binary 对象
+        binaries = []
+        for target_bin_name, target_bin_path in zip(target_bin_names, target_bin_paths):
+            binary = Binary(
+                name=target_bin_name,
+                type='lib' if '.so' in target_bin_name else 'bin',
+                tpl_name=tpl_name,
+                rel_path=str(os.path.relpath(target_bin_path, conan_libs_builder_output_dir)),
+                file_size_kb=os.path.getsize(target_bin_path) / 1024,  # size in KB
+                # file_size_kb=0,
+                sha256=path_to_sha256.get(target_bin_path, "")
+            )
+            binaries.append(binary)
+        binary_dict[tpl_name] = binaries
+    return binary_dict
+
+
+def get_library_reuses(metadata, real_reused_tpl_names, src_lib_name):
+    dependencies = metadata.get("dependencies", {}).get("dependencies", [])
+    library_reuses = []
+    for dep in dependencies:
+        tpl_name = dep.get("name", "")
+        if tpl_name == src_lib_name:
+            link_type = "self"
+        else:
+            link_type = dep.get("link_type", "")
+
+        reuse = LibraryReuse(
+            library=Library(
+                name=tpl_name,
+                version=dep.get("version", "")
+            ),
+            is_real_used=tpl_name in real_reused_tpl_names and link_type != "header-only",
+            link_type=link_type,
+            level=dep.get("level", ""),
+            reuse_paths=dep.get("paths", [])
+        )
+
+        library_reuses.append(reuse)
+    return library_reuses
+
+
+def get_test_software(metadata, src_lib_name, src_lib_ver, test_software_dict):
+    if (test_software := test_software_dict.get(src_lib_name)) is None:
+        source_library = metadata.get("target_library", {})
+        source_library = Library(
+            name=src_lib_name,
+            version=src_lib_ver,
+            description=source_library.get("description", ""),
+            license=source_library.get("license", ""),
+            homepage=source_library.get("homepage", ""),
+            url=source_library.get("url", ""),
+            topics=source_library.get("topics", []),
+        )
+        test_software_dict[src_lib_name] = test_software = TestSoftware(
+            source_library=source_library,
+            test_binary_suites=[]
+        )
+    return test_software
 
 
 def main():
@@ -276,5 +358,5 @@ def benchmark_check():
 
 
 if __name__ == '__main__':
-    # main()
-    benchmark_check()
+    main()
+    # benchmark_check()
