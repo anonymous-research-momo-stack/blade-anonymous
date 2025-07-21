@@ -185,6 +185,9 @@ def main():
         test_software=test_software
     )
 
+    # stats
+    benchmark.stat()
+
     # dump
     with open(benchmark_path, "w") as f:
         json.dump(benchmark.customer_serialize(), f, indent=4, ensure_ascii=False)

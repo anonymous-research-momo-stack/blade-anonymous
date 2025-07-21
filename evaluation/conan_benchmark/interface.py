@@ -153,6 +153,50 @@ class Benchmark(Serializable):
     version: str
     test_software: List[TestSoftware] = dataclasses.field(default_factory=list)
 
+    def stat(self):
+        """
+        统计benchmark的基本信息，并打印。
+        """
+        num_software = len(self.test_software)
+
+        # 所有真实复用的第三方库（不去重，不含自身）
+        reused_lib_list = [
+            (reuse.library.name, reuse.library.version)
+            for ts in self.test_software
+            for suite in ts.test_binary_suites
+            for reuse in suite.library_reuses
+            if reuse.is_real_used
+        ]
+        num_reused_libs = len(reused_lib_list)
+
+        # 去重后的第三方库数量
+        reused_lib_set = set(reused_lib_list)
+        num_unique_reused_libs = len(reused_lib_set)
+
+        # 统计所有二进制文件数量
+        num_binaries = sum(
+            len(binaries)
+            for ts in self.test_software
+            for suite in ts.test_binary_suites
+            for binaries in suite.binaries.values()
+        )
+
+        # hash去重后的二进制文件数量
+        unique_binaries = set(
+            (binary.sha256)
+            for ts in self.test_software
+            for suite in ts.test_binary_suites
+            for binaries in suite.binaries.values()
+            for binary in binaries
+        )
+        num_unique_binaries = len(unique_binaries)
+
+        print(f"软件数量: {num_software}")
+        print(f"编译的第三方库数量: {num_reused_libs}")
+        print(f"去重后的第三方库数量: {num_unique_reused_libs}")
+        print(f"二进制文件数量: {num_binaries}")
+        print(f"hash去重后的二进制文件数量: {num_unique_binaries}")
+
 
 # ===== 新增数据结构用于评估 =====
 
