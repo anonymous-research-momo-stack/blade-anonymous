@@ -248,7 +248,7 @@ class AnalysisData(Serializable):
             for step, cost_data in self.costs.items():
                 print(f"   {step}:")
                 for key, value in cost_data.items():
-                    if key in ["input_tokens", "output_tokens", "total_tokens", "time"]:
+                    if key in ["input_tokens", "output_tokens", "total_tokens"]:
                         print(f"      {key}: {value} tokens")
                         total_input += value[0] if key == "input_tokens" else 0
                         total_output += value[0] if key == "output_tokens" else 0

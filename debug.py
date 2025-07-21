@@ -1,3 +1,5 @@
+import os.path
+
 from app.tpl_detection.detection_workflow import DetectionWorkflow
 from app.tpl_detection.batch_detection_workflow import BatchDetectionWorkflow
 import time
@@ -47,6 +49,20 @@ def demo():
     # 根目录
     root_path = "/Users/liuchengyue/Desktop/BinarySCA Platform/Data/Test_Cases/TPL_Test_Cases/BYD/"
 
+    # conan test cases
+    conan_bin_dir = "/Users/liuchengyue/Desktop/BinarySCA Platform/Code/sca_agents/bsca-expert-agent-api/evaluation/conan_libs_builder_output/"
+
+    grpc_cpp_plugin_shared = os.path.join(conan_bin_dir, "grpc/1.72.0/grpc_1.72.0_x86_64-gcc-release-shared/full_deploy/host/grpc/1.72.0/Release/x86_64/bin/grpc_cpp_plugin")
+    setfattr_static = os.path.join(conan_bin_dir, "acl/2.3.1/acl_2.3.1_x86_64-gcc-release-static/full_deploy/host/libattr/2.5.1/Release/x86_64/bin/setfattr")
+    setfacl_shared = os.path.join(conan_bin_dir, "acl/2.3.1/acl_2.3.1_arm_64-gcc-release-shared/full_deploy/host/acl/2.3.1/Release/armv8/bin/setfacl")
+    getfacl_static = os.path.join(conan_bin_dir, "acl/2.3.1/acl_2.3.1_x86_64-gcc-release-static/full_deploy/host/acl/2.3.1/Release/x86_64/bin/getfacl")
+    libacl_so = "/Users/liuchengyue/Desktop/BinarySCA Platform/Code/sca_agents/bsca-expert-agent-api/evaluation/conan_libs_builder_output/acl/2.3.1/acl_2.3.1_x86_64-clang-release-shared/full_deploy/host/acl/2.3.1/Release/x86_64/lib/libacl.so"
+    getfattr = "/Users/liuchengyue/Desktop/BinarySCA Platform/Code/sca_agents/bsca-expert-agent-api/evaluation/conan_libs_builder_output/acl/2.3.1/acl_2.3.1_x86_64-gcc-release-static/full_deploy/host/libattr/2.5.1/Release/x86_64/bin/getfattr"
+    libgrpc_so = "/Users/liuchengyue/Desktop/BinarySCA Platform/Code/sca_agents/bsca-expert-agent-api/evaluation/conan_libs_builder_output/grpc/1.72.0/grpc_1.72.0_x86_64-gcc-release-shared/full_deploy/host/grpc/1.72.0/Release/x86_64/lib/libgrpc.so"
+
+    grpc_cpp_plugin_static = os.path.join(conan_bin_dir,
+                                          "grpc/1.72.0/grpc_1.72.0_x86_64-gcc-release-static/full_deploy/host/grpc/1.72.0/Release/x86_64/bin/grpc_csharp_plugin")
+
     # 分析工作流
     workflow = DetectionWorkflow(
         enable_bin_info_analysis_web_search=False,
@@ -56,7 +72,7 @@ def demo():
 
 
     # 分析
-    result = workflow.run(libdevmapper_so_path)
+    result = workflow.run(grpc_cpp_plugin_static)
 
     # 结合上下文分析
     # context = workflow.analyze_context(root_path)
