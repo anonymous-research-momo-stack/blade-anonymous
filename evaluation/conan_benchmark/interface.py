@@ -159,7 +159,7 @@ class Benchmark(Serializable):
         """
         num_software = len(self.test_software)
 
-        # 所有真实复用的第三方库（不去重，不含自身）
+        # 所有真实复用的第三方库
         reused_lib_list = [
             (reuse.library.name, reuse.library.version)
             for ts in self.test_software
@@ -181,9 +181,9 @@ class Benchmark(Serializable):
             for binaries in suite.binaries.values()
         )
 
-        # hash去重后的二进制文件数量
+        # hash去重后的二进制文件数量（全局unique）
         unique_binaries = set(
-            (binary.sha256)
+            (binary.name, binary.sha256)
             for ts in self.test_software
             for suite in ts.test_binary_suites
             for binaries in suite.binaries.values()
@@ -197,17 +197,96 @@ class Benchmark(Serializable):
         print(f"二进制文件数量: {num_binaries}")
         print(f"hash去重后的二进制文件数量: {num_unique_binaries}")
 
-        # 统计不同的编译profile各自产生了多少个二进制文件
-        profile_bin_count = {}
+        # 统计每个profile的所有二进制文件（包括重复的）
+        profile_binary_count = {}
+        profile_all_binaries = {}  # 包含重复的二进制文件计数
+
         for ts in self.test_software:
             for suite in ts.test_binary_suites:
-                profile = suite.compile_config.profile if suite.compile_config else 'unknown'
-                num_bins = sum(len(binaries) for binaries in suite.binaries.values())
-                profile_bin_count[profile] = profile_bin_count.get(profile, 0) + num_bins
-        print("不同编译profile产生的二进制文件数量：")
-        for profile, count in profile_bin_count.items():
-            print(f"  profile: {profile} -> 二进制文件数量: {count}")
+                profile = suite.compile_config.profile
+                if profile not in profile_binary_count:
+                    profile_binary_count[profile] = set()
+                    profile_all_binaries[profile] = 0
 
+                for binaries in suite.binaries.values():
+                    profile_all_binaries[profile] += len(binaries)
+                    for binary in binaries:
+                        profile_binary_count[profile].add((binary.name, binary.sha256))
+
+        # 找出每个二进制文件出现在哪些profile中
+        binary_to_profiles = {}
+        for profile, binaries in profile_binary_count.items():
+            for binary in binaries:
+                if binary not in binary_to_profiles:
+                    binary_to_profiles[binary] = set()
+                binary_to_profiles[binary].add(profile)
+
+        # 找出只在单个profile中出现的二进制文件（profile独有）
+        profile_unique_binaries = {}
+        for profile in profile_binary_count:
+            profile_unique_binaries[profile] = set()
+
+        for binary, profiles in binary_to_profiles.items():
+            if len(profiles) == 1:
+                profile = list(profiles)[0]
+                profile_unique_binaries[profile].add(binary)
+
+        print("\n=== Profile统计 ===")
+        for profile in sorted(profile_binary_count.keys()):
+            total_binaries = profile_all_binaries[profile]
+            unique_binaries_in_profile = len(profile_binary_count[profile])
+            exclusive_binaries = len(profile_unique_binaries[profile])
+
+            print(f"Profile '{profile}':")
+            print(f"  - 总二进制文件数量: {total_binaries}")
+            print(f"  - 去重后二进制文件数量: {unique_binaries_in_profile}")
+            print(f"  - 该profile独有的二进制文件数量: {exclusive_binaries}")
+
+        # 统计跨profile共享的二进制文件
+        shared_binaries = set(binary for binary, profiles in binary_to_profiles.items() if len(profiles) > 1)
+        print(f"\n跨profile共享的二进制文件数量: {len(shared_binaries)}")
+
+        # 统计每种二进制类型的数量
+        print("\n=== 二进制文件类型统计 ===")
+        binary_types = {}
+        for ts in self.test_software:
+            for suite in ts.test_binary_suites:
+                for binaries in suite.binaries.values():
+                    for binary in binaries:
+                        binary_type = binary.type
+                        if binary_type not in binary_types:
+                            binary_types[binary_type] = set()
+                        binary_types[binary_type].add((binary.name, binary.sha256))
+
+        for binary_type, binaries in sorted(binary_types.items()):
+            print(f"类型 '{binary_type}' 的唯一二进制文件数量: {len(binaries)}")
+
+        # 统计文件大小信息
+        print("\n=== 文件大小统计 ===")
+        total_size_kb = sum(
+            binary.file_size_kb
+            for ts in self.test_software
+            for suite in ts.test_binary_suites
+            for binaries in suite.binaries.values()
+            for binary in binaries
+        )
+
+        unique_total_size_kb = sum(
+            binary.file_size_kb
+            for ts in self.test_software
+            for suite in ts.test_binary_suites
+            for binaries in suite.binaries.values()
+            for binary in binaries
+            if (binary.name, binary.sha256) in unique_binaries
+        )
+
+        print(f"所有二进制文件总大小: {total_size_kb:.2f} KB ({total_size_kb / 1024:.2f} MB)")
+        print(f"去重后二进制文件总大小: {unique_total_size_kb:.2f} KB ({unique_total_size_kb / 1024:.2f} MB)")
+
+        if num_binaries > 0:
+            print(f"平均文件大小: {total_size_kb / num_binaries:.2f} KB")
+        if num_unique_binaries > 0:
+            print(f"去重后平均文件大小: {unique_total_size_kb / num_unique_binaries:.2f} KB")
 
 # ===== 新增数据结构用于评估 =====
 
