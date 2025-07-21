@@ -12,7 +12,7 @@ from typing import Dict, List, Any, Optional
 from environs import Env
 from loguru import logger
 
-from evaluation.conan_libs_builder.conan_library_builder import build_multiple_profiles, ConanBuildError
+from evaluation.conan_benchmark.conan_libs_builder.conan_library_builder import build_multiple_profiles, ConanBuildError
 
 env = Env()
 env.read_env()

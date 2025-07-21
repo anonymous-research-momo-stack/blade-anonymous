@@ -1,12 +1,8 @@
 import json
 import os
-import shutil
-import subprocess
 import sys
-import tempfile
-from dataclasses import dataclass
 from datetime import datetime
-from typing import Dict, List, Any
+from typing import List
 
 from environs import Env
 from loguru import logger
@@ -170,7 +166,7 @@ def main():
     conan_benchmark = os.path.join(evaluation_dir, "conan_benchmark")
 
     benchmark_meta_dir = os.path.join(conan_benchmark, "benchmark_meta")
-    conan_libs_builder_output_dir = os.path.join(conan_benchmark, "conan_libs_builder_output")
+    conan_libs_builder_output_dir = env.str("CONAN_LIBS_BUILDER_OUTPUT")
 
     # output
     conan_lib_info_json = os.path.join(benchmark_meta_dir, "conan_lib_info.json")
