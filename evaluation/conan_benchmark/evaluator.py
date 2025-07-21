@@ -510,7 +510,7 @@ def main():
     """示例用法"""
     # 示例配置
     config = ConanEvaluationConfig(
-        benchmark_file="/Users/liuchengyue/Desktop/BinarySCA Platform/Code/sca_agents/bsca-expert-agent-api/evaluation/conan_benchmark/benchmark_meta/conan_library_benchmark.json",
+        benchmark_file="/evaluation/conan_benchmark/benchmark_meta_local/conan_library_benchmark.json",
         benchmark_data_dir="/Users/liuchengyue/Desktop/BinarySCA Platform/Code/sca_agents/bsca-expert-agent-api/evaluation/conan_benchmark/conan_libs_builder_output",
         concurrency=5,
         min_reused_lib_num=3,

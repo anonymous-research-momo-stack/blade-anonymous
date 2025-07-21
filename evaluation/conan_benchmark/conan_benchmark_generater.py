@@ -251,16 +251,30 @@ def main():
         test_software=test_software
     )
 
-    # stats
-    benchmark.stat()
-    benchmark.check_suspicious_shared_files()
 
     # dump
     with open(benchmark_path, "w") as f:
         json.dump(benchmark.customer_serialize(), f, indent=4, ensure_ascii=False)
 
+def benchmark_check():
+    # paths
+    evaluation_dir = env.str("EVALUATION_DIR_PATH")
+
+    conan_benchmark = os.path.join(evaluation_dir, "conan_benchmark")
+
+    benchmark_meta_dir = os.path.join(conan_benchmark, "benchmark_meta")
+
+    benchmark_path = os.path.join(benchmark_meta_dir, "conan_library_benchmark.json")
+
+    # Load library information
+    benchmark = load_json(benchmark_path)
+
+    benchmark = Benchmark.init_from_dict(benchmark)
+
+    # stats
+    benchmark.stat()
+
 
 if __name__ == '__main__':
-    main()
-    # path = "/home/chengyue/data/conan_libs_builder_output/atk/2.38.0/atk_2.38.0_arm_64-gcc-release-shared/full_deploy/host/elfutils/0.190/Release/armv8/bin/eu-make-debug-archive"
-    # print(is_elf_binary(path))
+    # main()
+    benchmark_check()
