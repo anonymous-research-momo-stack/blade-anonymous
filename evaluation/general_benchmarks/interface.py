@@ -4,7 +4,7 @@ import traceback
 from dataclasses import asdict, fields
 from dataclasses import dataclass
 from datetime import datetime
-from typing import Dict, Type, Any
+from typing import Dict, Type, Any, Optional, get_origin, get_args, Union
 from typing import List
 
 from loguru import logger
@@ -23,30 +23,120 @@ class Serializable:
                 serialized_data[field.name] = value.customer_serialize()
             elif isinstance(value, list) and value and hasattr(value[0], 'customer_serialize'):
                 serialized_data[field.name] = [item.customer_serialize() for item in value]
+            elif isinstance(value, dict):
+                # 处理字典类型的序列化
+                serialized_dict = {}
+                for key, val in value.items():
+                    if hasattr(val, 'customer_serialize'):
+                        serialized_dict[key] = val.customer_serialize()
+                    elif isinstance(val, list) and val and hasattr(val[0], 'customer_serialize'):
+                        serialized_dict[key] = [item.customer_serialize() for item in val]
+                    else:
+                        serialized_dict[key] = val
+                serialized_data[field.name] = serialized_dict
         return serialized_data
 
     @classmethod
     def init_from_dict(cls: Type['Serializable'], data: Dict[str, Any]) -> 'Serializable':
-
         init_args = {}
         for field in fields(cls):
             try:
                 field_value = data.get(field.name)
-                if hasattr(field.type, 'init_from_dict') and isinstance(field_value, dict):
-                    init_args[field.name] = field.type.init_from_dict(field_value)
-                elif (isinstance(field_value, list) and
-                      field.type.__args__ and
-                      hasattr(field.type.__args__[0], 'init_from_dict') and
-                      all(isinstance(i, dict) for i in field_value)):
-                    init_args[field.name] = [field.type.__args__[0].init_from_dict(item) for item in field_value]
-                else:
+
+                # 如果字段值为None，直接使用默认值
+                if field_value is None:
                     init_args[field.name] = field_value
+                    continue
+
+                # 获取类型信息
+                field_type = field.type
+                origin_type = get_origin(field_type)
+                type_args = get_args(field_type)
+
+                # 处理直接的自定义类
+                if hasattr(field_type, 'init_from_dict') and isinstance(field_value, dict):
+                    init_args[field.name] = field_type.init_from_dict(field_value)
+
+                # 处理 List[CustomClass] 类型
+                elif (origin_type is list and
+                      isinstance(field_value, list) and
+                      type_args and
+                      hasattr(type_args[0], 'init_from_dict') and
+                      all(isinstance(i, dict) for i in field_value if i is not None)):
+                    init_args[field.name] = [type_args[0].init_from_dict(item) for item in field_value if
+                                             item is not None]
+
+                # 处理 Dict[str, List[CustomClass]] 类型
+                elif (origin_type is dict and
+                      isinstance(field_value, dict) and
+                      len(type_args) >= 2):
+
+                    value_type = type_args[1]  # 获取字典值的类型
+                    value_origin = get_origin(value_type)
+                    value_args = get_args(value_type)
+
+                    # 如果字典值是 List[CustomClass] 类型
+                    if (value_origin is list and
+                            value_args and
+                            hasattr(value_args[0], 'init_from_dict')):
+                        processed_dict = {}
+                        for key, value_list in field_value.items():
+                            if isinstance(value_list, list):
+                                processed_dict[key] = [value_args[0].init_from_dict(item)
+                                                       for item in value_list
+                                                       if isinstance(item, dict)]
+                            else:
+                                processed_dict[key] = value_list
+                        init_args[field.name] = processed_dict
+
+                    # 如果字典值是直接的自定义类 Dict[str, CustomClass]
+                    elif hasattr(value_type, 'init_from_dict'):
+                        processed_dict = {}
+                        for key, value_item in field_value.items():
+                            if isinstance(value_item, dict):
+                                processed_dict[key] = value_type.init_from_dict(value_item)
+                            else:
+                                processed_dict[key] = value_item
+                        init_args[field.name] = processed_dict
+
+                    else:
+                        # 普通字典，直接赋值
+                        init_args[field.name] = field_value
+
+                # 处理 Union 类型（包括 Optional）
+                elif origin_type is Union:
+                    # 尝试按照Union中的每个类型进行初始化
+                    initialized = False
+                    for union_type in type_args:
+                        if union_type is type(None):  # 跳过 None 类型
+                            continue
+                        try:
+                            if hasattr(union_type, 'init_from_dict') and isinstance(field_value, dict):
+                                init_args[field.name] = union_type.init_from_dict(field_value)
+                                initialized = True
+                                break
+                        except:
+                            continue
+
+                    if not initialized:
+                        init_args[field.name] = field_value
+
+                else:
+                    # 其他情况，直接赋值
+                    init_args[field.name] = field_value
+
             except Exception as e:
                 logger.error(f"Error in {cls.__name__}, field: {field.name}, type: {field.type}")
+                logger.error(f"Field value: {field_value}")
                 logger.error(f"Traceback: {traceback.format_exc()}")
                 raise e
+
         return cls(**init_args)
 
+@dataclass
+class CompileConfig(Serializable):
+    conan_version:str
+    profile:str
 
 @dataclass
 class TestBinary(Serializable):
@@ -55,13 +145,13 @@ class TestBinary(Serializable):
     file_size_kb: float  # Size of the binary file in KB
     sha256: str = None
     notes: str = None  # Notes about the binary file
-
+    compile_config: Optional[CompileConfig] = None  # Compile configuration, e.g., conan version, profile
 
 @dataclass
 class ReusedLibrary(Serializable):
     name: str  # Name of the library
-    vendor: str  # Vendor of the library
-    repository: str  # Source Code Repository URL of the library
+    vendor: str = None # Vendor of the library
+    repository: str  = None# Source Code Repository URL of the library
     other_names: List[str] = dataclasses.field(default_factory=list)  # Other names of the library
     version: str = None  # Version of the Library
     description: str = None  # A concise sentence to Description of the library
