@@ -170,8 +170,9 @@ def generate_benchmark(conan_libs_builder_output_dir, src_lib_info: dict, min_re
                 # 6. 添加到测试软件
                 test_software.test_binary_suites.append(test_suite)
 
-    for case in failed_find_binary_cases:
+    for case in sorted(failed_find_binary_cases):
         print(case)
+
     # 过滤掉空的
     test_softwares = [ts for ts in test_software_dict.values() if ts.test_binary_suites]
     return test_softwares
@@ -192,26 +193,407 @@ def find_target_bin(library_name: str,
     """
     matches = []
     whitelist = {
-        # 有信心
-        'zlib': ['libz', 'libz.so.1.3.1'],
-        'c-ares': ['libcares.so.2.19.4'],
-        'pcre2': ['libpcre2-8.so.0.11.2'],
-        'libxcrypt': ['libcrypt.so.1.1.0'],
+        # A
+        'aaf': ['libcom-api.so'],  # Advanced Authoring Format主要的COM API库，其他组件依赖它
+        'abseil': ['libabsl_base.so'],  # Abseil基础库，所有其他Abseil代码都依赖它（更新为最新版本）
+        'accellera-uvm-systemc': ['libuvm-systemc-1.0-beta4.so'],  # Accellera UVM SystemC库
+        'amqp-cpp': ['libamqpcpp.so'],  # AMQP C++客户端库
+        'andreasbuhr-cppcoro': ['libcppcoro.so'],  # C++协程库
+        'antlr4-cppruntime': ['libantlr4-runtime.so'],  # ANTLR4 C++运行时
+        'apr': ['libapr-1.so'],  # Apache可移植运行时
+        'apr-util': ['libaprutil-1.so'],  # Apache可移植运行时工具库
+        'asyncplusplus': ['libasync++.so'],  # Async++异步编程库
+        'atk': ['libatk-1.0.so'],  # ATK可访问工具包
+        'avahi': ['libavahi-core.so'],  # Avahi核心服务发现库
+        'aws-kvs-pic': ['libkvspic.so'],  # AWS Kinesis Video Streams主库
+        'aws-lambda-cpp': ['libaws-lambda-runtime.so'],  # AWS Lambda运行时
+        'aws-libfabric': ['libfabric.so'],  # libfabric主库
+        'azure-sdk-for-cpp': ['libazure-core.so'],  # Azure核心库，其他组件依赖它
+        'azure-storage-cpp': ['libazurestorage.so'],  # Azure存储C++库
 
-        # 可能是
-        'xz_utils': ['liblzma.so.5.4.5'],
-        'util-linux-libuuid': ['libuuid.so.1.3.0'],
-        'accellera-uvm-systemc': ['libuvm-systemc-1.0-beta4.so'],
-        'protobuf': ['protoc-27.0.0'],
+        # B
+        'backward-cpp': ['libbackward.so'],  # 堆栈跟踪库
+        'baical-p7': ['libp7-shared.so'],  # P7日志库
+        'bdwgc': ['libgc.so'],  # Boehm垃圾收集器
+        'behaviortree.cpp': ['libbehaviortree_cpp.so'],  # 行为树C++库
+        'binutils': ['aarch64-pc-linux-gnu-ld.bfd', 'x86_64-pc-linux-gnu-ld.bfd'],  # GNU链接器（支持多架构）
+        'boost': ['libboost_system.so'],  # Boost系统库（最基础和常用的，更新为最新版本）
+        'breakpad': ['minidump_stackwalk'],  # 崩溃报告分析工具（最常用的）
+        'brotli': ['libbrotlicommon.so'],  # Brotli通用组件（其他依赖此组件）
+        'bullet3': ['libBulletDynamics.so'],  # Bullet物理引擎动力学库（核心）
 
-        # 基于搜索结果添加
-        'aaf': ['libcom-api.so'],  # 主要的COM API库，其他组件依赖它
-        'abseil': ['libabsl_base.so.2501.0.0'],  # 基础库，所有其他Abseil代码都依赖它
+        # C
+        'c-ares': ['libcares.so'],  # C-Ares异步DNS解析库（更新版本）
+        'c-blosc': ['libblosc.so'],  # Blosc压缩库
+        'c-blosc2': ['libblosc2.so'],  # Blosc2压缩库
+        'caf': ['libcaf_core.so'],  # C++ Actor Framework核心库
+        'capnproto': ['libcapnp-1.1.0.so'],  # Cap'n Proto主库
+        'cassandra-cpp-driver': ['libcassandra.so'],  # Cassandra C++驱动
+        'ceres-solver': ['libceres.so', 'libceres.so'],  # Ceres求解器（多版本支持）
+        'cfgfile': ['cfgfile.generator'],  # 配置文件生成器
+        'chipmunk2d': ['libchipmunk.so'],  # Chipmunk2D物理引擎
+        'chunkio': ['libchunkio-shared.so'],  # ChunkIO库
+        'cigi-ccl': ['libccl_dll.so'],  # CIGI通用类库
+        'clickhouse-cpp': ['libclickhouse-cpp-lib.so'],  # ClickHouse C++客户端
+        'clhep': ['libCLHEP-Vector-2.4.7.1.so'],  # CLHEP向量库（最基础的数学库）
+        'clipper': ['libpolyclipping.so'],  # 多边形裁剪库
+        'cnats': ['libnats.so'],  # NATS客户端库
+        'cocoyaxi': ['libco.so'],  # CocoyaXi协程库
+        'coin-cgl': ['libCgl.so'],  # CGL = Coin-Cgl
+        'coin-clp': ['clp', 'libClp.so'],  # CLP线性规划求解器主库（包含工具和库）
+        'coin-lemon': ['libemon.so'],  # LEMON图算法库
+        'coin-osi': ['libOsi.so'],  # COIN OSI库
+        'coin-utils': ['libCoinUtils.so', 'libCoinUtils.so'],  # COIN工具库（多版本支持）
+        'compute_library': ['libarm_compute.so'],  # ARM计算库
+        'coost': ['libco.so'],  # Coost协程库
+        'corrade': ['libCorradeUtility.so'],  # Corrade工具库
+        'cpp-ipc': ['libipc.so'],  # C++ IPC库
+        'cpp-optparse': ['libOptionParser.so'],  # C++命令行选项解析库
+        'cpprestsdk': ['libcpprest.so'],  # C++ REST SDK
+        'cppunit': ['libcppunit-1.15.so'],  # CPPUnit测试框架
+        'crashpad': ['crashpad_handler'],  # Crashpad崩溃报告
+        'crossguid': ['libxg.so'],  # 跨平台GUID库
+        'cyclonedds': ['libddsc.so'],  # CycloneDDS数据分发服务核心库
+        'cyclonedds-cxx': ['libddscxx.so'],  # CycloneDDS C++绑定
+        'cyclonedx': ['libddsc.so'],  # CycloneDDS数据分发服务核心库
+        'cyrus-sasl': ['libsasl2.so'],  # SASL认证库
+
+        # D
+        'date': ['libdate-tz.so', 'libdate-tz.so'],  # 日期时间库（多版本支持）
+        'dbus': ['libdbus-1.so'],  # D-Bus消息系统
+        'dcmtk': ['libdcmdata.so'],  # DICOM数据处理核心库
+        'dd-opentracing-cpp': ['libdd_opentracing.so'],  # Datadog OpenTracing
+        'devil': ['libIL.so'],  # DevIL图像库核心
+        'dfp': ['libddfp.so'],  # 十进制浮点库
+        'discount': ['libmarkdown.so'],  # Discount Markdown库
+        'djinni-support-lib': ['libdjinni_support_lib.so'],  # Djinni支持库
+        'docopt.cpp': ['libdocopt.so'],  # docopt命令行解析库
+        'drflac': ['libdr_flac.so'],  # FLAC音频解码库
+        'drmp3': ['libdr_mp3.so'],  # MP3解码库
+        'drwav': ['libdr_wav.so'],  # WAV音频库
+        'dsp-filters': ['libDSPFilters.so'],  # DSP滤波器库
+
+        # E
+        'easyhttpcpp': ['libeasyhttp.so'],  # Easy HTTP C++库
+        'editline': ['libedit.so'],  # 行编辑库
+        'elfutils': ['libelf-0.190.so'],  # ELF处理主库
+        'embree': ['libembree4.so'],  # Intel Embree光线追踪库
+        'etc2comp': ['libEtcLib.so'],  # ETC纹理压缩库
+        'etcd-cpp-apiv3': ['libetcd-cpp-api.so'],  # etcd C++ API
+        'eudev': ['libudev.so'],  # eudev设备管理
+
+        # F
+        'fast-cdr': ['libfastcdr.so', 'libfastcdr.so'],  # Fast CDR序列化（多版本支持）
+        'fast-dds': ['libfastrtps.so'],  # Fast DDS实时发布订阅库
+        'fastnoise2': ['libFastNoise.so'],  # FastNoise2噪声生成库
+        'fftw': ['libfftw3.so'],  # FFTW主库
+        'fmtlog': ['libfmtlog-shared.so'],  # 格式化日志库
+        'foonathan-memory': ['libfoonathan_memory-0.7.3.so'],  # 内存分配库
+        'foxglove-schemas-protobuf': ['libfoxglove_schemas_protobuf.so'],  # Foxglove Protobuf
+        'foxglove-websocket': ['libfoxglove_websocket.so'],  # Foxglove WebSocket库
+        'freealut': ['libalut.so'],  # FreeALUT音频工具库
+        'ftjam': ['jam'],  # JAM构建工具
+        'ftxui': ['libftxui-component.so'],  # FTXUI组件库（核心交互组件）
+        'functions-framework-cpp': ['libfunctions_framework_cpp.so'],  # Functions Framework C++
+
+        # G
+        'gcc': ['x86_64-pc-linux-gnu-gcc-12.2.0'],  # GCC编译器主程序
+        'gdcm': ['libgdcmCommon.so', 'libgdcmCommon.so'],  # GDCM通用库（多版本支持）
+        'gdk-pixbuf': ['libgdk_pixbuf-2.0.so'],  # GDK-PixBuf图像加载库
+        'gemmlowp': ['libeight_bit_int_gemm.so'],  # GEMM低精度库
+        'geotrans': ['libMSPCoordinateConversionService.so'],  # 地理坐标转换服务库
+        'gf-complete': ['libgf_complete.so'],  # GF完整库
+        'gflags': ['libgflags_nothreads.so'],  # Google命令行标志库
+        'giflib': ['libgif.so'],  # GIF图像库
+        'glib': ['libglib-2.0.so', 'libglib-2.0.so'],  # GLib主库（多版本支持）
+        'glibmm': ['libglibmm-2.68.so'],  # GLib C++绑定主库
+        'gobject-introspection': ['libgirepository-1.0.so'],  # GObject内省库
+        'google-cloud-cpp': ['libgoogle_cloud_cpp_common.so'],  # Google Cloud C++通用库
+        'googleapis': ['libgoogle_api_client_proto.so'],  # Google API客户端协议库
+        'gperftools': ['libtcmalloc_minimal.so'],  # Google性能工具
+        'graphene': ['libgraphene-1.0.so'],  # Graphene图形库
+        'grpc-proto': ['libgrpc_health_proto.so'],  # gRPC健康检查协议
+        'gsoap': ['soapcpp2'],  # gSOAP编译器
+        'gstreamer': ['libgstreamer-1.0.so'],  # GStreamer主库
+
+        # H
+        'hayai': ['libhayai_main.so'],  # Hayai基准测试库
+        'hdf4': ['libhdf.so'],  # HDF4主库（分层数据格式）
+        'hdrhistogram-c': ['libhdr_histogram.so', 'libhdr_histogram.so'],  # HDR直方图库（多版本支持）
+        'highway': ['libhwy.so', 'libhwy.so'],  # Highway SIMD库（多版本支持）
+        'hyperscan': ['libhs.so'],  # Hyperscan模式匹配引擎
+
+        # I
+        'i2c-tools': ['libi2c.so'],  # I2C工具库
+        'iceoryx': ['libiceoryx_posh.so'],  # Iceoryx POSH库
+        'icu': ['libicuuc.so', 'libicuuc.so'],  # ICU Unicode库（多版本支持）
+        'iir1': ['libiir.so'],  # IIR滤波器库
+        'imath': ['libImath-3_1.so', 'libImath-3_1.so'],  # Imath数学库（多版本支持）
+        'influxdb-cxx': ['libInfluxDB.so'],  # InfluxDB C++客户端
+        'intel-ipsec-mb': ['libIPSec_MB.so'],  # Intel IPSec多缓冲库
+        'isa-l': ['libisal.so'],  # Intel存储加速库
+        'itk': ['libITKCommon-5.3.so'],  # ITK图像处理工具包通用库
+
+        # J
+        'jerryscript': ['libjerry-core.so'],  # 核心JavaScript引擎
+        'jpeg-compressor': ['libjpge.so'],  # JPEG编码器
+        'joltphysics': ['libJolt.so'],  # Jolt物理引擎
+        'json-schema-validator': ['libnlohmann_json_schema_validator.so'],  # JSON Schema验证库
+        'jxrlib': ['libjpegxr.so'],  # JPEG XR核心库
+
+        # K
+        'kealib': ['libkea.so'],  # KEA地理数据库库
+        'kissfft': ['libkissfft-float.so'],  # KissFFT库
+        'kuba-zip': ['libzip.so'],  # ZIP归档库
+
+        # L
+        'lcms': ['liblcms2.so'],  # Little CMS颜色管理
+        'lely-core': ['liblely-co.so'],  # Lely CANopen核心库
+        'level-zero': ['libze_loader.so'],  # Level Zero加载器
+        'libaom-av1': ['libaom.so', 'libaom.so'],  # AOM AV1编解码器（多版本支持）
+        'libalsa': ['libasound.so'],  # ALSA音频库
+        'libdb': ['libdb-5.3.so'],  # Berkeley DB库
+        'libelfin': ['libelf++.so'],  # ELF++库
+        'libest': ['libest-3.2.0p.so'],  # EST协议库
+        'libevent': ['libevent_core-2.1.so'],  # libevent核心库
+        'libfdk_aac': ['libfdk-aac.so'],  # FDK AAC音频编解码库
+        'libfuse': ['libfuse3.so', 'libfuse3.so'],  # FUSE文件系统库（多版本支持）
+        'libgettext': ['libgnuintl.so'],  # GNU国际化库
+        'libharu': ['libhpdf.so'],  # Haru PDF库
+        'libjpeg-turbo': ['libjpeg.so'],  # 标准JPEG库
+        'libkml': ['libkmlbase.so'],  # KML基础库（其他组件依赖）
+        'liblqr': ['liblqr-1.so'],  # LQR图像缩放库
+        'libmeshb': ['libMeshb.7.so'],  # 网格处理库
+        'libpfm4': ['libpfm.so'],  # Performance monitoring库
+        'libplist': ['libplist-2.0.so'],  # Apple属性列表库
+        'libnl': ['libnl-3.so'],  # Netlink主库
+        'libpng': ['libpng16.so', 'libpng16.so'],  # PNG图像库（多版本支持）
+        'libpqxx': ['libpqxx-7.10.so'],  # PostgreSQL C++库
+        'libressl': ['libssl.so', 'libssl.so'],  # LibreSSL主库（多版本支持）
+        'libsecret': ['libsecret-1.so'],  # libsecret密钥管理
+        'libsgp4': ['libsgp4s.so'],  # SGP4卫星轨道库
+        'libsigcpp': ['libsigc-3.0.so', 'libsigc-3.0.so'],  # libsigc++信号库（多版本支持）
+        'libsrtp': ['libsrtp2.so'],  # 安全实时传输协议库
+        'libsvtav1': ['libSvtAv1Enc.so'],  # SVT-AV1编码器
+        'libtool': ['libltdl.so'],  # libtool动态加载库
+        'libtorrent': ['libtorrent-rasterbar.so'],  # libtorrent库
+        'libultrahdr': ['libuhdr.so'],  # Ultra HDR库
+        'libxcrypt': ['libcrypt.so'],  # libxcrypt加密库
+        'libxls': ['libxlsreader.so'],  # XLS读取库
+        'libxmlpp': ['libxml++-5.0.so'],  # libxml++ C++ XML解析库
+        'lightgbm': ['lib_lightgbm.so'],  # LightGBM机器学习库
+        'lightpcapng': ['liblight_pcapng.so'],  # 轻量级PCAP-NG库
+        'liquid-dsp': ['libliquid.so'],  # Liquid DSP库
+        'lksctp-tools': ['libsctp.so'],  # SCTP协议库
+        'llama-cpp': ['libllama.so'],  # LLaMA C++推理库
+        'llnl-units': ['libunits.so'],  # LLNL单位转换库
+        'llvm-core': ['libLLVM.so'],  # LLVM核心库
+        'llvm-openmp': ['libomp.so'],  # LLVM OpenMP
+        'luajit': ['libluajit-5.1.so'],  # LuaJIT主库
+        'lzham': ['liblzhamdll.so'],  # LZHAM压缩库主DLL
+        'lzma_sdk': ['lzma'],  # LZMA SDK压缩工具
+        'lzo': ['liblzo2.so'],  # LZO压缩库
+
+        # M
+        'mariadb-connector-c': ['libmariadb.so'],  # MariaDB C连接器
+        'mariadb-connector-cpp': ['libmariadbcpp.so'],  # MariaDB C++连接器
+        'mbits-lngs': ['lngs-0.7'],  # 语言工具
+        'mdnsresponder': ['libdns_sd.so'],  # DNS服务发现库
+        'mingw-w64': ['x86_64-w64-mingw32-gcc-10.5.0'],  # MinGW-w64 GCC编译器
+        'mongo-c-driver': ['libmongoc-1.0.so'],  # MongoDB C驱动
+        'mongo-cxx-driver': ['libmongocxx.so'],  # MongoDB C++驱动
+        'mozjpeg': ['libjpeg.so'],  # MozJPEG库
+        'mpdecimal': ['libmpdec.so'],  # 多精度十进制算术库
+        'mppp': ['libmp++.so'],  # 多精度算术C++库
+        'mysql-connector-cpp': ['libmysqlcppconnx.so'],  # MySQL C++连接器
+
+        # N
+        'ncurses': ['libncursesw.so'],  # NCurses宽字符库
+        'net-snmp': ['libnetsnmp.so'],  # Net-SNMP库
+        'nifti_clib': ['libniftiio.so'],  # NIfTI IO库
+        'nmslib': ['libNonMetricSpaceLib.so'],  # 非度量空间搜索库
+        'nodejs': ['node'],  # Node.js运行时
+        'nspr': ['libnspr4.so'],  # Netscape可移植运行时主库
+        'nsimd': ['libnsimd_cpu.so'],  # NSIMD SIMD库
+        'nss': ['libnss3.so'],  # NSS网络安全服务主库
+        'ntv2': ['libajantv2shared.so'],  # AJA NTV2视频库
+
+        # O
+        'odpi': ['libodpic.so'],  # Oracle数据库程序接口
+        'onetbb': ['libtbb.so', 'libtbb.so.12.16'],  # Intel TBB主库（多版本支持）
+        'oniguruma': ['libonig.so'],  # 正则表达式库
+        'open-dis-cpp': ['libOpenDIS7.so'],  # Open DIS分布式交互仿真库（选择较新版本）
+        'open-simulation-interface': ['libopen_simulation_interface.so'],  # OSI库
+        'openal-soft': ['libopenal.so', 'libopenal.so.1.23.1'],
+        # OpenAL音频库（多版本支持）blzhamdll.so'],  # LZHAM压缩库主DLL
+        'lzo': ['liblzo2.so'],  # LZO压缩库
+
+        # M
+        'mariadb-connector-c': ['libmariadb.so'],  # MariaDB C连接器
+        'mariadb-connector-cpp': ['libmariadbcpp.so'],  # MariaDB C++连接器
+        'mbits-lngs': ['lngs-0.7'],  # 语言工具
+        'mdnsresponder': ['libdns_sd.so'],  # DNS服务发现库
+        'mingw-w64': ['x86_64-w64-mingw32-gcc-10.5.0'],  # MinGW-w64 GCC编译器
+        'mongo-c-driver': ['libmongoc-1.0.so'],  # MongoDB C驱动
+        'mongo-cxx-driver': ['libmongocxx.so'],  # MongoDB C++驱动
+        'mozjpeg': ['libjpeg.so'],  # MozJPEG库
+        'mpdecimal': ['libmpdec.so'],  # 多精度十进制算术库
+        'mppp': ['libmp++.so'],  # 多精度算术C++库
+        'mysql-connector-cpp': ['libmysqlcppconnx.so'],  # MySQL C++连接器
+
+        # N
+        'ncurses': ['libncursesw.so'],  # NCurses宽字符库
+        'net-snmp': ['libnetsnmp.so'],  # Net-SNMP库
+        'nifti_clib': ['libniftiio.so'],  # NIfTI IO库
+        'nmslib': ['libNonMetricSpaceLib.so'],  # 非度量空间搜索库
+        'nodejs': ['node'],  # Node.js运行时
+        'nspr': ['libnspr4.so'],  # Netscape可移植运行时主库
+        'nsimd': ['libnsimd_cpu.so'],  # NSIMD SIMD库
+        'ntv2': ['libajantv2shared.so'],  # AJA NTV2视频库
+
+        # O
+        'odpi': ['libodpic.so'],  # Oracle数据库程序接口
+        'onetbb': ['libtbb.so'],  # Intel TBB简化版
+        'oniguruma': ['libonig.so'],  # 正则表达式库
+        'open-dis-cpp': ['libOpenDIS7.so'],  # Open DIS分布式交互仿真库（选择较新版本）
+        'open-simulation-interface': ['libopen_simulation_interface.so'],  # OSI库
+        'openal-soft': ['libopenal.so'],  # OpenAL音频库
+        'opencl-icd-loader': ['libOpenCL.so'],  # OpenCL加载器
+        'opencore-amr': ['libopencore-amrnb.so'],  # OpenCore AMR窄带
+        'openddl-parser': ['libopenddlparser.so'],  # OpenDDL解析器
+        'openexr': ['libOpenEXR-3_3.so', 'libImath-2_5.so'],  # OpenEXR主库
+        'openfst': ['libfst.so'],  # OpenFST主库
+        'openfx': ['libOfxHost.so'],  # OpenFX插件主机库
+        'opengrm': ['libthrax.so'],  # OpenGrm Thrax库
+        'openjpeg': ['libopenjp2.so'],  # OpenJPEG库
+        'openldap': ['libldap.so'],  # OpenLDAP库
+        'openmesh': ['libOpenMeshCore.so'],  # OpenMesh核心库
+        'openmpi': ['libmpi.so'],  # OpenMPI主库
+        'openmvg': ['libopenMVG_system.so'],  # OpenMVG系统库（基础库）
+        'openpam': ['libpam.so'],  # OpenPAM认证库
+        'openssh': ['ssh'],  # SSH客户端（最核心的工具）
+        'opentelemetry-cpp': ['libopentelemetry_common.so'],  # OpenTelemetry通用库
+        'opentracing-cpp': ['libopentracing.so'],  # OpenTracing C++
+        'openvr': ['libopenvr_api.so'],  # OpenVR虚拟现实API
+        'optimlib': ['liboptim.so'],  # 优化库
+        'ouster_sdk': ['libouster_client.so'],  # Ouster客户端库
+        'ozz-animation': ['libozz_animation_r.so'],
+
+        # P
+        'p7zip': ['7za'],  # 7-Zip归档工具
+        'pagmo2': ['libpagmo.so'],  # 优化库
+        'paho-mqtt-c': ['libpaho-mqtt3as.so'],  # MQTT C客户端
+        'paho-mqtt-cpp': ['libpaho-mqttpp3.so'],  # MQTT C++客户端
+        'pathie-cpp': ['libpathie.so'],  # 路径处理C++库
+        'pcapplusplus': ['libPcap++.so'],  # PcapPlusPlus主库
+        'pcre2': ['libpcre2-8.so'],  # PCRE2 UTF-8库（最常用）
+        'pdf-writer': ['libPDFWriter.so'],  # PDF写入库
+        'pixman': ['libpixman-1.so'],  # Pixman像素操作库
+        'platformfolders': ['libplatform_folders.so'],  # 平台文件夹库
+        'poco': ['libPocoFoundation.so'],  # Poco基础库
+        'poshlib': ['libposh.so'],  # POSH库
+        'premake': ['premake5'],  # Premake构建配置工具
+        'pro-mdnsd': ['libmdnsd.so'],  # mDNS守护进程库
+        'prometheus-cpp': ['libprometheus-cpp-core.so'],  # Prometheus C++核心
+        'protobuf': ['protoc-27.0.0'],  # Protocol Buffers编译器
+        'protobuf-c': ['protoc-gen-c'],  # Protocol Buffers C生成器
+        'pupnp': ['libupnp.so'],  # Portable UPnP库
+
+        # Q
+        'qr-code-generator': ['libqrcodegencpp.so'],  # QR码生成器C++库
+
+        # R
+        'r8brain-free-src': ['libr8brain.so'],  # R8brain音频重采样库
+        'rabbitmq-c': ['librabbitmq.so'],  # RabbitMQ C客户端
+        'rapidyaml': ['libryml.so'],  # RapidYAML库
+        'recastnavigation': ['libDetour.so'],  # Recast Navigation主库
+        'redradist-icc': ['libICC.so'],  # ICC颜色管理库
+        'redis-plus-plus': ['libredis++.so'],  # Redis C++客户端
+        'resiprocate': ['libresip.so'],  # reSIProcate主库
+        'rg-etc1': ['librg_etc1.so'],  # ETC1纹理压缩库
+        'rmlui': ['libRmlCore.so'],  # RmlUi核心库
+        'rpclib': ['librpc.so'],  # RPC库
+        'rttr': ['librttr_core.so'],  # RTTR运行时类型反射库
+        'rvo2': ['libRVO.so'],  # RVO2碰撞避免库
+        'ruy': ['libruy_frontend.so', 'libruy_context.so', 'libruy_ctx.so'],
+
+        # S
+        's2geometry': ['libs2.so'],  # S2几何库
+        'sbepp': ['sbeppc'],  # SBE协议编译器
+        'scnlib': ['libscn.so'],  # SCN扫描库
+        'sdbus-cpp': ['libsdbus-c++.so'],  # D-Bus C++绑定
+        'sentry-crashpad': ['crashpad_handler'],  # Sentry崩溃处理器
+        'sentry-native': ['libsentry.so'],  # Sentry Native库
+        'serd': ['libserd-0.so'],  # RDF序列化库
+        'serf': ['libserf-1.so'],  # Serf HTTP客户端库
+        'shapelib': ['libshp.so'],  # Shapefile处理库
+        'sobjectizer': ['libso.5.8.4.so', 'libso.5.8.1.so'],  # SObjectizer actor框架
+        'soci': ['libsoci_core.so'],  # SOCI数据库访问库
+        'sofa': ['libsofa_c.so'],  # SOFA天文库
+        'soplex': ['libsoplexshared.so'],  # SoPlex线性规划求解器
+        'spirv-tools': ['libSPIRV-Tools-shared.so'],  # SPIR-V工具共享库
+        'sundials': ['libsundials_cvode.so'],  # SPIR-V工具共享库
+        'systemc-cci': ['libcciapi.so'],  # SystemC CCI API
+
+        # T
+        'taglib': ['libtag.so'],  # TagLib音频元数据库
+        'taocpp-taopq': ['libtaopq.so'],  # TAO PostgreSQL库
+        'tcl': ['libtcl8.6.so'],  # Tcl脚本语言库
+        'tcp-wrappers': ['libwrap.so'],  # TCP包装器库
+        'tcsbank-uri-template': ['liburi-template.so'],  # URI模板库
+        'tidwall-neco': ['libneco.so'],  # Neco协程库
+        'tidy-html5': ['libtidy.so'],  # HTML Tidy库
+        'tinkerforge-bindings': ['libtinkerforge_bindings.so'],  # Tinkerforge绑定库
+        'tiny-aes-c': ['libtiny-aes.so'],  # 轻量级AES加密库
+        'tng': ['libtng_io.so'],  # TNG轨迹格式库
+        'tracy': ['libTracyClient.so'],  # Tracy性能分析客户端
+        'twitch-native-ipc': ['libnativeipc.so'],  # Twitch本地IPC
+        'twitchtv-libsoundtrackutil': ['liblibsoundtrackutil.so'],  # Twitch音轨工具库
+
+        # U
+        'unleash-client-cpp': ['libunleash.so'],  # Unleash功能开关客户端
+        'urdfdom': ['liburdfdom_model.so'],  # URDF模型库
+        'userspace-rcu': ['liburcu.so'],  # 用户空间RCU主库
+        'util-linux-libuuid': ['libuuid.so'],  # util-linux UUID库
+
+        # V
+        'vectorscan': ['libhs.so'],  # Vectorscan模式匹配主库
+        'very-simple-smtps': ['libsmtp_lib.so'],  # 简单SMTP库
+        'voropp': ['libvoro++.so'],  # Voro++ Voronoi图库
+
+        # W
+        'wasm-micro-runtime': ['libiwasm.so'],  # WebAssembly微运行时
+        'wayland': ['libwayland-client.so'],  # Wayland客户端库
+        'whisper-cpp': ['libwhisper.so'],  # Whisper主库
+        'wslay': ['libwslay_shared.so'],  # WebSocket库
+
+        # X
+        'xapian-core': ['libxapian.so'],  # Xapian搜索引擎库
+        'xerces-c': ['libxerces-c-3.2.so', 'libxerces-c-3.3.so'],  # Xerces C++ XML解析库
+        'xlsxio': ['libxlsxio_read.so'],  # XLSX读取库
+        'xmlsec': ['libxmlsec1.so'],  # XML安全库
+        'xorg-makedepend': ['makedepend'],  # X.Org makedepend工具
+        'xz_utils': ['liblzma.so'],  # XZ/LZMA压缩库
+
+        # Z
+        'zeromq': ['libzmq.so'],  # ZeroMQ消息库
+        'zlib': ['libz.so'],  # zlib压缩库
+        'zlib-ng': ['libz-ng.so'],  # zlib-ng压缩库
+        'zmarok-semver': ['libsemver.so'],  # 语义版本库
+        'zxing-cpp': ['libZXing.so'],  # ZXing条码库
+        'zziplib': ['libzzip-0.so'],  # ZZip库主库
     }
+
     # 1. 在白名单中的是
     if whitelist and library_name in whitelist:
-        target_files = whitelist[library_name]
-        matches.extend(list(set(target_files).intersection(binary_files)))
+            target_files = whitelist[library_name]
+            for file in binary_files:
+                pure_file_name = file
+                if '.so' in file:
+                    pure_file_name = file.split('.so')[0] + '.so'
+                # 如果纯文件名称在白名单中，则添加
+                if pure_file_name in target_files:
+                    matches.append(file)
 
     library_name = library_name.lower()
     # 2. 按规则匹配
@@ -425,5 +807,5 @@ def benchmark_check():
 
 
 if __name__ == '__main__':
-    main()
+    # main()
     benchmark_check()
