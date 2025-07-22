@@ -1,6 +1,6 @@
 {
     "name": "Conan Library Benchmark",
-    "version": "20250722170659",
+    "version": "20250722172337",
     "test_software": [
         {
             "source_library": {
@@ -702,7 +702,7 @@
                                 "name": "libsystemd.so.0.38.0",
                                 "type": "lib",
                                 "rel_path": "grpc/1.72.0/grpc_1.72.0_x86_64-clang-release-shared/full_deploy/host/libsystemd/255.10/Release/x86_64/lib/libsystemd.so.0.38.0",
-                                "file_size_kb": 1068776,
+                                "file_size_kb": 1043.7265625,
                                 "sha256": "368a16bcfac832ef8822e4f9e64f7509d0af16bf44f007e08b651b5359848b38",
                                 "tpl_name": "libsystemd"
                             }
@@ -712,7 +712,7 @@
                                 "name": "libgrpc.so.47.0.0",
                                 "type": "lib",
                                 "rel_path": "grpc/1.72.0/grpc_1.72.0_x86_64-clang-release-shared/full_deploy/host/grpc/1.72.0/Release/x86_64/lib/libgrpc.so.47.0.0",
-                                "file_size_kb": 12450728,
+                                "file_size_kb": 12158.9140625,
                                 "sha256": "e27411bbd01d7b98791421e4c15e6b99031259ab68ec0521d48a8897ec5346fb",
                                 "tpl_name": "grpc"
                             }
@@ -722,7 +722,7 @@
                                 "name": "liblz4.so.1.9.4",
                                 "type": "lib",
                                 "rel_path": "grpc/1.72.0/grpc_1.72.0_x86_64-clang-release-shared/full_deploy/host/lz4/1.9.4/Release/x86_64/lib/liblz4.so.1.9.4",
-                                "file_size_kb": 215736,
+                                "file_size_kb": 210.6796875,
                                 "sha256": "f827b306052d4b06810bf2794515726d29fe99b97302d021ee3a1b57d84ce05d",
                                 "tpl_name": "lz4"
                             }
@@ -732,7 +732,7 @@
                                 "name": "libcares.so.2.19.4",
                                 "type": "lib",
                                 "rel_path": "grpc/1.72.0/grpc_1.72.0_x86_64-clang-release-shared/full_deploy/host/c-ares/1.34.5/Release/x86_64/lib/libcares.so.2.19.4",
-                                "file_size_kb": 292080,
+                                "file_size_kb": 285.234375,
                                 "sha256": "d289b7398413d673fdeeb3d1df82723f7fbc95632077cf97b03733e40c0d6687",
                                 "tpl_name": "c-ares"
                             }
@@ -742,7 +742,7 @@
                                 "name": "libz.so.1.3.1",
                                 "type": "lib",
                                 "rel_path": "grpc/1.72.0/grpc_1.72.0_x86_64-clang-release-shared/full_deploy/host/zlib/1.3.1/Release/x86_64/lib/libz.so.1.3.1",
-                                "file_size_kb": 121216,
+                                "file_size_kb": 118.375,
                                 "sha256": "1e22d07367a97e76fa1f30fb8600e3ac8cbe91fde95fd979785dd289533a78b1",
                                 "tpl_name": "zlib"
                             }
@@ -752,7 +752,7 @@
                                 "name": "libmount.so.1.1.0",
                                 "type": "lib",
                                 "rel_path": "grpc/1.72.0/grpc_1.72.0_x86_64-clang-release-shared/full_deploy/host/libmount/2.39.2/Release/x86_64/lib/libmount.so.1.1.0",
-                                "file_size_kb": 481992,
+                                "file_size_kb": 470.6953125,
                                 "sha256": "4c9c37d968ece1212e8aa58cee20bc353e608519200e963484de80b48c7ad77b",
                                 "tpl_name": "libmount"
                             }
@@ -762,7 +762,7 @@
                                 "name": "libre2.so.10.0.0",
                                 "type": "lib",
                                 "rel_path": "grpc/1.72.0/grpc_1.72.0_x86_64-clang-release-shared/full_deploy/host/re2/20230301/Release/x86_64/lib/libre2.so.10.0.0",
-                                "file_size_kb": 556064,
+                                "file_size_kb": 543.03125,
                                 "sha256": "138388d79993e483eb98990916f5e4e598b0b6700c771503aa03a1ee423c8f43",
                                 "tpl_name": "re2"
                             }
@@ -772,7 +772,7 @@
                                 "name": "libzstd.so.1.5.5",
                                 "type": "lib",
                                 "rel_path": "grpc/1.72.0/grpc_1.72.0_x86_64-clang-release-shared/full_deploy/host/zstd/1.5.5/Release/x86_64/lib/libzstd.so.1.5.5",
-                                "file_size_kb": 1113192,
+                                "file_size_kb": 1087.1015625,
                                 "sha256": "9c180d80a594f9ad3a113e7f50a9e046ab481e69f9d5a1f4e419342549d72841",
                                 "tpl_name": "zstd"
                             }
@@ -782,7 +782,7 @@
                                 "name": "libselinux.so.1",
                                 "type": "lib",
                                 "rel_path": "grpc/1.72.0/grpc_1.72.0_x86_64-clang-release-shared/full_deploy/host/libselinux/3.6/Release/x86_64/lib/libselinux.so.1",
-                                "file_size_kb": 209576,
+                                "file_size_kb": 204.6640625,
                                 "sha256": "98dc161303387e4cedb4e0a7da69bf8c3a75e6622e99f8417ed721e28486cc63",
                                 "tpl_name": "libselinux"
                             }
@@ -792,7 +792,7 @@
                                 "name": "libpcre2-8.so.0.11.2",
                                 "type": "lib",
                                 "rel_path": "grpc/1.72.0/grpc_1.72.0_x86_64-clang-release-shared/full_deploy/host/pcre2/10.42/Release/x86_64/lib/libpcre2-8.so.0.11.2",
-                                "file_size_kb": 414680,
+                                "file_size_kb": 404.9609375,
                                 "sha256": "a42593ea2a44592081390dbb5877ff166b4e4db4bc43d9d3280caadf7b3a0d6b",
                                 "tpl_name": "pcre2"
                             }
@@ -802,7 +802,7 @@
                                 "name": "libcrypt.so.1.1.0",
                                 "type": "lib",
                                 "rel_path": "grpc/1.72.0/grpc_1.72.0_x86_64-clang-release-shared/full_deploy/host/libxcrypt/4.4.36/Release/x86_64/lib/libcrypt.so.1.1.0",
-                                "file_size_kb": 232232,
+                                "file_size_kb": 226.7890625,
                                 "sha256": "f9a8a0c13f52a5e5df2c511154f5ac8bfa26d8d5c92d42bcd216b7402c5221af",
                                 "tpl_name": "libxcrypt"
                             }
@@ -812,7 +812,7 @@
                                 "name": "openssl",
                                 "type": "bin",
                                 "rel_path": "grpc/1.72.0/grpc_1.72.0_x86_64-clang-release-shared/full_deploy/host/openssl/3.1.1/Release/x86_64/bin/openssl",
-                                "file_size_kb": 1092296,
+                                "file_size_kb": 1066.6953125,
                                 "sha256": "5cc2d3c68a179c35c616966ad0489101b79e3818c689ecce2a52940f2bc94ade",
                                 "tpl_name": "openssl"
                             }
@@ -822,7 +822,7 @@
                                 "name": "libcap.so.2.69",
                                 "type": "lib",
                                 "rel_path": "grpc/1.72.0/grpc_1.72.0_x86_64-clang-release-shared/full_deploy/host/libcap/2.69/Release/x86_64/lib/libcap.so.2.69",
-                                "file_size_kb": 53096,
+                                "file_size_kb": 51.8515625,
                                 "sha256": "fab1ce5853365dfa7675fb34111c6a32d280a892ba63ecaa07abdc252f6c41dc",
                                 "tpl_name": "libcap"
                             }
@@ -832,7 +832,7 @@
                                 "name": "liblzma.so.5.4.5",
                                 "type": "lib",
                                 "rel_path": "grpc/1.72.0/grpc_1.72.0_x86_64-clang-release-shared/full_deploy/host/xz_utils/5.4.5/Release/x86_64/lib/liblzma.so.5.4.5",
-                                "file_size_kb": 238352,
+                                "file_size_kb": 232.765625,
                                 "sha256": "7b62128a6728c7048e8d38b549afc51d98d64013b2b019cdfde9caecf65ed337",
                                 "tpl_name": "xz_utils"
                             }
@@ -842,7 +842,7 @@
                                 "name": "protoc-27.0.0",
                                 "type": "bin",
                                 "rel_path": "grpc/1.72.0/grpc_1.72.0_x86_64-clang-release-shared/full_deploy/host/protobuf/5.27.0/Release/x86_64/bin/protoc-27.0.0",
-                                "file_size_kb": 27208,
+                                "file_size_kb": 26.5703125,
                                 "sha256": "21d42283f3d3461e6b19e186d5df99bb3071ae5048290748bc678e991eb9b0d7",
                                 "tpl_name": "protobuf"
                             },
@@ -850,7 +850,7 @@
                                 "name": "libprotobuf.so.27.0.0",
                                 "type": "lib",
                                 "rel_path": "grpc/1.72.0/grpc_1.72.0_x86_64-clang-release-shared/full_deploy/host/protobuf/5.27.0/Release/x86_64/lib/libprotobuf.so.27.0.0",
-                                "file_size_kb": 3498624,
+                                "file_size_kb": 3416.625,
                                 "sha256": "25a5b8da7005b727bca2c0e2c099f9f619e77a27096debc57b03179a0c7e0290",
                                 "tpl_name": "protobuf"
                             }
@@ -860,7 +860,7 @@
                                 "name": "libabsl_base.so.2501.0.0",
                                 "type": "lib",
                                 "rel_path": "grpc/1.72.0/grpc_1.72.0_x86_64-clang-release-shared/full_deploy/host/abseil/20250127.0/Release/x86_64/lib/libabsl_base.so.2501.0.0",
-                                "file_size_kb": 30352,
+                                "file_size_kb": 29.640625,
                                 "sha256": "3fd3b632e5225e8662d6152e5f3aec91de7d8f2d59711bf0e3e5f89fc55a6c0e",
                                 "tpl_name": "abseil"
                             }
@@ -870,7 +870,7 @@
                                 "name": "bzip2",
                                 "type": "bin",
                                 "rel_path": "grpc/1.72.0/grpc_1.72.0_x86_64-clang-release-shared/full_deploy/host/bzip2/1.0.8/Release/x86_64/bin/bzip2",
-                                "file_size_kb": 48696,
+                                "file_size_kb": 47.5546875,
                                 "sha256": "011be21c4441ba95405aadc673a514d0ca61f23ea6dafbbed0a6013b59f791ad",
                                 "tpl_name": "bzip2"
                             }
@@ -1367,7 +1367,6 @@
                             "library": {
                                 "name": "flex",
                                 "version": "2.6.4",
-                                "version": "2.6.4",
                                 "description": "",
                                 "license": "",
                                 "homepage": "",
@@ -1565,7 +1564,7 @@
                                 "name": "libsystemd.so.0.38.0",
                                 "type": "lib",
                                 "rel_path": "grpc/1.72.0/grpc_1.72.0_x86_64-gcc-release-shared/full_deploy/host/libsystemd/255.10/Release/x86_64/lib/libsystemd.so.0.38.0",
-                                "file_size_kb": 1122760,
+                                "file_size_kb": 1096.4453125,
                                 "sha256": "d767d37fb5b71f63f12d35d92b32b6cd70133309bd8e204c0a0ad9ebccccedb7",
                                 "tpl_name": "libsystemd"
                             }
@@ -1575,7 +1574,7 @@
                                 "name": "libgrpc.so.47.0.0",
                                 "type": "lib",
                                 "rel_path": "grpc/1.72.0/grpc_1.72.0_x86_64-gcc-release-shared/full_deploy/host/grpc/1.72.0/Release/x86_64/lib/libgrpc.so.47.0.0",
-                                "file_size_kb": 14627336,
+                                "file_size_kb": 14284.5078125,
                                 "sha256": "beb4474451da4286877c648f317a429c5340ea6a4f83e4b1ada96f80215a0300",
                                 "tpl_name": "grpc"
                             }
@@ -1585,7 +1584,7 @@
                                 "name": "liblz4.so.1.9.4",
                                 "type": "lib",
                                 "rel_path": "grpc/1.72.0/grpc_1.72.0_x86_64-gcc-release-shared/full_deploy/host/lz4/1.9.4/Release/x86_64/lib/liblz4.so.1.9.4",
-                                "file_size_kb": 216088,
+                                "file_size_kb": 211.0234375,
                                 "sha256": "ce2a27d3abdb1d71c96df953d0a375898f64c8e39433ad02e31e5448ae02d10b",
                                 "tpl_name": "lz4"
                             }
@@ -1595,7 +1594,7 @@
                                 "name": "libcares.so.2.19.4",
                                 "type": "lib",
                                 "rel_path": "grpc/1.72.0/grpc_1.72.0_x86_64-gcc-release-shared/full_deploy/host/c-ares/1.34.5/Release/x86_64/lib/libcares.so.2.19.4",
-                                "file_size_kb": 307704,
+                                "file_size_kb": 300.4921875,
                                 "sha256": "3724d8702e444d3a1f90d4d975b3d7f64e4a380412513cc7b245e5949dd07d88",
                                 "tpl_name": "c-ares"
                             }
@@ -1605,7 +1604,7 @@
                                 "name": "libz.so.1.3.1",
                                 "type": "lib",
                                 "rel_path": "grpc/1.72.0/grpc_1.72.0_x86_64-gcc-release-shared/full_deploy/host/zlib/1.3.1/Release/x86_64/lib/libz.so.1.3.1",
-                                "file_size_kb": 125304,
+                                "file_size_kb": 122.3671875,
                                 "sha256": "953da9d3f8f1fe1c6dcabdad3fd2b70e16f39814469a9b73f2b1e518c77d9460",
                                 "tpl_name": "zlib"
                             }
@@ -1615,7 +1614,7 @@
                                 "name": "libmount.so.1.1.0",
                                 "type": "lib",
                                 "rel_path": "grpc/1.72.0/grpc_1.72.0_x86_64-gcc-release-shared/full_deploy/host/libmount/2.39.2/Release/x86_64/lib/libmount.so.1.1.0",
-                                "file_size_kb": 472600,
+                                "file_size_kb": 461.5234375,
                                 "sha256": "48fe2a5082dac543dc9cd38403199cef201719ee501eaa8a4da3a1dd57c430ec",
                                 "tpl_name": "libmount"
                             }
@@ -1625,7 +1624,7 @@
                                 "name": "libre2.so.10.0.0",
                                 "type": "lib",
                                 "rel_path": "grpc/1.72.0/grpc_1.72.0_x86_64-gcc-release-shared/full_deploy/host/re2/20230301/Release/x86_64/lib/libre2.so.10.0.0",
-                                "file_size_kb": 650856,
+                                "file_size_kb": 635.6015625,
                                 "sha256": "714638dd6b94950b7a3865f6e10e08d83ae31248e7c45d393dee9891fc32f817",
                                 "tpl_name": "re2"
                             }
@@ -1635,7 +1634,7 @@
                                 "name": "libzstd.so.1.5.5",
                                 "type": "lib",
                                 "rel_path": "grpc/1.72.0/grpc_1.72.0_x86_64-gcc-release-shared/full_deploy/host/zstd/1.5.5/Release/x86_64/lib/libzstd.so.1.5.5",
-                                "file_size_kb": 1155848,
+                                "file_size_kb": 1128.7578125,
                                 "sha256": "b35fee607250d70ded73ad466122e22f95df087fc1c71552e864117c144a18d6",
                                 "tpl_name": "zstd"
                             }
@@ -1645,7 +1644,7 @@
                                 "name": "libselinux.so.1",
                                 "type": "lib",
                                 "rel_path": "grpc/1.72.0/grpc_1.72.0_x86_64-gcc-release-shared/full_deploy/host/libselinux/3.6/Release/x86_64/lib/libselinux.so.1",
-                                "file_size_kb": 218216,
+                                "file_size_kb": 213.1015625,
                                 "sha256": "8ece88e3aa1a01e1fc8db4a4699abbb0b65707d0b1b68265b1b6bae19a977548",
                                 "tpl_name": "libselinux"
                             }
@@ -1655,7 +1654,7 @@
                                 "name": "libpcre2-8.so.0.11.2",
                                 "type": "lib",
                                 "rel_path": "grpc/1.72.0/grpc_1.72.0_x86_64-gcc-release-shared/full_deploy/host/pcre2/10.42/Release/x86_64/lib/libpcre2-8.so.0.11.2",
-                                "file_size_kb": 419512,
+                                "file_size_kb": 409.6796875,
                                 "sha256": "2bf4534e8ee83d9415f09c410df4000da5ae9dc7ec891a87727a0ce1bbc2b065",
                                 "tpl_name": "pcre2"
                             }
@@ -1665,7 +1664,7 @@
                                 "name": "libcrypt.so.1.1.0",
                                 "type": "lib",
                                 "rel_path": "grpc/1.72.0/grpc_1.72.0_x86_64-gcc-release-shared/full_deploy/host/libxcrypt/4.4.36/Release/x86_64/lib/libcrypt.so.1.1.0",
-                                "file_size_kb": 244376,
+                                "file_size_kb": 238.6484375,
                                 "sha256": "6e1a255453a3ad1de4929a1a979361acae49b96a2f821a195ecf82c2fee93a1f",
                                 "tpl_name": "libxcrypt"
                             }
@@ -1675,7 +1674,7 @@
                                 "name": "openssl",
                                 "type": "bin",
                                 "rel_path": "grpc/1.72.0/grpc_1.72.0_x86_64-gcc-release-shared/full_deploy/host/openssl/3.1.1/Release/x86_64/bin/openssl",
-                                "file_size_kb": 1004424,
+                                "file_size_kb": 980.8828125,
                                 "sha256": "6d5c8d87aa647cc3b6fd9b73ee0d7e5ec8c28e9fccf68b20d7d1171ecc172668",
                                 "tpl_name": "openssl"
                             }
@@ -1685,7 +1684,7 @@
                                 "name": "libcap.so.2.69",
                                 "type": "lib",
                                 "rel_path": "grpc/1.72.0/grpc_1.72.0_x86_64-gcc-release-shared/full_deploy/host/libcap/2.69/Release/x86_64/lib/libcap.so.2.69",
-                                "file_size_kb": 53136,
+                                "file_size_kb": 51.890625,
                                 "sha256": "e0e6ed9e50bd96274c6dd2a5e8064a1324482fe08c8d140a4b776bcacfb78f39",
                                 "tpl_name": "libcap"
                             }
@@ -1695,7 +1694,7 @@
                                 "name": "liblzma.so.5.4.5",
                                 "type": "lib",
                                 "rel_path": "grpc/1.72.0/grpc_1.72.0_x86_64-gcc-release-shared/full_deploy/host/xz_utils/5.4.5/Release/x86_64/lib/liblzma.so.5.4.5",
-                                "file_size_kb": 234904,
+                                "file_size_kb": 229.3984375,
                                 "sha256": "d09473aa07c2dd386bd41900f4a8ad7bb985fcb45ce87ce15a870d934c2faaba",
                                 "tpl_name": "xz_utils"
                             }
@@ -1705,7 +1704,7 @@
                                 "name": "protoc-27.0.0",
                                 "type": "bin",
                                 "rel_path": "grpc/1.72.0/grpc_1.72.0_x86_64-gcc-release-shared/full_deploy/host/protobuf/5.27.0/Release/x86_64/bin/protoc-27.0.0",
-                                "file_size_kb": 27104,
+                                "file_size_kb": 26.46875,
                                 "sha256": "92bba9f519128b3903be718477c6fbf5ba7a40fed8b34945f0d6eb25cd775ee8",
                                 "tpl_name": "protobuf"
                             },
@@ -1713,7 +1712,7 @@
                                 "name": "libprotobuf.so.27.0.0",
                                 "type": "lib",
                                 "rel_path": "grpc/1.72.0/grpc_1.72.0_x86_64-gcc-release-shared/full_deploy/host/protobuf/5.27.0/Release/x86_64/lib/libprotobuf.so.27.0.0",
-                                "file_size_kb": 3828808,
+                                "file_size_kb": 3739.0703125,
                                 "sha256": "56941ce754ad2ef0b847733149b69ed085286febb61709b5b3ffba4fef4340c3",
                                 "tpl_name": "protobuf"
                             }
@@ -1723,7 +1722,7 @@
                                 "name": "libabsl_base.so.2501.0.0",
                                 "type": "lib",
                                 "rel_path": "grpc/1.72.0/grpc_1.72.0_x86_64-gcc-release-shared/full_deploy/host/abseil/20250127.0/Release/x86_64/lib/libabsl_base.so.2501.0.0",
-                                "file_size_kb": 25776,
+                                "file_size_kb": 25.171875,
                                 "sha256": "9d2b0270cd1435ac2c7d1da965d52d50cf4ccdd229c1330e88463fab0bb7fca1",
                                 "tpl_name": "abseil"
                             }
@@ -1733,7 +1732,7 @@
                                 "name": "bzip2",
                                 "type": "bin",
                                 "rel_path": "grpc/1.72.0/grpc_1.72.0_x86_64-gcc-release-shared/full_deploy/host/bzip2/1.0.8/Release/x86_64/bin/bzip2",
-                                "file_size_kb": 44632,
+                                "file_size_kb": 43.5859375,
                                 "sha256": "d5731ba285b0046c49a05643d24d9cc302d7ecb1e80d0144e878d0efa7736c31",
                                 "tpl_name": "bzip2"
                             }
@@ -1832,7 +1831,7 @@
                                 "name": "lib7bitConf.so.1.2.0",
                                 "type": "lib",
                                 "rel_path": "7bitconf/1.2.0/7bitconf_1.2.0_arm_64-gcc-release-shared/full_deploy/host/7bitconf/1.2.0/Release/armv8/lib/lib7bitConf.so.1.2.0",
-                                "file_size_kb": 638304,
+                                "file_size_kb": 623.34375,
                                 "sha256": "24b425e6b4a9595faa5d13c5a628878e7ce61497a5f43d97be652ba375a7e416",
                                 "tpl_name": "7bitconf"
                             }
@@ -1913,7 +1912,7 @@
                                 "name": "lib7bitConf.so.1.2.0",
                                 "type": "lib",
                                 "rel_path": "7bitconf/1.2.0/7bitconf_1.2.0_x86_64-clang-release-shared/full_deploy/host/7bitconf/1.2.0/Release/x86_64/lib/lib7bitConf.so.1.2.0",
-                                "file_size_kb": 725376,
+                                "file_size_kb": 708.375,
                                 "sha256": "29d8f602c0a8fbf0e10113fe4b23f29119ba8d16f7576e0c4b24b8d63cc79b64",
                                 "tpl_name": "7bitconf"
                             }
@@ -1994,7 +1993,7 @@
                                 "name": "lib7bitConf.so.1.2.0",
                                 "type": "lib",
                                 "rel_path": "7bitconf/1.2.0/7bitconf_1.2.0_x86_64-gcc-release-shared/full_deploy/host/7bitconf/1.2.0/Release/x86_64/lib/lib7bitConf.so.1.2.0",
-                                "file_size_kb": 647000,
+                                "file_size_kb": 631.8359375,
                                 "sha256": "76c11412ac129f5c089ef51804b34061100ec55a12b8d2d3f423dfd4cc57214b",
                                 "tpl_name": "7bitconf"
                             }
@@ -2074,7 +2073,7 @@
                                 "name": "libsystemc.so.2.3.4",
                                 "type": "lib",
                                 "rel_path": "accellera-uvm-systemc/1.0-beta4/accellera-uvm-systemc_1.0-beta4_x86_64-clang-release-shared/full_deploy/host/systemc/2.3.4/Release/x86_64/lib/libsystemc.so.2.3.4",
-                                "file_size_kb": 2261480,
+                                "file_size_kb": 2208.4765625,
                                 "sha256": "0d8a4428c895997f0b6b1cae270e76463ae222514b0fb3a21e0be75ccee06652",
                                 "tpl_name": "systemc"
                             }
@@ -2084,7 +2083,7 @@
                                 "name": "libuvm-systemc-1.0-beta4.so",
                                 "type": "lib",
                                 "rel_path": "accellera-uvm-systemc/1.0-beta4/accellera-uvm-systemc_1.0-beta4_x86_64-clang-release-shared/full_deploy/host/accellera-uvm-systemc/1.0-beta4/Release/x86_64/lib/libuvm-systemc-1.0-beta4.so",
-                                "file_size_kb": 2768616,
+                                "file_size_kb": 2703.7265625,
                                 "sha256": "5849180ce2ddf59bd18089badf0a4a5e1c89f61774812448d4e1cd4b7bf9275a",
                                 "tpl_name": "accellera-uvm-systemc"
                             }
@@ -2146,7 +2145,7 @@
                                 "name": "libsystemc.so.2.3.4",
                                 "type": "lib",
                                 "rel_path": "accellera-uvm-systemc/1.0-beta4/accellera-uvm-systemc_1.0-beta4_x86_64-gcc-release-shared/full_deploy/host/systemc/2.3.4/Release/x86_64/lib/libsystemc.so.2.3.4",
-                                "file_size_kb": 2439912,
+                                "file_size_kb": 2382.7265625,
                                 "sha256": "e361e90c2e54bca3b0cda530bf184fb4c1c16084116cfdb563339feddba7e79b",
                                 "tpl_name": "systemc"
                             }
@@ -2156,7 +2155,7 @@
                                 "name": "libuvm-systemc-1.0-beta4.so",
                                 "type": "lib",
                                 "rel_path": "accellera-uvm-systemc/1.0-beta4/accellera-uvm-systemc_1.0-beta4_x86_64-gcc-release-shared/full_deploy/host/accellera-uvm-systemc/1.0-beta4/Release/x86_64/lib/libuvm-systemc-1.0-beta4.so",
-                                "file_size_kb": 3241904,
+                                "file_size_kb": 3165.921875,
                                 "sha256": "d8f6b2e04a76daa7448f9af4214986f3176f44d5e34959e16a1bb998574c8cf1",
                                 "tpl_name": "accellera-uvm-systemc"
                             }
@@ -2270,7 +2269,7 @@
                                 "name": "libjpeg.so.9.5.0",
                                 "type": "lib",
                                 "rel_path": "aaf/1.2.0/aaf_1.2.0_x86_64-gcc-release-shared/full_deploy/host/libjpeg/9e/Release/x86_64/lib/libjpeg.so.9.5.0",
-                                "file_size_kb": 325192,
+                                "file_size_kb": 317.5703125,
                                 "sha256": "23571de65205396b31167c3f93b1fa15fe198d2faa9c542c9f131f848d638ad5",
                                 "tpl_name": "libjpeg"
                             }
@@ -2280,7 +2279,7 @@
                                 "name": "libexpat.so.1.10.2",
                                 "type": "lib",
                                 "rel_path": "aaf/1.2.0/aaf_1.2.0_x86_64-gcc-release-shared/full_deploy/host/expat/2.7.1/Release/x86_64/lib/libexpat.so.1.10.2",
-                                "file_size_kb": 223400,
+                                "file_size_kb": 218.1640625,
                                 "sha256": "df0c67c73e85cba585d8c03e2756641bc29f7a63d02dc362fdb10fbcaf90fa81",
                                 "tpl_name": "expat"
                             }
@@ -2290,7 +2289,7 @@
                                 "name": "libuuid.so.1.3.0",
                                 "type": "lib",
                                 "rel_path": "aaf/1.2.0/aaf_1.2.0_x86_64-gcc-release-shared/full_deploy/host/util-linux-libuuid/2.39/Release/x86_64/lib/libuuid.so.1.3.0",
-                                "file_size_kb": 40976,
+                                "file_size_kb": 40.015625,
                                 "sha256": "8b5cf5d5da77d8348da0a0838aab0d6e3895901375ef70779a3722baa6c7570b",
                                 "tpl_name": "util-linux-libuuid"
                             }
@@ -2300,7 +2299,7 @@
                                 "name": "libcom-api.so",
                                 "type": "lib",
                                 "rel_path": "aaf/1.2.0/aaf_1.2.0_x86_64-gcc-release-shared/full_deploy/host/aaf/1.2.0/Release/x86_64/lib/libcom-api.so",
-                                "file_size_kb": 10392888,
+                                "file_size_kb": 10149.3046875,
                                 "sha256": "436d11d06d2f98009d7aa9994b30b913c2b026b02367c47a6828a883423aaf29",
                                 "tpl_name": "aaf"
                             }
@@ -2398,7 +2397,7 @@
                                 "name": "libjpeg.so.9.5.0",
                                 "type": "lib",
                                 "rel_path": "aaf/1.2.0/aaf_1.2.0_x86_64-clang-release-shared/full_deploy/host/libjpeg/9e/Release/x86_64/lib/libjpeg.so.9.5.0",
-                                "file_size_kb": 341232,
+                                "file_size_kb": 333.234375,
                                 "sha256": "55501304fe9ef1523bd06850b690b84987288552d8963dbe155612c7f5e77451",
                                 "tpl_name": "libjpeg"
                             }
@@ -2408,7 +2407,7 @@
                                 "name": "libexpat.so.1.10.2",
                                 "type": "lib",
                                 "rel_path": "aaf/1.2.0/aaf_1.2.0_x86_64-clang-release-shared/full_deploy/host/expat/2.7.1/Release/x86_64/lib/libexpat.so.1.10.2",
-                                "file_size_kb": 207744,
+                                "file_size_kb": 202.875,
                                 "sha256": "3e944e31582f8fb01e41cca48e63e7015794b7824cf7e02396e0442fe943a73e",
                                 "tpl_name": "expat"
                             }
@@ -2418,7 +2417,7 @@
                                 "name": "libuuid.so.1.3.0",
                                 "type": "lib",
                                 "rel_path": "aaf/1.2.0/aaf_1.2.0_x86_64-clang-release-shared/full_deploy/host/util-linux-libuuid/2.39/Release/x86_64/lib/libuuid.so.1.3.0",
-                                "file_size_kb": 36792,
+                                "file_size_kb": 35.9296875,
                                 "sha256": "5e94b290d185f58a690c805c681f2e1a4dc800c00613d7ccf3e301ac8f38532b",
                                 "tpl_name": "util-linux-libuuid"
                             }
@@ -2428,7 +2427,7 @@
                                 "name": "libcom-api.so",
                                 "type": "lib",
                                 "rel_path": "aaf/1.2.0/aaf_1.2.0_x86_64-clang-release-shared/full_deploy/host/aaf/1.2.0/Release/x86_64/lib/libcom-api.so",
-                                "file_size_kb": 8703032,
+                                "file_size_kb": 8499.0546875,
                                 "sha256": "82f95a5d1286897de35c4a78e84df24acbc9c35999950da93b0b21b9cbf43298",
                                 "tpl_name": "aaf"
                             }
@@ -2490,7 +2489,7 @@
                                 "name": "libaaplus.so",
                                 "type": "lib",
                                 "rel_path": "aaplus/2.53/aaplus_2.53_arm_64-gcc-release-shared/full_deploy/host/aaplus/2.53/Release/armv8/lib/libaaplus.so",
-                                "file_size_kb": 12614592,
+                                "file_size_kb": 12318.9375,
                                 "sha256": "9232e8a2df115cbcaf1e537fbdd152862b36716cffeb77e3c4fb0dbaf55949be",
                                 "tpl_name": "aaplus"
                             }
@@ -2534,7 +2533,7 @@
                                 "name": "libaaplus.so",
                                 "type": "lib",
                                 "rel_path": "aaplus/2.53/aaplus_2.53_x86_64-clang-release-shared/full_deploy/host/aaplus/2.53/Release/x86_64/lib/libaaplus.so",
-                                "file_size_kb": 12684264,
+                                "file_size_kb": 12386.9765625,
                                 "sha256": "875ea66f97a3ae0d6405443f551b254102cd622acc0425cefbc78fd6c14e1a15",
                                 "tpl_name": "aaplus"
                             }
@@ -2578,7 +2577,7 @@
                                 "name": "libaaplus.so",
                                 "type": "lib",
                                 "rel_path": "aaplus/2.53/aaplus_2.53_x86_64-gcc-release-shared/full_deploy/host/aaplus/2.53/Release/x86_64/lib/libaaplus.so",
-                                "file_size_kb": 12681520,
+                                "file_size_kb": 12384.296875,
                                 "sha256": "707f715fecffb679782d5b101b112fb486b08ef10dcd18a219cebdc8c515921a",
                                 "tpl_name": "aaplus"
                             }
@@ -2640,7 +2639,7 @@
                                 "name": "lib7bitDI.so.3.4.0",
                                 "type": "lib",
                                 "rel_path": "7bitdi/3.4.0/7bitdi_3.4.0_x86_64-clang-release-shared/full_deploy/host/7bitdi/3.4.0/Release/x86_64/lib/lib7bitDI.so.3.4.0",
-                                "file_size_kb": 200384,
+                                "file_size_kb": 195.6875,
                                 "sha256": "07c880b29c83528d12d5e23693382ed2c9aa8a6382db06a65be878045322f184",
                                 "tpl_name": "7bitdi"
                             }
@@ -2684,7 +2683,7 @@
                                 "name": "lib7bitDI.so.3.4.0",
                                 "type": "lib",
                                 "rel_path": "7bitdi/3.4.0/7bitdi_3.4.0_x86_64-gcc-release-shared/full_deploy/host/7bitdi/3.4.0/Release/x86_64/lib/lib7bitDI.so.3.4.0",
-                                "file_size_kb": 189352,
+                                "file_size_kb": 184.9140625,
                                 "sha256": "8ff087d9a074ec79117393a1525991946e77fc83936a4b43e42669f9841f8446",
                                 "tpl_name": "7bitdi"
                             }
@@ -2728,7 +2727,7 @@
                                 "name": "lib7bitDI.so.3.4.0",
                                 "type": "lib",
                                 "rel_path": "7bitdi/3.4.0/7bitdi_3.4.0_arm_64-gcc-release-shared/full_deploy/host/7bitdi/3.4.0/Release/armv8/lib/lib7bitDI.so.3.4.0",
-                                "file_size_kb": 185008,
+                                "file_size_kb": 180.671875,
                                 "sha256": "7b60f55ab49fc0759ca408bcb8375bd188e8a9415b7c31e5351b382a25edce3e",
                                 "tpl_name": "7bitdi"
                             }
@@ -2805,7 +2804,7 @@
                                 "name": "libattr.so.1.1.2501",
                                 "type": "lib",
                                 "rel_path": "acl/2.3.1/acl_2.3.1_x86_64-gcc-release-shared/full_deploy/host/libattr/2.5.1/Release/x86_64/lib/libattr.so.1.1.2501",
-                                "file_size_kb": 31512,
+                                "file_size_kb": 30.7734375,
                                 "sha256": "0b10d0e7d763d84ab47eb9ace86b53af452549f9b1b083952aa28157213b5de2",
                                 "tpl_name": "libattr"
                             }
@@ -2815,7 +2814,7 @@
                                 "name": "libacl.so.1.1.2301",
                                 "type": "lib",
                                 "rel_path": "acl/2.3.1/acl_2.3.1_x86_64-gcc-release-shared/full_deploy/host/acl/2.3.1/Release/x86_64/lib/libacl.so.1.1.2301",
-                                "file_size_kb": 47016,
+                                "file_size_kb": 45.9140625,
                                 "sha256": "b6fb92b7c0b4480ca0b3cfc12d4aae75d21a462cfaa542345f7a18ab04cb2502",
                                 "tpl_name": "acl"
                             }
@@ -2877,7 +2876,7 @@
                                 "name": "libattr.so.1.1.2501",
                                 "type": "lib",
                                 "rel_path": "acl/2.3.1/acl_2.3.1_x86_64-clang-release-shared/full_deploy/host/libattr/2.5.1/Release/x86_64/lib/libattr.so.1.1.2501",
-                                "file_size_kb": 31240,
+                                "file_size_kb": 30.5078125,
                                 "sha256": "069730bff195336ca56241fa43c96481d677e9277389bbfb1b78213f42e25322",
                                 "tpl_name": "libattr"
                             }
@@ -2887,7 +2886,7 @@
                                 "name": "libacl.so.1.1.2301",
                                 "type": "lib",
                                 "rel_path": "acl/2.3.1/acl_2.3.1_x86_64-clang-release-shared/full_deploy/host/acl/2.3.1/Release/x86_64/lib/libacl.so.1.1.2301",
-                                "file_size_kb": 46808,
+                                "file_size_kb": 45.7109375,
                                 "sha256": "342bf787f1c451447fb4595ab52e4898a18dbd4af5cf8e0d884e59b0034f063a",
                                 "tpl_name": "acl"
                             }
@@ -2949,7 +2948,7 @@
                                 "name": "libattr.so.1.1.2501",
                                 "type": "lib",
                                 "rel_path": "acl/2.3.1/acl_2.3.1_arm_64-gcc-release-shared/full_deploy/host/libattr/2.5.1/Release/armv8/lib/libattr.so.1.1.2501",
-                                "file_size_kb": 28640,
+                                "file_size_kb": 27.96875,
                                 "sha256": "ff2d7aa41e2e6627d5d1001e0d7e374b9b9cd5f6a5045624542913b095007a14",
                                 "tpl_name": "libattr"
                             }
@@ -2959,7 +2958,7 @@
                                 "name": "libacl.so.1.1.2301",
                                 "type": "lib",
                                 "rel_path": "acl/2.3.1/acl_2.3.1_arm_64-gcc-release-shared/full_deploy/host/acl/2.3.1/Release/armv8/lib/libacl.so.1.1.2301",
-                                "file_size_kb": 46624,
+                                "file_size_kb": 45.53125,
                                 "sha256": "b3937f6085bba5b5055a142cf7ff2e82dcfd326f1eb74941a6fe2ef748f86465",
                                 "tpl_name": "acl"
                             }
@@ -3040,7 +3039,7 @@
                                 "name": "libabsl_base.so.2501.0.0",
                                 "type": "lib",
                                 "rel_path": "abseil/20250127.0/abseil_20250127.0_x86_64-gcc-release-shared/full_deploy/host/abseil/20250127.0/Release/x86_64/lib/libabsl_base.so.2501.0.0",
-                                "file_size_kb": 25776,
+                                "file_size_kb": 25.171875,
                                 "sha256": "9d2b0270cd1435ac2c7d1da965d52d50cf4ccdd229c1330e88463fab0bb7fca1",
                                 "tpl_name": "abseil"
                             }
@@ -3102,7 +3101,7 @@
                                 "name": "libabsl_base.so.2501.0.0",
                                 "type": "lib",
                                 "rel_path": "abseil/20250127.0/abseil_20250127.0_x86_64-clang-release-shared/full_deploy/host/abseil/20250127.0/Release/x86_64/lib/libabsl_base.so.2501.0.0",
-                                "file_size_kb": 30352,
+                                "file_size_kb": 29.640625,
                                 "sha256": "3fd3b632e5225e8662d6152e5f3aec91de7d8f2d59711bf0e3e5f89fc55a6c0e",
                                 "tpl_name": "abseil"
                             }
@@ -3164,7 +3163,7 @@
                                 "name": "libabsl_base.so.2501.0.0",
                                 "type": "lib",
                                 "rel_path": "abseil/20250127.0/abseil_20250127.0_arm_64-gcc-release-shared/full_deploy/host/abseil/20250127.0/Release/armv8/lib/libabsl_base.so.2501.0.0",
-                                "file_size_kb": 22792,
+                                "file_size_kb": 22.2578125,
                                 "sha256": "8d908b97d75dc6833009126e030dfcba6c48213b332901f447c44be1a6742bbc",
                                 "tpl_name": "abseil"
                             }
