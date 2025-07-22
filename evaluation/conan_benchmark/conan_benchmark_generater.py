@@ -48,7 +48,15 @@ def is_elf_binary(file_path: str) -> bool:
             print(f"文件不存在: {file_path}")
             return False
 
-        # 使用file命令检查文件类型
+        # 1. 名称检查，.so 的是
+        file_name = os.path.basename(file_path)
+        if ".so" in file_name:
+            return True
+        # 这些都不是
+        elif file_name.endswith(('.a', '.txt', '.md', '.sh', '.py', '.json')):
+            return False
+
+        # 2. 使用file命令检查文件类型
         result = subprocess.run(['file', file_path],
                                 capture_output=True,
                                 text=True,
@@ -60,7 +68,8 @@ def is_elf_binary(file_path: str) -> bool:
 
         file_output = result.stdout.strip()
         file_output = file_output.replace(file_path, '').lower()
-        # 额外检查：排除明确的脚本类型
+
+        # 2.1 有这些关键字的都不是
         script_indicators = [
             'shell script',
             'perl script',
@@ -68,20 +77,21 @@ def is_elf_binary(file_path: str) -> bool:
             'text executable',
             'ascii text'
         ]
-
         for script_type in script_indicators:
             if script_type in file_output:
                 # print(f"过滤脚本文件: {os.path.basename(file_path)} -> {file_output}")
                 return False
 
-        # 只要包含ELF就认为是二进制文件
+        # 2.2 有这些关键字的是
         if 'elf' in file_output:
             return True
 
 
 
-        # 如果不是ELF也不是明确的脚本，打印警告但保留
-        print(f"未知文件类型: {os.path.basename(file_path)} -> {file_output}, 已过滤")
+        # 3. 不知道什么类型的，不是。
+        print(f"未知文件类型, file_name: {file_name}, \n"
+              f"file_path: {file_path}, \n"
+              f"file_output: {file_output}")
         return False
 
     except subprocess.TimeoutExpired:
@@ -94,64 +104,10 @@ def is_elf_binary(file_path: str) -> bool:
 
 
 
-
-def find_target_bin(library_name: str,
-                    binary_files: List[str],
-                    whitelist: Dict[str, str] = None) -> List[str]:
-    """
-    找到匹配的主要二进制文件
-
-    Args:
-        library_name: 库名（如 "grpc", "protobuf", "openssl"）
-        binary_files: 所有二进制文件名的列表（包括bin和lib目录下的）
-        whitelist: 白名单字典，键为库名，值为对应的二进制文件名
-
-    Returns:
-        匹配的二进制文件名列表，如果没找到返回空列表
-    """
-
-    # 1. 检查白名单
-    if whitelist and library_name in whitelist:
-        target_file = whitelist[library_name]
-        if target_file in binary_files:
-            return [target_file]
-        else:
-            return []
-
-    # 2. 按规则匹配
-    matches = []
-
-    for binary_file in binary_files:
-        # 提取文件名（去掉路径）
-        filename = binary_file.split('/')[-1]
-
-        # 规则1: 和库的名字完全一样
-        if filename == library_name:
-            matches.append(binary_file)
-            continue
-
-        # 规则2: 库.so
-        if filename == f"{library_name}.so":
-            matches.append(binary_file)
-            continue
-
-        # 规则3: lib库.so
-        if filename == f"lib{library_name}.so":
-            matches.append(binary_file)
-            continue
-
-        # 规则4: lib库.so.xxxx (版本号)
-        pattern = f"^lib{re.escape(library_name)}\\.so\\."
-        if re.match(pattern, filename):
-            matches.append(binary_file)
-            continue
-
-    return matches
-
-
-def generate_benchmark(conan_libs_builder_output_dir, src_lib_info: dict, min_reused_lib_num: int = 3) -> List[
+def generate_benchmark(conan_libs_builder_output_dir, src_lib_info: dict, min_reused_lib_num: int = 1) -> List[
     TestSoftware]:
     test_software_dict = {}
+    failed_find_binary_cases = set()
     for src_lib_name, src_lib_data in src_lib_info.items():
         for src_lib_ver, src_lib_ver_data in src_lib_data.items():
             for compile_config, compile_data in src_lib_ver_data.items():
@@ -171,18 +127,33 @@ def generate_benchmark(conan_libs_builder_output_dir, src_lib_info: dict, min_re
                 library_reuses = get_library_reuses(metadata, real_reused_tpl_names, src_lib_name)
                 rel_reused_lib_num = len([reuse for reuse in library_reuses if reuse.is_real_used])
 
+                # 过滤条件1： test_suite 至少 n 个第三方库
+                if rel_reused_lib_num < min_reused_lib_num:
+                    continue  # Skip this test case if reused libraries are less than the minimum required
+
 
                 # 3. 编译配置
                 compile_config = CompileConfig(
                     conan_version=metadata.get("build_info", {}).get("conan_version", ""),
                     profile=os.path.basename(metadata.get("build_configuration", {}).get("profile", "")),
                 )
-
+                # 过滤条件2： 跳过静态链接编译的
+                if "-static" in compile_config.profile:
+                    continue
 
                 # 4. 编译好的二进制文件
-                binary_dict = get_target_binaries(binary_info, conan_libs_builder_output_dir)
+                binary_dict = get_target_binaries(binary_info, conan_libs_builder_output_dir, failed_find_binary_cases)
+
+                # 过滤条件3：没有二进制测试用例的跳过。
+                if not binary_dict:
+                    continue
 
                 # 5. 生成测试套件
+                # 根据找到的测试用例的情况，更新reuse的测试用例覆盖情况
+                for lib_reuse in library_reuses:
+                    if lib_reuse.library.name in binary_dict:
+                        lib_reuse.has_tc = True
+
                 test_suite = TestBinarySuite(
                     stat=TestBinarySuiteStat(
                         total_reused_library=rel_reused_lib_num,
@@ -195,72 +166,168 @@ def generate_benchmark(conan_libs_builder_output_dir, src_lib_info: dict, min_re
                     binaries=binary_dict
                 )
 
-                # ------------- 过滤条件 -------------
-                # test_suite 至少 3 个第三方库
-                if rel_reused_lib_num < min_reused_lib_num:
-                    continue  # Skip this test case if reused libraries are less than the minimum required
-
-                # 跳过静态链接编译的
-                if "-static" in compile_config.profile:
-                    continue
 
                 # 6. 添加到测试软件
                 test_software.test_binary_suites.append(test_suite)
 
+    for case in failed_find_binary_cases:
+        print(case)
     # 过滤掉空的
     test_softwares = [ts for ts in test_software_dict.values() if ts.test_binary_suites]
     return test_softwares
 
+def find_target_bin(library_name: str,
+                    binary_files: List[str],
+                    whitelist: Dict[str, str] = None) -> List[str]:
+    """
+    找到匹配的主要二进制文件
 
-def get_target_binaries(binary_info, conan_libs_builder_output_dir):
-    white_dict = {}
-    binary_dict = {}
-    path_dict = {}
-    for tpl_name, tpl_data in binary_info.items():
-        tpl_info = tpl_data.get("tpl_info")
+    Args:
+        library_name: 库名（如 "grpc", "protobuf", "openssl"）
+        binary_files: 所有二进制文件名的列表（包括bin和lib目录下的）
+        whitelist: 白名单字典，键为库名，值为对应的二进制文件名
 
-        # 1. 找到所有二进制文件的路径，并做hash去重
-        # bin 目录下的所有路径
-        bin_bin_paths = {}
-        if tpl_info.get("bin_bins", {}):
-            for sha256, paths in tpl_info.get("bin_bins", {}).items():
-                paths = [path for path in paths if is_elf_binary(path)]  # 需要验证是二进制文件，不然有很多的脚本文件。
-                if paths:
-                    bin_bin_paths[sha256] = paths
+    Returns:
+        匹配的二进制文件名列表，如果没找到返回空列表
+    """
+    matches = []
+    whitelist = {
+        # 有信心
+        'zlib': ['libz', 'libz.so.1.3.1'],
+        'c-ares': ['libcares.so.2.19.4'],
+        'pcre2': ['libpcre2-8.so.0.11.2'],
+        'libxcrypt': ['libcrypt.so.1.1.0'],
 
-        # lib 目录下的所有路径
-        lib_bin_paths = tpl_info.get("lib_bins", {})
+        # 可能是
+        'xz_utils': ['liblzma.so.5.4.5'],
+        'util-linux-libuuid': ['libuuid.so.1.3.0'],
+        'accellera-uvm-systemc': ['libuvm-systemc-1.0-beta4.so'],
+        'protobuf': ['protoc-27.0.0'],
 
-        if bin_bin_paths:
-            path_dict.update(bin_bin_paths)
-        if lib_bin_paths:
-            path_dict.update(lib_bin_paths)
+        # 基于搜索结果添加
+        'aaf': ['libcom-api.so'],  # 主要的COM API库，其他组件依赖它
+        'abseil': ['libabsl_base.so.2501.0.0'],  # 基础库，所有其他Abseil代码都依赖它
+    }
+    # 1. 在白名单中的是
+    if whitelist and library_name in whitelist:
+        target_files = whitelist[library_name]
+        matches.extend(list(set(target_files).intersection(binary_files)))
 
-        # 2. 找到目标二进制文件
-        path_to_sha256 = {path: sha256 for sha256, paths in path_dict.items() for path in paths}
-        all_paths = [paths[0] for bin_sha256, paths in path_dict.items()]
-        name_to_path = {os.path.basename(path): path for path in all_paths}
-        all_names = list(name_to_path.keys())
-        target_bin_names = find_target_bin(tpl_name, all_names, white_dict)
-        target_bin_paths = name_to_path.get(target_bin_names[0]) if target_bin_names else None
-        if not target_bin_paths:
-            print(f"未找到目标二进制文件: {tpl_name}，请检查白名单或路径. 全部候选文件：{all_names}")
+    library_name = library_name.lower()
+    # 2. 按规则匹配
+    for binary_file in binary_files:
 
-        # 3. 创建 Binary 对象
-        binaries = []
-        for target_bin_name, target_bin_path in zip(target_bin_names, target_bin_paths):
+        # 提取文件名（去掉路径）
+        filename = binary_file.split('/')[-1]
+        filename = filename.lower()
+
+        # 规则1: 和库的名字完全一样
+        if filename == library_name:
+            matches.append(binary_file)
+            continue
+
+        # 规则2: lib库名
+        if filename == f"lib{library_name}":
+            matches.append(binary_file)
+            continue
+
+        # 规则3: 库.so
+        if filename == f"{library_name}.so":
+            matches.append(binary_file)
+            continue
+
+        # 规则4: lib库.so
+        if filename == f"lib{library_name}.so":
+            matches.append(binary_file)
+            continue
+
+        # 规则5: 库.so.xxxx (版本号)
+        pattern = f"^{re.escape(library_name)}\\.so\\."
+        if re.match(pattern, filename):
+            matches.append(binary_file)
+            continue
+
+        # 规则6: lib库.so.xxxx (版本号)
+        pattern = f"^lib{re.escape(library_name)}\\.so\\."
+        if re.match(pattern, filename):
+            matches.append(binary_file)
+            continue
+
+    return list(set(matches))
+
+
+def get_target_binaries(tpl_info, conan_libs_builder_output_dir, failed_cases:set):
+    tpl_binaries = {}
+    # 遍历所有第三方库
+    for tpl_name, tpl_info in tpl_info.items():
+        # 信息预处理
+        tpl_info = tpl_info.get("tpl_info", {})
+
+        tpl_name = tpl_info["tpl_name"]
+        bin_bins = tpl_info.get("bin_bins", {})
+        if not bin_bins:
+            bin_bins = {}
+        lib_bins = tpl_info.get("lib_bins", {})
+        if not lib_bins:
+            lib_bins = {}
+
+        # basic info dict
+        hash_to_size_dict = {}
+        hash_to_path_dict = {}
+        path_to_hash_dict = {}
+        name_to_hash_dict = {}
+        name_to_path_dict = {}
+        for sha256, binary_info in {**bin_bins, **lib_bins}.items():
+            binary_size = binary_info.get("size", 0)
+            hash_to_size_dict[sha256] = binary_size
+
+            binary_paths = binary_info.get("paths", [])
+            hash_to_path_dict[sha256] = binary_paths[0]
+            binary_paths.sort(key=lambda x: len(x), reverse=True) # 按名称长度排序
+
+            for binary_path in binary_paths:
+                # 不是二进制文件跳过。
+                if not is_elf_binary(binary_path):
+                    continue
+
+                path_to_hash_dict[binary_path]  = sha256
+                # name_to_hash_dict
+                name = os.path.basename(binary_path)
+                name_to_hash_dict[name] = sha256
+                # name_to_path_dict
+                name_to_path_dict[name] = binary_path
+                break
+
+        # find target binary files
+        all_names = list(name_to_hash_dict.keys())
+
+        # 直接没有二进制文件的跳过
+        if not all_names:
+            continue
+
+        target_bin_names = find_target_bin(tpl_name, all_names)
+        target_bin_paths = [name_to_path_dict.get(name) for name in target_bin_names if name in name_to_path_dict]
+
+        if not target_bin_names:
+            failed_cases.add(f"{tpl_name}: {all_names}")
+
+        target_binaries = []
+        for target_bin_path in target_bin_paths:
+            target_bin_name = os.path.basename(target_bin_path)
+            sha256 = path_to_hash_dict.get(target_bin_path, "")
             binary = Binary(
                 name=target_bin_name,
                 type='lib' if '.so' in target_bin_name else 'bin',
                 tpl_name=tpl_name,
                 rel_path=str(os.path.relpath(target_bin_path, conan_libs_builder_output_dir)),
-                file_size_kb=os.path.getsize(target_bin_path) / 1024,  # size in KB
+                file_size_kb=hash_to_size_dict[sha256],
                 # file_size_kb=0,
-                sha256=path_to_sha256.get(target_bin_path, "")
+                sha256= sha256
             )
-            binaries.append(binary)
-        binary_dict[tpl_name] = binaries
-    return binary_dict
+            target_binaries.append(binary)
+        tpl_binaries[tpl_name] = target_binaries
+
+    return tpl_binaries
 
 
 def get_library_reuses(metadata, real_reused_tpl_names, src_lib_name):
@@ -278,7 +345,7 @@ def get_library_reuses(metadata, real_reused_tpl_names, src_lib_name):
                 name=tpl_name,
                 version=dep.get("version", "")
             ),
-            is_real_used=tpl_name in real_reused_tpl_names and link_type != "header-only",
+            is_real_used=tpl_name in real_reused_tpl_names and link_type != "header-only", # 是否是实际使用的库， 1）不是header-only 2) 有实际的库被编译
             link_type=link_type,
             level=dep.get("level", ""),
             reuse_paths=dep.get("paths", [])
@@ -359,4 +426,4 @@ def benchmark_check():
 
 if __name__ == '__main__':
     main()
-    # benchmark_check()
+    benchmark_check()

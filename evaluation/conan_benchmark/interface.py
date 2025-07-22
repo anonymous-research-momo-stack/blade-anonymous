@@ -171,6 +171,7 @@ class LibraryReuse(Serializable):
     link_type: str = "shared"  # e.g., "static", "shared"
     level: str = 1  # e.g., "local", "global"
     reuse_paths: List[str] = dataclasses.field(default_factory=list)  # Paths to the reused libraries
+    has_tc: bool = False  # 是否有测试用例覆盖
 
 @dataclass
 class CompileConfig(Serializable):
@@ -179,16 +180,15 @@ class CompileConfig(Serializable):
 
 @dataclass
 class Binary(Serializable):
-    # under what tpl dir
-    tpl_name: str
-
-
     # meta
     name: str
     type: str  # e.g., "bin", "lib"
     rel_path:str # 相对路径
     file_size_kb: float
     sha256: str
+
+    # under what tpl dir
+    tpl_name: str
 
     def __hash__(self):
         return hash((self.tpl_name, self.name, self.sha256))

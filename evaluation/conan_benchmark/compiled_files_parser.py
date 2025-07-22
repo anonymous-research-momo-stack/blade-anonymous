@@ -100,9 +100,12 @@ def _get_binaries(path):
         # print(f"is link: {os.path.islink(full_path)}")
         if os.path.isfile(full_path) and not os.path.islink(full_path) and not entry.startswith("."):
             binary_sha256 = cal_sha256(full_path)
-            if (binaries:= binary_paths.get(binary_sha256)) is None:
-                binary_paths[binary_sha256] = binaries = []
-            binaries.append(full_path)
+            if (binary_info:= binary_paths.get(binary_sha256)) is None:
+                binary_paths[binary_sha256] = binary_info = {
+                    "size": os.path.getsize(full_path)/1024,
+                    "paths": []
+                }
+            binary_info['paths'].append(full_path)
 
     return binary_paths
 
