@@ -209,5 +209,9 @@ def main():
     benchmark.dump_to_json_file(general_benchmark_path)
 
 if __name__ == '__main__':
-
+    """
+    先运行generator 生成数据
+    然后运行convert 转换格式
+    最后，运行这个脚本，二进制文件复制到目录，重新计算sha256
+    """
     main()
