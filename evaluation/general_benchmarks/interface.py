@@ -11,7 +11,8 @@ from loguru import logger
 
 from app.interface import SimpleResult, AnalysisResult
 from app.tpl_detection.agent_analysis.response_models import SoftwareContext
-
+from evaluation.conan_benchmark.compiled_files_parser import cal_sha256
+import os
 
 @dataclass
 class Serializable:
@@ -223,6 +224,11 @@ class Benchmark(Serializable):
         )
 
         return benchmark_meta
+
+    def update_sha256(self, new_test_case_dir_path:str):
+        for tc in self.test_cases:
+            tc_path = os.path.join(new_test_case_dir_path, tc.test_binary.relative_path)
+            tc.test_binary.sha256 = cal_sha256(tc_path)
 
     def __repr__(self):
         return self.get_meta().__repr__()

@@ -276,8 +276,9 @@ class Benchmark(Serializable):
             for binaries in suite.binaries.values()
         )
 
+        # 改为只用 sha256 去重
         unique_binaries = set(
-            (binary.name, binary.sha256)
+            binary.sha256
             for ts in self.test_software
             for suite in ts.test_binary_suites
             for binaries in suite.binaries.values()
@@ -300,9 +301,9 @@ class Benchmark(Serializable):
             if binary.type == 'lib'
         )
 
-        # 按类型统计二进制文件（去重后）
+        # 按类型统计二进制文件（去重后）- 改为只用 sha256 去重
         unique_bin_files = len(set(
-            (binary.name, binary.sha256)
+            binary.sha256
             for ts in self.test_software
             for suite in ts.test_binary_suites
             for binaries in suite.binaries.values()
@@ -310,7 +311,7 @@ class Benchmark(Serializable):
             if binary.type == 'bin'
         ))
         unique_lib_files = len(set(
-            (binary.name, binary.sha256)
+            binary.sha256
             for ts in self.test_software
             for suite in ts.test_binary_suites
             for binaries in suite.binaries.values()
@@ -325,7 +326,7 @@ class Benchmark(Serializable):
             for suite in ts.test_binary_suites
         ))
 
-        # 构建每个profile的二进制文件集合
+        # 构建每个profile的二进制文件集合 - 改为只用 sha256
         profile_binaries = {}
         for profile in profiles:
             profile_binaries[profile] = set()
@@ -334,7 +335,7 @@ class Benchmark(Serializable):
                     if suite.compile_config.profile == profile:
                         for binaries in suite.binaries.values():
                             for binary in binaries:
-                                profile_binaries[profile].add((binary.name, binary.sha256))
+                                profile_binaries[profile].add(binary.sha256)
 
         # 计算独有和共享文件
         all_profile_binaries = set()
@@ -347,13 +348,13 @@ class Benchmark(Serializable):
             unique_to_profile[profile] = profile_binaries[profile].copy()
 
         # 找出共享文件
-        for binary in all_profile_binaries:
-            count = sum(1 for profile_bins in profile_binaries.values() if binary in profile_bins)
+        for binary_sha256 in all_profile_binaries:
+            count = sum(1 for profile_bins in profile_binaries.values() if binary_sha256 in profile_bins)
             if count > 1:
-                shared_binaries.add(binary)
+                shared_binaries.add(binary_sha256)
                 for profile in profiles:
-                    if binary in unique_to_profile[profile]:
-                        unique_to_profile[profile].remove(binary)
+                    if binary_sha256 in unique_to_profile[profile]:
+                        unique_to_profile[profile].remove(binary_sha256)
 
         # 编译成功率统计
         software_compile_success = {}
@@ -441,18 +442,18 @@ class Benchmark(Serializable):
                         for binaries in suite.binaries.values():
                             profile_binaries.extend(binaries)
 
-            # 去重后的二进制文件
+            # 去重后的二进制文件 - 改为只用 sha256
             profile_unique_binaries = set(
-                (binary.name, binary.sha256) for binary in profile_binaries
+                binary.sha256 for binary in profile_binaries
             )
 
             # 按类型统计（去重前）
             bin_count = len([b for b in profile_binaries if b.type == 'bin'])
             lib_count = len([b for b in profile_binaries if b.type == 'lib'])
 
-            # 按类型统计（去重后）
-            unique_bin_count = len(set((b.name, b.sha256) for b in profile_binaries if b.type == 'bin'))
-            unique_lib_count = len(set((b.name, b.sha256) for b in profile_binaries if b.type == 'lib'))
+            # 按类型统计（去重后）- 改为只用 sha256
+            unique_bin_count = len(set(b.sha256 for b in profile_binaries if b.type == 'bin'))
+            unique_lib_count = len(set(b.sha256 for b in profile_binaries if b.type == 'lib'))
 
             profile_stats[profile] = {
                 'software_count': len(profile_software),
@@ -492,15 +493,14 @@ class Benchmark(Serializable):
             for binary in binaries
         )
 
-        # 计算去重后的文件大小
+        # 计算去重后的文件大小 - 改为只用 sha256
         unique_binary_sizes = {}
         for ts in self.test_software:
             for suite in ts.test_binary_suites:
                 for binaries in suite.binaries.values():
                     for binary in binaries:
-                        binary_key = (binary.name, binary.sha256)
-                        if binary_key not in unique_binary_sizes:
-                            unique_binary_sizes[binary_key] = binary.file_size_kb
+                        if binary.sha256 not in unique_binary_sizes:
+                            unique_binary_sizes[binary.sha256] = binary.file_size_kb
 
         unique_total_size_kb = sum(unique_binary_sizes.values())
 
@@ -759,6 +759,7 @@ class Benchmark(Serializable):
                 print(f"  {range_name}: {count} 个 ({count / total_shared * 100:.1f}%)")
 
         print("=" * 60)
+
 # ===== 新增数据结构用于评估 =====
 
 @dataclass

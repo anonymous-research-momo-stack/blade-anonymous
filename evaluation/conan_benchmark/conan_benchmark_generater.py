@@ -37,6 +37,9 @@ import subprocess
 import os
 from typing import List, Dict
 
+import os
+import subprocess
+
 
 def is_elf_binary(file_path: str) -> bool:
     """
@@ -48,50 +51,90 @@ def is_elf_binary(file_path: str) -> bool:
             print(f"文件不存在: {file_path}")
             return False
 
-        # 1. 名称检查，.so 的是
+        # 1. 文件名检查 - 明确的非二进制文件扩展名
         file_name = os.path.basename(file_path)
-        if ".so" in file_name:
-            return True
-        # 这些都不是
-        elif file_name.endswith(('.a', '.txt', '.md', '.sh', '.py', '.json')):
+        non_binary_extensions = {
+            '.a', '.txt', '.md', '.sh', '.py', '.json', '.xml', '.yaml', '.yml',
+            '.conf', '.cfg', '.ini', '.log', '.html', '.css', '.js', '.sql',
+            '.csv', '.tsv', '.properties', '.gitignore', '.dockerfile',
+            '.makefile', '.cmake', '.pc', '.la', '.prl', '.pri'
+        }
+
+        # 检查文件扩展名
+        file_lower = file_name.lower()
+        for ext in non_binary_extensions:
+            if file_lower.endswith(ext):
+                return False
+
+        # 特殊情况：一些没有扩展名但明确是文本的文件
+        text_file_names = {
+            'readme', 'license', 'copyright', 'changelog', 'authors',
+            'contributors', 'makefile', 'dockerfile', 'cmakelists.txt'
+        }
+        if file_lower in text_file_names:
             return False
 
         # 2. 使用file命令检查文件类型
         result = subprocess.run(['file', file_path],
                                 capture_output=True,
                                 text=True,
-                                timeout=5)
-
+                                timeout=10)  # 增加超时时间
         if result.returncode != 0:
             print(f"file命令执行失败: {file_path}")
             return False
 
         file_output = result.stdout.strip()
-        file_output = file_output.replace(file_path, '').lower()
+        # 移除文件路径，只保留文件类型描述
+        if ':' in file_output:
+            file_output = file_output.split(':', 1)[1].strip()
+        file_output_lower = file_output.lower()
 
-        # 2.1 有这些关键字的都不是
+        # 2.1 明确的脚本和文本文件类型
         script_indicators = [
             'shell script',
             'perl script',
             'python script',
             'text executable',
-            'ascii text'
+            'ascii text',
+            'utf-8 text',
+            'unicode text',
+            'xml document',
+            'json data',
+            'html document',
+            'makefile script',
+            'c source',
+            'c++ source',
+            'symbolic link'
         ]
+
         for script_type in script_indicators:
-            if script_type in file_output:
-                # print(f"过滤脚本文件: {os.path.basename(file_path)} -> {file_output}")
+            if script_type in file_output_lower:
                 return False
 
-        # 2.2 有这些关键字的是
-        if 'elf' in file_output:
+        # 2.2 明确的二进制文件类型
+        # 共享库文件 (.so) - 但要确保确实是ELF格式
+        if '.so' in file_name and 'elf' in file_output_lower:
             return True
 
+        # 2.3 ELF文件检查
+        if 'elf' in file_output_lower:
+            # 进一步检查ELF文件类型
+            elf_types = [
+                'executable',  # 可执行文件
+                'shared object',  # 共享库
+            ]
 
+            for elf_type in elf_types:
+                if elf_type in file_output_lower:
+                    return True
 
-        # 3. 不知道什么类型的，不是。
-        print(f"未知文件类型, file_name: {file_name}, \n"
-              f"file_path: {file_path}, \n"
-              f"file_output: {file_output}")
+            # 如果包含ELF但没有具体类型，返回False
+            return False
+
+        # 3. 未知文件类型 - 打印日志
+        print(f"未知文件类型: {file_name}")
+        print(f"路径: {file_path}")
+        print(f"file输出: {file_output}")
         return False
 
     except subprocess.TimeoutExpired:
