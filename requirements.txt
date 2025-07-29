@@ -22,3 +22,5 @@ ddgs
 pgvector
 duckduckgo-search
 conan
+schedule
+binaryai

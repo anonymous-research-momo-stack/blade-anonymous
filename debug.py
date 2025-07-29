@@ -63,6 +63,10 @@ def demo():
     grpc_cpp_plugin_static = os.path.join(conan_bin_dir,
                                           "grpc/1.72.0/grpc_1.72.0_x86_64-gcc-release-static/full_deploy/host/grpc/1.72.0/Release/x86_64/bin/grpc_csharp_plugin")
 
+    libaaplus_so = "/Users/liuchengyue/Desktop/BinarySCA Platform/Data/Test_Cases/TPL_Test_Cases/conan_test_cases/aaplus/2.53/aaplus_2.53_arm_64-gcc-release-shared/full_deploy/host/aaplus/2.53/Release/armv8/lib/libaaplus.so"
+    imake = "/Users/liuchengyue/Desktop/BinarySCA Platform/Data/Test_Cases/TPL_Test_Cases/conan_test_cases/imake/1.0.9/imake_1.0.9_arm_64-gcc-release-shared/full_deploy/host/imake/1.0.9/Release/armv8/bin/imake"
+    boost = "/Users/liuchengyue/Desktop/BinarySCA Platform/Data/Test_Cases/TPL_Test_Cases/conan_test_cases/cgal/6.0.1/cgal_6.0.1_x86_64-gcc-release-shared/full_deploy/host/boost/1.83.0/Release/x86_64/lib/libboost_system.so.1.83.0"
+
     # 分析工作流
     workflow = DetectionWorkflow(
         enable_bin_info_analysis_web_search=False,
@@ -72,7 +76,7 @@ def demo():
 
 
     # 分析
-    result = workflow.run(grpc_cpp_plugin_static)
+    result = workflow.run(boost)
 
     # 结合上下文分析
     # context = workflow.analyze_context(root_path)

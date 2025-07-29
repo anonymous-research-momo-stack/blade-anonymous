@@ -49,7 +49,7 @@ class FeatureMatchingDetector:
             logger.warning(f"No strings provided for binary: {target_binary.binary_name}")
             return []
 
-        logger.info(f"Starting feature matching detection for binary: {target_binary.binary_name} with {len(target_binary.strings)} strings")
+        logger.debug(f"Starting feature matching detection for binary: {target_binary.binary_name} with {len(target_binary.strings)} strings")
 
         # 筛选特征
         strings = self.filter_strings_to_match(target_binary)
@@ -215,7 +215,7 @@ class FeatureMatchingDetector:
         # 3. 转换为Library接口类型
         candidate_libraries = self._convert_to_library_interface(filter_candidate_project_entities)
 
-        logger.info(f"Found {len(candidate_libraries)} candidate libraries for file: {file_name}")
+        logger.debug(f"Found {len(candidate_libraries)} candidate libraries for file: {file_name}")
 
         return candidate_libraries
 
