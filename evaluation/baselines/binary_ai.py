@@ -50,7 +50,6 @@ def run_benchmark(benchmark:Benchmark, test_case_dir: str):
         if time.perf_counter() - start_at > time_out:
             print("Upload timed out.")
             break
-        # time.sleep(1) # #TODO 每次上传中间间隔1秒
         file_path = upload_q.get()
         try:
             sha256 = bai.upload(file_path)
@@ -69,7 +68,6 @@ def run_benchmark(benchmark:Benchmark, test_case_dir: str):
                     f"已耗时: {elapsed_time:.1f}秒, 成功上传: {successful_count}/{total_files}, 平均每个: {avg_time_per_file:.2f}秒")
                 last_print_time = current_time
         except Exception as e:
-            print(traceback.format_exc())
             print(f"Failed to upload {file_path}: {e}")
             current_time = time.perf_counter()
             elapsed_time = current_time - start_at
@@ -78,8 +76,11 @@ def run_benchmark(benchmark:Benchmark, test_case_dir: str):
             upload_q.put(file_path)
 
             # 如果是访问过快，就停1分钟再继续
-            if type(e) is GraphQLClientGraphQLMultiError and e.errors[0].extensions['code'] =="TOO_MANY_REQUEST":
-                time.sleep(60)
+            if type(e) is GraphQLClientGraphQLMultiError:
+                err_msg =  e.errors[0].extensions['code']
+                print(f"Error Message: "+err_msg)
+                if err_msg == "TOO_MANY_REQUESTS":
+                    time.sleep(60)
                 continue
             continue
 
@@ -103,7 +104,8 @@ def run_benchmark(benchmark:Benchmark, test_case_dir: str):
     # 生成评估报告
     print(f"Upload finished, {successful_count}/{total_files} files uploaded successfully.")
 
-def _get_benchmark_results(benchmark:Benchmark, result_json_path: str):
+
+def _get_benchmark_results(benchmark: Benchmark, result_json_path: str):
     # 初始化 BinaryAI 客户端
     print(f"init BinaryAI client")
     bai = BinaryAI(
@@ -111,11 +113,21 @@ def _get_benchmark_results(benchmark:Benchmark, result_json_path: str):
         secret_key=env.str("BINARYAI_SECRET_KEY")
     )
 
+    # 构建获取结果任务队列
+    print('Building get results queue')
+    results_q = queue.Queue()
+
+    for tc in benchmark.test_cases:
+        results_q.put(tc)
+
     results = []
-    for tc in tqdm(benchmark.test_cases, desc="Get SCA Results"):
+
+    while not results_q.empty():
+        tc = results_q.get()
         sha256 = tc.test_binary.sha256
         status = bai.get_analyze_status(sha256)
         components = []
+
         try:
             for lib in bai.get_sca_result(sha256):
                 components.append({
@@ -144,6 +156,13 @@ def _get_benchmark_results(benchmark:Benchmark, result_json_path: str):
                 "error": str(e)
             })
 
+            # 重新加入队列重试
+            results_q.put(tc)
+
+            # 等待1分钟后继续
+            time.sleep(60)
+            continue
+
     return results
 
 
@@ -164,7 +183,7 @@ def get_benchmark_results(benchmark, result_json_path: str):
         timestamped_path = path_obj.parent / f"{path_obj.stem}_{timestamp}{path_obj.suffix}"
 
         # 执行benchmark
-        results = _get_benchmark_results(benchmark, str(timestamped_path))
+        results = _get_benchmark_results(benchmark)
 
         # 确保目录存在
         timestamped_path.parent.mkdir(parents=True, exist_ok=True)
@@ -219,9 +238,11 @@ def main():
     benchmark = Benchmark.load_from_json_file(general_benchmark_path)
 
     # 运行
+    print("run benchmark")
     run_benchmark(benchmark, conan_benchmark_test_case_dir)
 
     # 获取结果
+    print(f"get results")
     get_benchmark_results(benchmark, Conan_evluation_report_path)
 
     # 每小时获取一次。
