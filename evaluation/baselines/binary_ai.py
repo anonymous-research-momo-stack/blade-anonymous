@@ -110,7 +110,7 @@ def run_benchmark(benchmark:Benchmark, test_case_dir: str):
     print(f"Upload finished, {successful_count}/{total_files} files uploaded successfully.")
 
 
-def _get_benchmark_results(benchmark: Benchmark, result_json_path: str):
+def _get_benchmark_results(benchmark: Benchmark):
     # 初始化 BinaryAI 客户端
     print(f"init BinaryAI client")
     bai = BinaryAI(
@@ -126,14 +126,14 @@ def _get_benchmark_results(benchmark: Benchmark, result_json_path: str):
         results_q.put(tc)
 
     results = []
-
+    succeed_count = 0
     while not results_q.empty():
         tc = results_q.get()
         sha256 = tc.test_binary.sha256
-        status = bai.get_analyze_status(sha256)
-        components = []
-
         try:
+            status = bai.get_analyze_status(sha256)
+            succeed_count += 1
+            components = []
             for lib in bai.get_sca_result(sha256):
                 components.append({
                     "name": lib.name,
@@ -149,14 +149,15 @@ def _get_benchmark_results(benchmark: Benchmark, result_json_path: str):
                 "status": status,
                 "components": components
             })
-
+            print(f"succeed count: {succeed_count}, total: {len(benchmark.test_cases)}")
         except Exception as e:
             print(f"Failed to get SCA results for {sha256}: {e}")
+            print(f"succeed count: {succeed_count}, total: {len(benchmark.test_cases)}")
             components = []
             results.append({
                 "test_case": tc.test_binary.relative_path,
                 "sha256": sha256,
-                "status": status,
+                "status": None,
                 "components": components,
                 "error": str(e)
             })
@@ -164,8 +165,8 @@ def _get_benchmark_results(benchmark: Benchmark, result_json_path: str):
             # 重新加入队列重试
             results_q.put(tc)
 
-            # 等待1分钟后继续
-            time.sleep(60)
+            print(f"sleep 5 seconds before retrying...")
+            time.sleep(5)
             continue
 
     return results
@@ -235,8 +236,8 @@ def main():
 
     conan_benchmark_test_case_dir = env.str("CONAN_BENCHMARK_TEST_CASE_DIR")
 
-    # Conan_evluation_report_path = "/Users/liuchengyue/Desktop/BinarySCA Platform/Code/sca_agents/bsca-expert-agent-api/tmp/evaluation_reports/Conan/binary_ai/evaluation_report.json"
-    Conan_evluation_report_path = "/home/chengyue/data/evaluation_results/binaryai/evaluation_report.json"
+    Conan_evluation_report_path = "/Users/liuchengyue/Desktop/BinarySCA Platform/Code/sca_agents/bsca-expert-agent-api/tmp/evaluation_reports/Conan/binary_ai/evaluation_report.json"
+    # Conan_evluation_report_path = "/home/chengyue/data/evaluation_results/binaryai/evaluation_report.json"
 
     # 加载基准测试元数据
     print(f"laod benchmark data")
@@ -244,14 +245,14 @@ def main():
 
     # 运行
     print("run benchmark")
-    run_benchmark(benchmark, conan_benchmark_test_case_dir)
+    # run_benchmark(benchmark, conan_benchmark_test_case_dir)
 
     # 获取结果
     print(f"get results")
     get_benchmark_results(benchmark, Conan_evluation_report_path)
 
     # 每小时获取一次。
-    start_hourly_job(benchmark, Conan_evluation_report_path)
+    # start_hourly_job(benchmark, Conan_evluation_report_path)
 
 def convert_result():
     """
@@ -290,5 +291,5 @@ def convert_result():
         json.dump(data, f, indent=4, ensure_ascii=False)
 
 if __name__ == '__main__':
-    # main()
-    convert_result()
+    main()
+    # convert_result()
