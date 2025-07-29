@@ -51,7 +51,7 @@ def main():
 
     benchmark = GeneralBenchmark.load_from_json_file(general_benchmark_path)
 
-    copy_test_cases_from_to(benchmark, conan_benchmark, conan_benchmark_meta_dir)
+    copy_test_cases_from_to(benchmark, conan_libs_builder_output_dir, conan_benchmark_test_case_dir)
 
 if __name__ == '__main__':
 

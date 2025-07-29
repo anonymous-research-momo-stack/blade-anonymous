@@ -95,7 +95,7 @@ def convert(conan_benchmark: ConanBenchmark) -> GeneralBenchmark:
                     test_cases.append(test_case)
 
 
-    reused_library_num = len({lib.name+lib.version for tc in test_cases for lib in tc.reused_libraries})
+    reused_library_num = len({lib.name for tc in test_cases for lib in tc.reused_libraries})
     general_benchmark = GeneralBenchmark(
         name = conan_benchmark.name,
         version = '20250722',
