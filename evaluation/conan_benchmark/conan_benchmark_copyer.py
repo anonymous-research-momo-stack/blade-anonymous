@@ -32,9 +32,7 @@ def copy_test_cases_from_to(benchmark: GeneralBenchmark, from_dir: str, to_dir: 
 
 
 
-
-
-if __name__ == '__main__':
+def main():
     # paths
     evaluation_dir = env.str("EVALUATION_DIR_PATH")
 
@@ -51,4 +49,10 @@ if __name__ == '__main__':
 
     conan_benchmark_test_case_dir = env.str("CONAN_BENCHMARK_TEST_CASE_DIR")
 
+    benchmark = GeneralBenchmark.load_from_json_file(general_benchmark_path)
 
+    copy_test_cases_from_to(benchmark, conan_benchmark, conan_benchmark_meta_dir)
+
+if __name__ == '__main__':
+
+    main()
