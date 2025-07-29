@@ -245,14 +245,14 @@ def main():
 
     # 运行
     print("run benchmark")
-    # run_benchmark(benchmark, conan_benchmark_test_case_dir)
+    run_benchmark(benchmark, conan_benchmark_test_case_dir)
 
     # 获取结果
     print(f"get results")
     get_benchmark_results(benchmark, Conan_evluation_report_path)
 
     # 每小时获取一次。
-    # start_hourly_job(benchmark, Conan_evluation_report_path)
+    start_hourly_job(benchmark, Conan_evluation_report_path)
 
 def convert_result():
     """
