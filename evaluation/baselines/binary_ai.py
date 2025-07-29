@@ -52,8 +52,11 @@ def run_benchmark(benchmark:Benchmark, test_case_dir: str):
             break
         file_path = upload_q.get()
         try:
+            upload_start_at = time.perf_counter()
             sha256 = bai.upload(file_path)
             successful_count += 1
+            if time.perf_counter() - upload_start_at < 1:
+                time.sleep(1) # 避免访问过快
             upload_succeed_dict[file_path] = {
                 "sha256": sha256,
                 "file_size": file_path,
@@ -79,7 +82,8 @@ def run_benchmark(benchmark:Benchmark, test_case_dir: str):
             if type(e) is GraphQLClientGraphQLMultiError:
                 err_msg =  e.errors[0].extensions['code']
                 print(f"Error Message: "+err_msg)
-                if err_msg == "TOO_MANY_REQUESTS":
+                if err_msg == "TOO_MANY_REQUEST":
+                    print(f"等待：1分钟, 等待中...")
                     time.sleep(60)
                 continue
             continue
