@@ -413,6 +413,12 @@ def main():
     Debian_test_case_dir = "/Users/liuchengyue/Desktop/BinarySCA Platform/Data/Test_Cases/TPL_Test_Cases/Benchmarks/DDE2000"
     Debian_evluation_report_path = "/Users/liuchengyue/Desktop/BinarySCA Platform/Code/sca_agents/bsca-expert-agent-api/tmp/evaluation_reports/DDE_2000/evaluation_report.json"
 
+    # Conan Binaries
+    Conan_benchmark_meta = "/Users/liuchengyue/Desktop/BinarySCA Platform/Code/sca_agents/bsca-expert-agent-api/evaluation/general_benchmarks/benchmark_meta/conan_library_benchmark.json"
+    Debian_test_case_dir = "/Users/liuchengyue/Desktop/BinarySCA Platform/Data/Test_Cases/TPL_Test_Cases/Benchmarks/DDE2000"
+    Debian_evluation_report_path = "/Users/liuchengyue/Desktop/BinarySCA Platform/Code/sca_agents/bsca-expert-agent-api/tmp/evaluation_reports/DDE_2000/evaluation_report.json"
+
+
     benchmark_meta = Debian_benchmark_meta
     benchmark_tc_dir = Debian_test_case_dir
     evaluation_report_save_path = Debian_evluation_report_path
@@ -430,17 +436,17 @@ def main():
     evaluator = Evaluator(config)
 
     # 评估
-    # evaluator.run_benchmark(analyze_context=False)
-    # evaluator.report.dump(evaluation_report_save_path)
+    evaluator.run_benchmark(analyze_context=False)
+    evaluator.report.dump(evaluation_report_save_path)
 
     # 重新分析结果
-    report = evaluator.reanalyze_report(evaluation_report_save_path)
+    # report = evaluator.reanalyze_report(evaluation_report_save_path)
 
     # 可视化分析结果
-    visualization_html = "/Users/liuchengyue/Desktop/BinarySCA Platform/Code/sca_agents/bsca-expert-agent-api/tmp/visualization.html"
-    generate_analysis_report(report,
-                            visualization_html
-                             )
+    # visualization_html = "/Users/liuchengyue/Desktop/BinarySCA Platform/Code/sca_agents/bsca-expert-agent-api/tmp/visualization.html"
+    # generate_analysis_report(report,
+    #                         visualization_html
+    #                          )
 
 if __name__ == '__main__':
     main()
