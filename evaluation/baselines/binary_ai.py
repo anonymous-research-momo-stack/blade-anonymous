@@ -140,7 +140,6 @@ def _get_benchmark_results(benchmark:Benchmark, result_json_path: str):
                 "test_case": tc.test_binary.relative_path,
                 "sha256": sha256,
                 "status": status,
-                "finished_at": datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
                 "components": components,
                 "error": str(e)
             })
