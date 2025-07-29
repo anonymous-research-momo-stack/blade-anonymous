@@ -101,6 +101,7 @@ class Library(Serializable):
 
     # meta
     id: int = None
+    version:str = ""
     description: str = ""
 
     # identify method

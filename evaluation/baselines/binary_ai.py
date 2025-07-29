@@ -7,6 +7,7 @@ from binaryai.client_stub import GraphQLClientGraphQLMultiError
 from environs import Env
 from tqdm import tqdm
 
+from app.interface import AnalysisResult, Library
 from evaluation.general_benchmarks.interface import Benchmark
 
 env = Env()
@@ -252,5 +253,42 @@ def main():
     # 每小时获取一次。
     start_hourly_job(benchmark, Conan_evluation_report_path)
 
+def convert_result():
+    """
+    将结果转换为指定格式并保存到output_json_path
+
+    """
+
+    Conan_evluation_report_path = "/Users/liuchengyue/Desktop/BinarySCA Platform/Code/sca_agents/bsca-expert-agent-api/tmp/evaluation_reports/Conan/binary_ai/evaluation_report_initial.json"
+    converted_conan_evluation_report_path = "/Users/liuchengyue/Desktop/BinarySCA Platform/Code/sca_agents/bsca-expert-agent-api/tmp/evaluation_reports/Conan/binary_ai/evaluation_report_converted.json"
+
+
+    with open(Conan_evluation_report_path, "r", encoding='utf-8') as f:
+        old_results = json.load(f)
+
+    converted_results = []
+    for result in old_results:
+        test_case = result['test_case']
+        binary_name = os.path.basename(test_case)
+        sha256 = result['sha256']
+        components = result.get('components', [])
+
+        converted_results.append(AnalysisResult(
+            binary_name = binary_name,
+            binary_sha256= sha256,
+            binary_path = test_case,
+            detected_libraries = [
+                Library(
+                    name= comp['name'],
+                    version=comp['version'],
+                    description=comp.get('source_code_url', '') + comp.get('description', '') + comp.get('summary', ''),
+                ) for comp in components
+            ]
+        ))
+    data = [r.customer_serialize() for r in converted_results]
+    with open(converted_conan_evluation_report_path, "w", encoding='utf-8') as f:
+        json.dump(data, f, indent=4, ensure_ascii=False)
+
 if __name__ == '__main__':
-    main()
+    # main()
+    convert_result()

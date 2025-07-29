@@ -1,4 +1,5 @@
 import copy
+import json
 import os.path
 import subprocess
 import time
@@ -196,6 +197,22 @@ class Evaluator:
         )
 
         return results_check_lst, rq_data
+
+    def analyze_baseline_result(self, evaluation_result_path):
+        # 加载结果
+        with open(evaluation_result_path, "r", encoding="utf-8") as f:
+            data = json.load(f)
+
+        evaluation_results = [AnalysisResult.init_from_dict(result) for result in data]
+
+        # 检查正确性
+        result_check_lst = self.check_result(evaluation_results)
+
+        # 计算评估指标
+        effectiveness = self._cal_effectiveness(result_check_lst)
+
+        # 预览评估指标
+        print(effectiveness)
 
     def _cal_effectiveness(self, result_check_lst):
         # TP, FP, FN,
@@ -396,6 +413,47 @@ class Evaluator:
 
         return cost_data
 
+def analyze_baseline():
+    # 41 个常见组件
+    Famous_TPL_41_benchmark_meta = "/Users/liuchengyue/Desktop/BinarySCA Platform/Code/sca_agents/bsca-expert-agent-api/evaluation/benchmark_meta/FTPL50.json"
+    Famous_TPL_41_test_case_dir = "/Users/liuchengyue/Desktop/BinarySCA Platform/Data/Test_Cases/TPL_Test_Cases/Benchmarks/FTPL100/decompressed_deb"
+    Famous_TPL_41_evluation_report_path = "/Users/liuchengyue/Desktop/BinarySCA Platform/Code/sca_agents/bsca-expert-agent-api/tmp/evaluation_reports/FTPL_41/evaluation_report.json"
+
+    # 车载系统
+    CAR_150_benchmark_meta = "/Users/liuchengyue/Desktop/BinarySCA Platform/Code/sca_agents/bsca-expert-agent-api/evaluation/benchmark_meta/CAR150.json"
+    CAR_150_test_case_dir = "/Users/liuchengyue/Desktop/BinarySCA Platform/Data/Test_Cases/TPL_Test_Cases/BYD"
+    CAR_150_evluation_report_path = "/Users/liuchengyue/Desktop/BinarySCA Platform/Code/sca_agents/bsca-expert-agent-api/tmp/evaluation_reports/CAR_150/evaluation_report.json"
+
+    # Debian Binaries
+    Debian_benchmark_meta = "/Users/liuchengyue/Desktop/BinarySCA Platform/Code/sca_agents/bsca-expert-agent-api/evaluation/benchmark_meta/DDE2000.json"
+    Debian_test_case_dir = "/Users/liuchengyue/Desktop/BinarySCA Platform/Data/Test_Cases/TPL_Test_Cases/Benchmarks/DDE2000"
+    Debian_evluation_report_path = "/Users/liuchengyue/Desktop/BinarySCA Platform/Code/sca_agents/bsca-expert-agent-api/tmp/evaluation_reports/DDE_2000/evaluation_report.json"
+
+    # Conan Binaries
+    Conan_benchmark_meta = "/Users/liuchengyue/Desktop/BinarySCA Platform/Code/sca_agents/bsca-expert-agent-api/evaluation/general_benchmarks/benchmark_meta/conan_library_benchmark.json"
+    Conan_test_case_dir = "/Users/liuchengyue/Desktop/BinarySCA Platform/Data/Test_Cases/TPL_Test_Cases/conan_test_cases"
+    Conan_evluation_report_path = "/Users/liuchengyue/Desktop/BinarySCA Platform/Code/sca_agents/bsca-expert-agent-api/tmp/evaluation_reports/Conan/evaluation_report.json"
+
+
+    benchmark_meta = Conan_benchmark_meta
+    benchmark_tc_dir = Conan_test_case_dir
+    evaluation_report_save_path = Conan_evluation_report_path
+
+    # 评估配置
+    config = EvaluationConfig(
+        benchmark_file=benchmark_meta,
+        test_case_dir=benchmark_tc_dir,
+        concurrency=30,
+        slice_start=0,
+        slice_end=30,
+    )
+
+    # 初始化评估器
+    evaluator = Evaluator(config)
+
+    # 经过格式转换的结果
+    binary_result_path = "/Users/liuchengyue/Desktop/BinarySCA Platform/Code/sca_agents/bsca-expert-agent-api/tmp/evaluation_reports/Conan/binary_ai/evaluation_report_converted.json"
+    evaluator.analyze_baseline_result(binary_result_path)
 
 def main():
     # 41 个常见组件
@@ -449,4 +507,5 @@ def main():
                              )
 
 if __name__ == '__main__':
-    main()
+    # main()
+    analyze_baseline()
