@@ -178,13 +178,19 @@ class BenchmarkNote(Serializable):
     message: str
     update_at: str = dataclasses.field(default_factory=lambda: datetime.now().strftime("%Y-%m-%d %H:%M:%S"))
 
+@dataclass
+class BenchmarkSummary(Serializable):
+    test_case_num: int  # Number of test cases
+    covered_library_num: int  # Number of covered libraries
+
 
 @dataclass
 class Benchmark(Serializable):
     name: str  # benchmark name
     version: str  # benchmark version
-    notes: List[BenchmarkNote]
-    test_cases: List[TestCase]
+    summary: BenchmarkSummary = None  # Summary of the benchmark
+    notes: List[BenchmarkNote] = dataclasses.field(default_factory=list)  # Notes about the benchmark
+    test_cases: List[TestCase] = dataclasses.field(default_factory=list)  # List of test cases in the benchmark
 
     @classmethod
     def load_from_json_file(cls, json_path: str) -> 'Benchmark':

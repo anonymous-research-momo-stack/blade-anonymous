@@ -8,7 +8,7 @@ from loguru import logger
 
 from evaluation.conan_benchmark.interface import Benchmark as ConanBenchmark
 from evaluation.general_benchmarks.interface import TestBinary, ReusedLibrary, TestCase, Benchmark as GeneralBenchmark, \
-    BenchmarkNote
+    BenchmarkNote, BenchmarkSummary
 
 env = Env()
 env.read_env()
@@ -54,6 +54,7 @@ def dump_to_json(data: dict, file_path: str):
 def convert(conan_benchmark: ConanBenchmark) -> GeneralBenchmark:
     library_dict = {software.source_library.name:software.source_library for software in conan_benchmark.test_software}
 
+    test_case_hash_set = set()
     test_cases = []
     for software in conan_benchmark.test_software:
         for test_binary_suite in software.test_binary_suites:
@@ -74,8 +75,11 @@ def convert(conan_benchmark: ConanBenchmark) -> GeneralBenchmark:
                     reused_library.type = ", ".join(tpl_library.topics) if tpl_library.topics else None
 
                 # 创建新的
-                test_binaries = []
                 for binary in binaries:
+                    # 相同的只要一个
+                    if binary.sha256 in test_case_hash_set:
+                        continue
+                    test_case_hash_set.add(binary.sha256)
                     test_binary = TestBinary(
                         original_name = binary.name,
                         relative_path = binary.rel_path,
@@ -83,7 +87,6 @@ def convert(conan_benchmark: ConanBenchmark) -> GeneralBenchmark:
                         sha256 = binary.sha256,
                         notes = f"type: {binary.type}, tpl_name: {tpl_name}, conan version: {compile_config.conan_version}, compile_config: {compile_config.profile}",
                     )
-                    test_binaries.append(test_binary)
 
                     test_case = TestCase(
                         test_binary = test_binary,
@@ -92,13 +95,14 @@ def convert(conan_benchmark: ConanBenchmark) -> GeneralBenchmark:
                     test_cases.append(test_case)
 
 
-                pass
-            pass
-
-
+    reused_library_num = len({lib.name+lib.version for tc in test_cases for lib in tc.reused_libraries})
     general_benchmark = GeneralBenchmark(
         name = conan_benchmark.name,
         version = '20250722',
+        summary=BenchmarkSummary(
+            test_case_num= len(test_cases),
+            covered_library_num= reused_library_num,
+        ),
         notes= [
             BenchmarkNote(
                 message= "converted from the conan benchmark",
