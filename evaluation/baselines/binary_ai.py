@@ -1,7 +1,9 @@
 import os
 import queue
+import traceback
 
 from binaryai import BinaryAI
+from binaryai.client_stub import GraphQLClientGraphQLMultiError
 from environs import Env
 from tqdm import tqdm
 
@@ -48,6 +50,7 @@ def run_benchmark(benchmark:Benchmark, test_case_dir: str):
         if time.perf_counter() - start_at > time_out:
             print("Upload timed out.")
             break
+        # time.sleep(1) # #TODO 每次上传中间间隔1秒
         file_path = upload_q.get()
         try:
             sha256 = bai.upload(file_path)
@@ -66,12 +69,18 @@ def run_benchmark(benchmark:Benchmark, test_case_dir: str):
                     f"已耗时: {elapsed_time:.1f}秒, 成功上传: {successful_count}/{total_files}, 平均每个: {avg_time_per_file:.2f}秒")
                 last_print_time = current_time
         except Exception as e:
+            print(traceback.format_exc())
             print(f"Failed to upload {file_path}: {e}")
             current_time = time.perf_counter()
             elapsed_time = current_time - start_at
             avg_time_per_file = elapsed_time / successful_count if successful_count > 0 else 0
             print(f"已耗时: {elapsed_time:.1f}秒, 成功上传: {successful_count}/{total_files}, 平均每个: {avg_time_per_file:.2f}秒")
             upload_q.put(file_path)
+
+            # 如果是访问过快，就停1分钟再继续
+            if type(e) is GraphQLClientGraphQLMultiError and e.errors[0].extensions['code'] =="TOO_MANY_REQUEST":
+                time.sleep(60)
+                continue
             continue
 
     # 统计失败的上传路径
