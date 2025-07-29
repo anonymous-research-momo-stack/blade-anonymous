@@ -32,13 +32,13 @@ def run_benchmark(benchmark:Benchmark, test_case_dir: str):
     # 构建上传任务队列
     print('Building upload queue')
     upload_q = queue.Queue()
-    # 临时限制前30个
+
     for tc in benchmark.test_cases:
         file_path = f"{test_case_dir}/{tc.test_binary.relative_path}"
         upload_q.put(file_path)
 
     # 上传直至全部成功
-    time_out = 14 * 60 * 60  # 3 hour timeout
+    time_out = 24 * 60 * 60  # 24 hour timeout
     start_at = time.perf_counter()
     last_print_time = start_at
     successful_count = 0
@@ -67,6 +67,10 @@ def run_benchmark(benchmark:Benchmark, test_case_dir: str):
                 last_print_time = current_time
         except Exception as e:
             print(f"Failed to upload {file_path}: {e}")
+            current_time = time.perf_counter()
+            elapsed_time = current_time - start_at
+            avg_time_per_file = elapsed_time / successful_count if successful_count > 0 else 0
+            print(f"已耗时: {elapsed_time:.1f}秒, 成功上传: {successful_count}/{total_files}, 平均每个: {avg_time_per_file:.2f}秒")
             upload_q.put(file_path)
             continue
 
@@ -99,7 +103,7 @@ def _get_benchmark_results(benchmark:Benchmark, result_json_path: str):
     )
 
     results = []
-    for tc in tqdm(benchmark.test_cases[:30], desc="Get SCA Results"):
+    for tc in tqdm(benchmark.test_cases, desc="Get SCA Results"):
         sha256 = tc.test_binary.sha256
         status = bai.get_analyze_status(sha256)
         components = []
@@ -172,7 +176,6 @@ def start_hourly_job(benchmark, result_json_path: str):
     启动每小时执行的定时任务
     """
     # 安排任务：每小时执行一次
-    # 测试，每分钟执行1次
     schedule.every().hour.do(get_benchmark_results, benchmark, result_json_path)
 
     print("🚀 定时任务已启动，每小时执行一次")
@@ -200,8 +203,8 @@ def main():
 
     conan_benchmark_test_case_dir = env.str("CONAN_BENCHMARK_TEST_CASE_DIR")
 
-    Conan_evluation_report_path = "/Users/liuchengyue/Desktop/BinarySCA Platform/Code/sca_agents/bsca-expert-agent-api/tmp/evaluation_reports/Conan/binary_ai/evaluation_report.json"
-    # Conan_evluation_report_path = "/home/chengyue/data/evaluation_results/binaryai/evaluation_report.json"
+    # Conan_evluation_report_path = "/Users/liuchengyue/Desktop/BinarySCA Platform/Code/sca_agents/bsca-expert-agent-api/tmp/evaluation_reports/Conan/binary_ai/evaluation_report.json"
+    Conan_evluation_report_path = "/home/chengyue/data/evaluation_results/binaryai/evaluation_report.json"
 
     # 加载基准测试元数据
     print(f"laod benchmark data")
@@ -210,9 +213,10 @@ def main():
     # 运行
     run_benchmark(benchmark, conan_benchmark_test_case_dir)
 
-    # 获取结果，每10分钟获取一次结果。
+    # 获取结果
     get_benchmark_results(benchmark, Conan_evluation_report_path)
 
+    # 每小时获取一次。
     start_hourly_job(benchmark, Conan_evluation_report_path)
 
 if __name__ == '__main__':
