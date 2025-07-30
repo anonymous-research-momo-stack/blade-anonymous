@@ -450,9 +450,11 @@ def analyze_baseline():
 
     # 初始化评估器
     evaluator = Evaluator(config)
-
+    # =============== baselines ==============
     # 经过格式转换的结果
-    binary_result_path = "/Users/liuchengyue/Desktop/BinarySCA Platform/Code/sca_agents/bsca-expert-agent-api/tmp/evaluation_reports/Conan/binary_ai/evaluation_report_converted.json"
+    # ========================================
+    # binary ai
+    binary_result_path = "/Users/liuchengyue/Desktop/BinarySCA Platform/Code/sca_agents/bsca-expert-agent-api/tmp/evaluation_reports/Conan/binary_ai/evaluation_report_2025-07-29-21-05-17_converted.json"
     evaluator.analyze_baseline_result(binary_result_path)
 
 def main():

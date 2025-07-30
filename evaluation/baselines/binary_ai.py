@@ -245,14 +245,14 @@ def main():
 
     # 运行
     print("run benchmark")
-    run_benchmark(benchmark, conan_benchmark_test_case_dir)
+    # run_benchmark(benchmark, conan_benchmark_test_case_dir)
 
     # 获取结果
     print(f"get results")
     get_benchmark_results(benchmark, Conan_evluation_report_path)
 
     # 每小时获取一次。
-    start_hourly_job(benchmark, Conan_evluation_report_path)
+    # start_hourly_job(benchmark, Conan_evluation_report_path)
 
 def convert_result():
     """
@@ -260,15 +260,27 @@ def convert_result():
 
     """
 
-    Conan_evluation_report_path = "/Users/liuchengyue/Desktop/BinarySCA Platform/Code/sca_agents/bsca-expert-agent-api/tmp/evaluation_reports/Conan/binary_ai/evaluation_report_initial.json"
-    converted_conan_evluation_report_path = "/Users/liuchengyue/Desktop/BinarySCA Platform/Code/sca_agents/bsca-expert-agent-api/tmp/evaluation_reports/Conan/binary_ai/evaluation_report_converted.json"
+    Conan_evluation_report_path = "/Users/liuchengyue/Desktop/BinarySCA Platform/Code/sca_agents/bsca-expert-agent-api/tmp/evaluation_reports/Conan/binary_ai/evaluation_report_2025-07-29-21-05-17.json"
+    converted_conan_evluation_report_path = "/Users/liuchengyue/Desktop/BinarySCA Platform/Code/sca_agents/bsca-expert-agent-api/tmp/evaluation_reports/Conan/binary_ai/evaluation_report_2025-07-29-21-05-17_converted.json"
 
 
     with open(Conan_evluation_report_path, "r", encoding='utf-8') as f:
         old_results = json.load(f)
 
     converted_results = []
+    smartBinary_status_statistic = {}
+    smartBeat_status_statistic = {}
     for result in old_results:
+        status = result.get('status')
+        smartBinary_status = result.get('smartBinary')
+        if status not in smartBinary_status_statistic:
+            smartBinary_status_statistic[status] = 0
+        smartBinary_status_statistic[status] += 1
+        smartBeat_status = result.get('smartBeat')
+        if smartBeat_status not in smartBeat_status_statistic:
+            smartBeat_status_statistic[smartBeat_status] = 0
+        smartBeat_status_statistic[smartBeat_status] += 1
+
         test_case = result['test_case']
         binary_name = os.path.basename(test_case)
         sha256 = result['sha256']
@@ -286,6 +298,10 @@ def convert_result():
                 ) for comp in components
             ]
         ))
+
+    print(f"status statistics")
+    print(f"smartBinary status statistics: {smartBinary_status_statistic}")
+    print(f"smartBeat status statistics: {smartBeat_status_statistic}")
     data = [r.customer_serialize() for r in converted_results]
     with open(converted_conan_evluation_report_path, "w", encoding='utf-8') as f:
         json.dump(data, f, indent=4, ensure_ascii=False)
