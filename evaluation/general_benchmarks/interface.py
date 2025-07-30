@@ -365,6 +365,10 @@ class EvaluationConfig(Serializable):
     input_token_price_per_1M: float = 2.0  # Price per million input tokens
     output_token_price_per_1M: float = 8.0
 
+    # workflow settings
+    feature_matching_top_n:int = 3
+    use_agent:bool = True
+
     # process
     concurrency: int = 3
 

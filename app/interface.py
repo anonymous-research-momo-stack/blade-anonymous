@@ -140,6 +140,9 @@ class AnalysisConfig(Serializable):
     feature_matching_min_match_feature_num: int = 5
     feature_matching_return_top_n: int = 3
 
+    # 是否使用agent
+    use_agent:bool = True
+
     # 二进制信息分析
     enable_bin_info_analysis: bool = True
     enable_bin_info_analysis_web_search: bool = False

@@ -23,10 +23,12 @@ class Evaluator:
         self.benchmark = Benchmark.load_from_json_file(config.benchmark_file)
 
         self.workflow = DetectionWorkflow(
-            feature_matching_return_top_n=5,
+            feature_matching_return_top_n=config.feature_matching_top_n,
+            use_agent=config.use_agent,
         )
         self.batch_detection_workflow = BatchDetectionWorkflow(concurrency=config.concurrency,
-                                                               feature_matching_return_top_n=5)
+                                                               feature_matching_return_top_n=config.feature_matching_top_n,
+                                                               use_agent=config.use_agent,)
 
         self.evaluation_results = []
 
@@ -229,6 +231,35 @@ class Evaluator:
 
         # 预览评估指标
         print(effectiveness)
+
+    def analyze_feature_matching(self, evaluation_result_path, effectiveness_analysis_result_path:str = None):
+        """
+        1. top_n 设置为 1到100 之间的时候，召回率和准确率分别是多少？设计为几的时候效果最好？画个图？
+        2. 哪几个库经常被误报出来？
+        3. 哪几个库在top 100 都测试不出来？
+
+        """
+
+        # 加载结果
+        with open(evaluation_result_path, "r", encoding="utf-8") as f:
+            data = json.load(f)
+
+        # 第一个问题：
+        effectiveness_dict = {}
+        evaluation_results = [AnalysisResult.init_from_dict(result) for result in data]
+        for top_n in range(1, 101, 1):
+            # 检查正确性
+            result_check_lst = self.check_result(evaluation_results)
+
+            # 计算评估指标
+            effectiveness = self._cal_effectiveness(result_check_lst)
+
+            # 预览评估指标
+            print(effectiveness)
+            effectiveness_dict[top_n] = effectiveness.customer_serialize()
+        with open(effectiveness_analysis_result_path, "w", encoding="utf-8") as f:
+            json.dump(effectiveness_dict, f, indent=4, ensure_ascii=False)
+
 
     def _cal_effectiveness(self, result_check_lst):
         # TP, FP, FN,
@@ -458,6 +489,40 @@ def analyze_baseline():
     binary_result_path = "/Users/liuchengyue/Desktop/BinarySCA Platform/Code/sca_agents/bsca-expert-agent-api/tmp/evaluation_reports/Conan/binary_ai/evaluation_report_2025-07-30-12-54-29_converted.json"
     evaluator.analyze_baseline_result(binary_result_path)
 
+def run_feature_matching_only():
+    # Conan Binaries
+    Conan_benchmark_meta = "/Users/liuchengyue/Desktop/BinarySCA Platform/Code/sca_agents/bsca-expert-agent-api/evaluation/general_benchmarks/benchmark_meta/conan_library_benchmark.json"
+    Conan_test_case_dir = "/Users/liuchengyue/Desktop/BinarySCA Platform/Data/Test_Cases/TPL_Test_Cases/conan_test_cases"
+    Conan_evluation_report_path = "/Users/liuchengyue/Desktop/BinarySCA Platform/Code/sca_agents/bsca-expert-agent-api/tmp/evaluation_reports/Conan/feture_matching/evaluation_report.json"
+
+
+    benchmark_meta = Conan_benchmark_meta
+    benchmark_tc_dir = Conan_test_case_dir
+    evaluation_report_save_path = Conan_evluation_report_path
+
+    # 评估配置
+    config = EvaluationConfig(
+        benchmark_file=benchmark_meta,
+        test_case_dir=benchmark_tc_dir,
+        feature_matching_top_n=10,
+        use_agent=False,
+        concurrency=10,
+        # slice_start=0,
+        # slice_end=30,
+    )
+
+    # 初始化评估器
+    evaluator = Evaluator(config)
+
+    # 评估
+    evaluator.run_benchmark(analyze_context=False)
+    evaluator.report.dump(evaluation_report_save_path)
+
+    # 分析结果
+    effectiveness_analysis_result_path = "/Users/liuchengyue/Desktop/BinarySCA Platform/Code/sca_agents/bsca-expert-agent-api/tmp/evaluation_reports/Conan/feture_matching/effectiveness_analysis_result.json"
+    evaluator.analyze_feature_matching(evaluation_report_save_path,effectiveness_analysis_result_path)
+
+
 def main():
     # 41 个常见组件
     Famous_TPL_41_benchmark_meta = "/Users/liuchengyue/Desktop/BinarySCA Platform/Code/sca_agents/bsca-expert-agent-api/evaluation/benchmark_meta/FTPL50.json"
@@ -488,6 +553,8 @@ def main():
     config = EvaluationConfig(
         benchmark_file=benchmark_meta,
         test_case_dir=benchmark_tc_dir,
+        feature_matching_top_n=3,
+        # use_agent=False,
         concurrency=30,
         slice_start=0,
         slice_end=30,
@@ -511,4 +578,5 @@ def main():
 
 if __name__ == '__main__':
     # main()
-    analyze_baseline()
+    run_feature_matching_only()
+    # analyze_baseline()

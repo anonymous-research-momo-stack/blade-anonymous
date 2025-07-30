@@ -28,6 +28,7 @@ class DetectionWorkflow:
                  feature_matching_max_string_length: int = 500,
                  feature_matching_min_match_feature_num: int = 5,
                  feature_matching_return_top_n: int = 3,
+                 use_agent= True,
                  enable_bin_info_analysis: bool = True,
                  enable_bin_info_analysis_web_search: bool = False,
                  enable_bin_info_analysis_knowledge_base: bool = False,
@@ -51,6 +52,7 @@ class DetectionWorkflow:
             feature_matching_max_string_length=feature_matching_max_string_length,
             feature_matching_min_match_feature_num=feature_matching_min_match_feature_num,
             feature_matching_return_top_n=feature_matching_return_top_n,
+            use_agent=use_agent,
             enable_bin_info_analysis=enable_bin_info_analysis,
             enable_bin_info_analysis_web_search=enable_bin_info_analysis_web_search,
             enable_bin_info_analysis_knowledge_base=enable_bin_info_analysis_knowledge_base,
@@ -82,28 +84,28 @@ class DetectionWorkflow:
             feature_min_length=feature_matching_min_string_length, # 有效字符串的最小长度
             feature_max_length=feature_matching_max_string_length # 有效字符串的最大长度
         )
+        if use_agent:
+            # 二进制信息查找器
+            if self.enable_bin_info_analysis:
+                self.bin_info_finder = BinaryInformationFinder(
+                    enable_web_search=enable_bin_info_analysis_web_search, # 是否启用网络搜索
+                    enable_knowledge_base=enable_bin_info_analysis_knowledge_base, # 是否启用知识库
+                    knowledge_json_path=settings.KNOWLEDGE_FILE_PATH # 知识库文件路径
+                )
 
-        # 二进制信息查找器
-        if self.enable_bin_info_analysis:
-            self.bin_info_finder = BinaryInformationFinder(
-                enable_web_search=enable_bin_info_analysis_web_search, # 是否启用网络搜索
-                enable_knowledge_base=enable_bin_info_analysis_knowledge_base, # 是否启用知识库
-                knowledge_json_path=settings.KNOWLEDGE_FILE_PATH # 知识库文件路径
+            # TPL分析器
+            self.tpl_analyzer = TPLAnalyzer(
+                enable_web_search=enable_tpl_analysis_web_search,
+                enable_knowledge_base=enable_tpl_analysis_knowledge_base,
+                knowledge_json_path=settings.KNOWLEDGE_FILE_PATH
             )
 
-        # TPL分析器
-        self.tpl_analyzer = TPLAnalyzer(
-            enable_web_search=enable_tpl_analysis_web_search,
-            enable_knowledge_base=enable_tpl_analysis_knowledge_base,
-            knowledge_json_path=settings.KNOWLEDGE_FILE_PATH
-        )
-
-        # 库验证器
-        self.library_validator = LibraryValidator(
-            enable_web_search=enable_library_validation_web_search,
-            enable_knowledge_base=enable_library_validation_knowledge_base,
-            enable_db_verification=enable_library_validation_db_verification
-        )
+            # 库验证器
+            self.library_validator = LibraryValidator(
+                enable_web_search=enable_library_validation_web_search,
+                enable_knowledge_base=enable_library_validation_knowledge_base,
+                enable_db_verification=enable_library_validation_db_verification
+            )
 
         self.analysis_data = AnalysisData(config=self.analysis_config)  # 分析数据对象，用于存储分析结果
 
@@ -135,17 +137,21 @@ class DetectionWorkflow:
         self.analysis_data.feature_matching_results = feature_matching_libraries
 
         # 3. agent analysis
-        validation_start_at = time.perf_counter()
-        validated_libraries = self._run_agent_analysis(target_binary, feature_matching_libraries, software_context)
-        self.analysis_data.durations["agent_analysis"] = time.perf_counter() - validation_start_at
-        self.analysis_data.all_candidate_libraries= validated_libraries
+        if self.analysis_config.use_agent:
+            validation_start_at = time.perf_counter()
+            validated_libraries = self._run_agent_analysis(target_binary, feature_matching_libraries, software_context)
+            self.analysis_data.durations["agent_analysis"] = time.perf_counter() - validation_start_at
+            self.analysis_data.all_candidate_libraries= validated_libraries
+            detected_libraries = [lib for lib in validated_libraries if lib.validation_passed]
+        else:
+            detected_libraries = feature_matching_libraries
 
         # 4. Return Results
         result = AnalysisResult(
             binary_name=target_binary.binary_name,
             binary_sha256=target_binary.hash_sha256,
             binary_path=file_path,
-            detected_libraries=[lib for lib in validated_libraries if lib.validation_passed],
+            detected_libraries=detected_libraries,
             analysis_data=self.analysis_data
         )
         total_duration = time.perf_counter() - all_start_at
