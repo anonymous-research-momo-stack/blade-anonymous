@@ -115,14 +115,23 @@ class Evaluator:
             fn_library_names = [lib.name for lib in undetected_gt_libraries]
 
             # 生成分析结果检查对象
+            has_fn = len(fn_library_names) > 0  # 是否有漏报
+            has_fp = len(fp_library_names) > 0
             analysis_result_check = AnalysisResultCheck(
                 binary_name=result.binary_name,
                 binary_path=result.binary_path,
                 binary_hash=result.binary_sha256,
                 ground_truth_lib_names=[lib.name for lib in ground_truth_reused_libraries],  # Ground Truth 库名称
                 detected_lib_names=[lib.name for lib in result.detected_libraries],  # 检测到的库名称
-                hs_fn=len(fn_library_names) > 0,  # 是否有漏报
-                hs_fp=len(fp_library_names) > 0,  # 是否有误报
+                result_count=len(result.detected_libraries),
+                tp_count=len(tp_library_names),  # 检测到的真正库数量
+                fp_count=len(fp_library_names),  # 检测到的误报库数量
+                fn_count=len(fn_library_names),  # 漏报的库数量
+                perfect= not(has_fn or has_fp),  # 是否完美
+                hs_fn=has_fn,  # 是否有漏报
+                hs_fp=has_fp,  # 是否有误报
+                has_multi_results= len(result.detected_libraries) > 1,  # 是否有多个检测结果
+                no_results=len(result.detected_libraries)==0,
                 tp_lib_names=tp_library_names,  # 真正检测到的库名称
                 fp_lib_names=fp_library_names,  # 误报的库名称
                 fn_lib_names=fn_library_names,  # 漏报的库名称
@@ -198,7 +207,10 @@ class Evaluator:
 
         return results_check_lst, rq_data
 
-    def analyze_baseline_result(self, evaluation_result_path):
+    def analyze_baseline_result(self, evaluation_result_path, result_checks_save_path:str = None):
+        if not result_checks_save_path:
+            result_checks_save_path = evaluation_result_path[:-5] + '_checks.json'
+
         # 加载结果
         with open(evaluation_result_path, "r", encoding="utf-8") as f:
             data = json.load(f)
@@ -207,6 +219,10 @@ class Evaluator:
 
         # 检查正确性
         result_check_lst = self.check_result(evaluation_results)
+
+        with open(result_checks_save_path, "w", encoding="utf-8") as f:
+            data = [check.customer_serialize() for check in result_check_lst]
+            json.dump(data, f, indent=4, ensure_ascii=False)
 
         # 计算评估指标
         effectiveness = self._cal_effectiveness(result_check_lst)
@@ -414,30 +430,14 @@ class Evaluator:
         return cost_data
 
 def analyze_baseline():
-    # 41 个常见组件
-    Famous_TPL_41_benchmark_meta = "/Users/liuchengyue/Desktop/BinarySCA Platform/Code/sca_agents/bsca-expert-agent-api/evaluation/benchmark_meta/FTPL50.json"
-    Famous_TPL_41_test_case_dir = "/Users/liuchengyue/Desktop/BinarySCA Platform/Data/Test_Cases/TPL_Test_Cases/Benchmarks/FTPL100/decompressed_deb"
-    Famous_TPL_41_evluation_report_path = "/Users/liuchengyue/Desktop/BinarySCA Platform/Code/sca_agents/bsca-expert-agent-api/tmp/evaluation_reports/FTPL_41/evaluation_report.json"
-
-    # 车载系统
-    CAR_150_benchmark_meta = "/Users/liuchengyue/Desktop/BinarySCA Platform/Code/sca_agents/bsca-expert-agent-api/evaluation/benchmark_meta/CAR150.json"
-    CAR_150_test_case_dir = "/Users/liuchengyue/Desktop/BinarySCA Platform/Data/Test_Cases/TPL_Test_Cases/BYD"
-    CAR_150_evluation_report_path = "/Users/liuchengyue/Desktop/BinarySCA Platform/Code/sca_agents/bsca-expert-agent-api/tmp/evaluation_reports/CAR_150/evaluation_report.json"
-
-    # Debian Binaries
-    Debian_benchmark_meta = "/Users/liuchengyue/Desktop/BinarySCA Platform/Code/sca_agents/bsca-expert-agent-api/evaluation/benchmark_meta/DDE2000.json"
-    Debian_test_case_dir = "/Users/liuchengyue/Desktop/BinarySCA Platform/Data/Test_Cases/TPL_Test_Cases/Benchmarks/DDE2000"
-    Debian_evluation_report_path = "/Users/liuchengyue/Desktop/BinarySCA Platform/Code/sca_agents/bsca-expert-agent-api/tmp/evaluation_reports/DDE_2000/evaluation_report.json"
-
     # Conan Binaries
     Conan_benchmark_meta = "/Users/liuchengyue/Desktop/BinarySCA Platform/Code/sca_agents/bsca-expert-agent-api/evaluation/general_benchmarks/benchmark_meta/conan_library_benchmark.json"
     Conan_test_case_dir = "/Users/liuchengyue/Desktop/BinarySCA Platform/Data/Test_Cases/TPL_Test_Cases/conan_test_cases"
-    Conan_evluation_report_path = "/Users/liuchengyue/Desktop/BinarySCA Platform/Code/sca_agents/bsca-expert-agent-api/tmp/evaluation_reports/Conan/evaluation_report.json"
 
 
     benchmark_meta = Conan_benchmark_meta
     benchmark_tc_dir = Conan_test_case_dir
-    evaluation_report_save_path = Conan_evluation_report_path
+
 
     # 评估配置
     config = EvaluationConfig(
@@ -454,7 +454,8 @@ def analyze_baseline():
     # 经过格式转换的结果
     # ========================================
     # binary ai
-    binary_result_path = "/Users/liuchengyue/Desktop/BinarySCA Platform/Code/sca_agents/bsca-expert-agent-api/tmp/evaluation_reports/Conan/binary_ai/evaluation_report_2025-07-29-21-05-17_converted.json"
+    binary_result_path = "/Users/liuchengyue/Desktop/BinarySCA Platform/Code/sca_agents/bsca-expert-agent-api/tmp/evaluation_reports/Conan/binary_ai/evaluation_report_2025-07-30-10-03-54_converted.json"
+    binary_result_path = "/Users/liuchengyue/Desktop/BinarySCA Platform/Code/sca_agents/bsca-expert-agent-api/tmp/evaluation_reports/Conan/binary_ai/evaluation_report_2025-07-30-12-54-29_converted.json"
     evaluator.analyze_baseline_result(binary_result_path)
 
 def main():

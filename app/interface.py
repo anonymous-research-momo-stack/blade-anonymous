@@ -124,6 +124,7 @@ class Library(Serializable):
     redundancy_reasoning: str = ""
 
     validation_passed: bool = True
+    src_relative_path:str = ''
 
 
 

@@ -260,8 +260,8 @@ def convert_result():
 
     """
 
-    Conan_evluation_report_path = "/Users/liuchengyue/Desktop/BinarySCA Platform/Code/sca_agents/bsca-expert-agent-api/tmp/evaluation_reports/Conan/binary_ai/evaluation_report_2025-07-29-21-05-17.json"
-    converted_conan_evluation_report_path = "/Users/liuchengyue/Desktop/BinarySCA Platform/Code/sca_agents/bsca-expert-agent-api/tmp/evaluation_reports/Conan/binary_ai/evaluation_report_2025-07-29-21-05-17_converted.json"
+    Conan_evluation_report_path = "/Users/liuchengyue/Desktop/BinarySCA Platform/Code/sca_agents/bsca-expert-agent-api/tmp/evaluation_reports/Conan/binary_ai/evaluation_report_2025-07-30-12-54-29.json"
+    converted_conan_evluation_report_path = "/Users/liuchengyue/Desktop/BinarySCA Platform/Code/sca_agents/bsca-expert-agent-api/tmp/evaluation_reports/Conan/binary_ai/evaluation_report_2025-07-30-12-54-29_converted.json"
 
 
     with open(Conan_evluation_report_path, "r", encoding='utf-8') as f:
@@ -272,14 +272,15 @@ def convert_result():
     smartBeat_status_statistic = {}
     for result in old_results:
         status = result.get('status')
-        smartBinary_status = result.get('smartBinary')
-        if status not in smartBinary_status_statistic:
-            smartBinary_status_statistic[status] = 0
-        smartBinary_status_statistic[status] += 1
-        smartBeat_status = result.get('smartBeat')
-        if smartBeat_status not in smartBeat_status_statistic:
-            smartBeat_status_statistic[smartBeat_status] = 0
-        smartBeat_status_statistic[smartBeat_status] += 1
+        if status is not None:
+            smartBinary_status = status.get('smartBinary')
+            if smartBinary_status not in smartBinary_status_statistic:
+                smartBinary_status_statistic[smartBinary_status] = 0
+            smartBinary_status_statistic[smartBinary_status] += 1
+            smartBeat_status = status.get('smartBeat')
+            if smartBeat_status not in smartBeat_status_statistic:
+                smartBeat_status_statistic[smartBeat_status] = 0
+            smartBeat_status_statistic[smartBeat_status] += 1
 
         test_case = result['test_case']
         binary_name = os.path.basename(test_case)
@@ -307,5 +308,5 @@ def convert_result():
         json.dump(data, f, indent=4, ensure_ascii=False)
 
 if __name__ == '__main__':
-    main()
-    # convert_result()
+    # main()
+    convert_result()

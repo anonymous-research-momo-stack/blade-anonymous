@@ -244,11 +244,18 @@ class AnalysisResultCheck(Serializable):
     binary_path: str = None  # Path of the binary file, relative to the test case directory
     binary_hash: str = None  # Hash of the binary file, used for verification
 
-    ground_truth_lib_names: List[str] = dataclasses.field(default_factory=list)  # Ground Truth Libraries
-    detected_lib_names: List[str] = dataclasses.field(default_factory=list)  # Detected Libraries
-
+    perfect:bool = False
+    has_multi_results:bool = False
+    no_results:bool = False  # No results detected, if True, means no libraries are detected in this binary
     hs_fn: bool = False  # Has False Negative, if True, means there are libraries in ground truth that are not detected
     hs_fp: bool = False  # Has False Positive, if True, means there are libraries detected that are not in ground truth
+    result_count:int = 0  # Number of results in this check
+    tp_count:int = 0  # True Positive count
+    fp_count:int = 0  # False Positive count
+    fn_count:int = 0  # False Negative count
+
+    ground_truth_lib_names: List[str] = dataclasses.field(default_factory=list)  # Ground Truth Libraries
+    detected_lib_names: List[str] = dataclasses.field(default_factory=list)  # Detected Libraries
 
     tp_lib_names: List[str] = dataclasses.field(default_factory=list)  # True Positive Libraries
     fp_lib_names: List[str] = dataclasses.field(default_factory=list)  # False Positive Libraries
