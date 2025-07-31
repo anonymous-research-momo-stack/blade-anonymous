@@ -624,21 +624,21 @@ def run_feature_matching_only():
         use_agent=False,
         concurrency=10,
         slice_start=0,
-        # slice_end=100,
+        slice_end=30,
     )
 
     # 初始化评估器
     evaluator = Evaluator(config)
 
     # 评估
-    # evaluator.run_benchmark(analyze_context=False)
-    # evaluator.report.dump(evaluation_report_save_path)
+    evaluator.run_benchmark(analyze_context=False)
+    evaluator.report.dump(evaluation_report_save_path)
 
     # 分析结果
-    # evaluator.analyze_feature_matching(evaluation_report_save_path,effectiveness_analysis_result_path,top_n=top_n)
+    evaluator.analyze_feature_matching(evaluation_report_save_path,effectiveness_analysis_result_path,top_n=top_n)
 
     # 绘图
-    evaluator.plot_feature_matching_top_n_analysis(effectiveness_analysis_result_path)
+    # evaluator.plot_feature_matching_top_n_analysis(effectiveness_analysis_result_path)
 
 def main():
     # 41 个常见组件
