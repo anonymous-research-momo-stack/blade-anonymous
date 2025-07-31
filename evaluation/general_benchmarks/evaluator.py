@@ -520,7 +520,7 @@ def run_feature_matching_only():
         use_agent=False,
         concurrency=10,
         slice_start=0,
-        slice_end=100,
+        # slice_end=100,
     )
 
     # 初始化评估器
@@ -569,7 +569,7 @@ def main():
         test_case_dir=benchmark_tc_dir,
         feature_matching_top_n=3,
         # use_agent=False,
-        concurrency=30,
+        concurrency=10,
         slice_start=0,
         slice_end=30,
     )
