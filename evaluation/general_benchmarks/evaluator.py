@@ -1,20 +1,110 @@
 import copy
 import json
 import os.path
-import subprocess
 import time
 from typing import List
 
+import matplotlib.pyplot as plt
 from loguru import logger
-from sqlalchemy.testing.util import total_size
+from matplotlib import rcParams
 
-from app.interface import AnalysisResult, AnalysisData
+from app.interface import AnalysisResult
 from app.tpl_detection.batch_detection_workflow import BatchDetectionWorkflow
 from app.tpl_detection.detection_workflow import DetectionWorkflow
 from evaluation.general_benchmarks.interface import EvaluationConfig, Benchmark, EvaluationReport, AnalysisResultCheck, \
     ResearchQuestionData, EffectivenessData, EfficiencyData, AblationData, CostData
 from evaluation.general_benchmarks.visualization import generate_analysis_report
 
+import matplotlib.pyplot as plt
+import numpy as np
+from matplotlib import rcParams
+from scipy.interpolate import make_interp_spline
+
+
+def plot_effectiveness_analysis(effectiveness_dict):
+    """
+    绘制特征匹配效果分析图表
+
+    Parameters:
+    effectiveness_dict: dict, 格式为 {top_n: {"precision": float, "recall": float, "f1_score": float}}
+    """
+
+    # 设置学术论文风格
+    plt.style.use('seaborn-v0_8-whitegrid')  # 使用学术风格
+    rcParams['font.family'] = 'serif'
+    rcParams['font.size'] = 12
+    rcParams['axes.labelsize'] = 14
+    rcParams['axes.titlesize'] = 16
+    rcParams['xtick.labelsize'] = 12
+    rcParams['ytick.labelsize'] = 12
+    rcParams['legend.fontsize'] = 12
+
+    # 提取数据并转换键为整数
+    top_n_values = sorted([int(k) for k in effectiveness_dict.keys()])
+    precision_values = [effectiveness_dict[str(top_n)]['precision'] for top_n in top_n_values]
+    recall_values = [effectiveness_dict[str(top_n)]['recall'] for top_n in top_n_values]
+    f1_values = [effectiveness_dict[str(top_n)]['f1_score'] for top_n in top_n_values]
+
+    # 创建图表
+    fig, ax = plt.subplots(figsize=(10, 6), dpi=300)
+
+    # 绘制三条线，使用插值让线条更加流畅
+    from scipy.interpolate import make_interp_spline
+
+    # 为了让线条更流畅，创建更密集的x点进行插值
+    x_smooth = np.linspace(min(top_n_values), max(top_n_values), 300)
+
+    # 使用样条插值让线条更流畅
+    precision_smooth = make_interp_spline(top_n_values, precision_values, k=3)(x_smooth)
+    recall_smooth = make_interp_spline(top_n_values, recall_values, k=3)(x_smooth)
+    f1_smooth = make_interp_spline(top_n_values, f1_values, k=3)(x_smooth)
+
+    # 绘制流畅的线条
+    ax.plot(x_smooth, precision_smooth, 'b-', linewidth=2.5, label='Precision', alpha=0.8)
+    ax.plot(x_smooth, recall_smooth, 'r-', linewidth=2.5, label='Recall', alpha=0.8)
+    ax.plot(x_smooth, f1_smooth, 'g-', linewidth=2.5, label='F1-Score', alpha=0.8)
+
+    # 在原始数据点上添加小标记点（可选，让数据点更明显）
+    ax.scatter(top_n_values, precision_values, color='blue', s=15, alpha=0.6, zorder=5)
+    ax.scatter(top_n_values, recall_values, color='red', s=15, alpha=0.6, zorder=5)
+    ax.scatter(top_n_values, f1_values, color='green', s=15, alpha=0.6, zorder=5)
+
+    # 设置坐标轴
+    ax.set_xlabel('Top-N Results', fontweight='bold')
+    ax.set_ylabel('Performance (%)', fontweight='bold')
+
+    # 设置坐标轴范围和刻度
+    ax.set_xlim(1, max(top_n_values))
+    ax.set_ylim(0, 100)
+
+    # 设置x轴刻度，确保显示关键点
+    x_ticks = list(range(1, max(top_n_values) + 1, 10))  # 每10个显示一个刻度
+    if max(top_n_values) not in x_ticks:
+        x_ticks.append(max(top_n_values))
+    ax.set_xticks(x_ticks)
+
+    # 设置y轴刻度
+    ax.set_yticks(range(0, 101, 10))
+
+    # 添加网格
+    ax.grid(True, alpha=0.3, linestyle='-', linewidth=0.5)
+    ax.set_axisbelow(True)  # 将网格放在数据线后面
+
+    # 添加图例
+    ax.legend(loc='best', frameon=True, fancybox=True, shadow=True)
+
+    # 优化布局
+    plt.tight_layout()
+
+    # 显示图表
+    plt.show()
+
+    # 如果需要保存图表，可以取消注释以下行
+    # plt.savefig('effectiveness_analysis.pdf', dpi=300, bbox_inches='tight')
+    # plt.savefig('effectiveness_analysis.png', dpi=300, bbox_inches='tight')
+
+    print("建议的图表标题：Performance Metrics vs Top-N Results in Binary Third-party Component Detection")
+    print("图表已生成，如需保存请取消注释相应代码行")
 
 class Evaluator:
     def __init__(self, config: EvaluationConfig):
@@ -252,7 +342,7 @@ class Evaluator:
         # 只复制一次
         top_n_evaluation_results = copy.deepcopy(evaluation_results)
 
-        # 从大到小遍历，避免重复复制
+        # 从大到小遍历，计算effectiveness
         for top_n in range(top_n, 0, -1):
             # 截取每个结果的前top_n个检测结果
             for result in top_n_evaluation_results:
@@ -271,6 +361,17 @@ class Evaluator:
         with open(effectiveness_analysis_result_path, "w", encoding="utf-8") as f:
             json.dump(effectiveness_dict, f, indent=4, ensure_ascii=False)
 
+    def plot_feature_matching_top_n_analysis(self, effectiveness_analysis_result_path):
+        """
+        绘制特征匹配效果分析图表
+        :param effectiveness_analysis_result_path: 效果分析结果文件路径
+        """
+        # 加载效果分析结果
+        with open(effectiveness_analysis_result_path, "r", encoding="utf-8") as f:
+            effectiveness_dict = json.load(f)
+
+        # 绘制图表
+        plot_effectiveness_analysis(effectiveness_dict)
 
     def _cal_effectiveness(self, result_check_lst):
         # TP, FP, FN
@@ -501,15 +602,18 @@ def analyze_baseline():
     evaluator.analyze_baseline_result(binary_result_path)
 
 def run_feature_matching_only():
-    # Conan Binaries
+    # 分析输入Conan Binaries
     Conan_benchmark_meta = "/Users/liuchengyue/Desktop/BinarySCA Platform/Code/sca_agents/bsca-expert-agent-api/evaluation/general_benchmarks/benchmark_meta/conan_library_benchmark.json"
     Conan_test_case_dir = "/Users/liuchengyue/Desktop/BinarySCA Platform/Data/Test_Cases/TPL_Test_Cases/conan_test_cases"
     Conan_evluation_report_path = "/Users/liuchengyue/Desktop/BinarySCA Platform/Code/sca_agents/bsca-expert-agent-api/tmp/evaluation_reports/Conan/feture_matching/evaluation_report.json"
 
-
+    # 评估输入
     benchmark_meta = Conan_benchmark_meta
     benchmark_tc_dir = Conan_test_case_dir
+    # 评估结果
     evaluation_report_save_path = Conan_evluation_report_path
+    # 评估结果的分析结果
+    effectiveness_analysis_result_path = "/Users/liuchengyue/Desktop/BinarySCA Platform/Code/sca_agents/bsca-expert-agent-api/tmp/evaluation_reports/Conan/feture_matching/effectiveness_analysis_result.json"
 
     # 评估配置
     top_n = 50
@@ -527,15 +631,14 @@ def run_feature_matching_only():
     evaluator = Evaluator(config)
 
     # 评估
-    evaluator.run_benchmark(analyze_context=False)
-    evaluator.report.dump(evaluation_report_save_path)
+    # evaluator.run_benchmark(analyze_context=False)
+    # evaluator.report.dump(evaluation_report_save_path)
 
     # 分析结果
-    effectiveness_analysis_result_path = "/Users/liuchengyue/Desktop/BinarySCA Platform/Code/sca_agents/bsca-expert-agent-api/tmp/evaluation_reports/Conan/feture_matching/effectiveness_analysis_result.json"
-    evaluator.analyze_feature_matching(evaluation_report_save_path,
-                                       effectiveness_analysis_result_path,
-                                       top_n=top_n)
+    # evaluator.analyze_feature_matching(evaluation_report_save_path,effectiveness_analysis_result_path,top_n=top_n)
 
+    # 绘图
+    evaluator.plot_feature_matching_top_n_analysis(effectiveness_analysis_result_path)
 
 def main():
     # 41 个常见组件

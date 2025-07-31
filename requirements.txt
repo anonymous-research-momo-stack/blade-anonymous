@@ -24,3 +24,4 @@ duckduckgo-search
 conan
 schedule
 binaryai
+scipy
