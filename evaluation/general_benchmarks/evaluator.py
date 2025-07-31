@@ -232,7 +232,7 @@ class Evaluator:
         # 预览评估指标
         print(effectiveness)
 
-    def analyze_feature_matching(self, evaluation_result_path, effectiveness_analysis_result_path:str = None):
+    def analyze_feature_matching(self, evaluation_result_path, effectiveness_analysis_result_path:str = None, top_n=10):
         """
         1. top_n 设置为 1到100 之间的时候，召回率和准确率分别是多少？设计为几的时候效果最好？画个图？
         2. 哪几个库经常被误报出来？
@@ -253,7 +253,7 @@ class Evaluator:
         top_n_evaluation_results = copy.deepcopy(evaluation_results)
 
         # 从大到小遍历，避免重复复制
-        for top_n in range(10, 0, -1):
+        for top_n in range(top_n, 0, -1):
             # 截取每个结果的前top_n个检测结果
             for result in top_n_evaluation_results:
                 result.detected_libraries = result.detected_libraries[:top_n]
@@ -512,10 +512,11 @@ def run_feature_matching_only():
     evaluation_report_save_path = Conan_evluation_report_path
 
     # 评估配置
+    top_n = 50
     config = EvaluationConfig(
         benchmark_file=benchmark_meta,
         test_case_dir=benchmark_tc_dir,
-        feature_matching_top_n=10,
+        feature_matching_top_n=top_n,
         use_agent=False,
         concurrency=10,
         slice_start=0,
@@ -531,7 +532,9 @@ def run_feature_matching_only():
 
     # 分析结果
     effectiveness_analysis_result_path = "/Users/liuchengyue/Desktop/BinarySCA Platform/Code/sca_agents/bsca-expert-agent-api/tmp/evaluation_reports/Conan/feture_matching/effectiveness_analysis_result.json"
-    evaluator.analyze_feature_matching(evaluation_report_save_path,effectiveness_analysis_result_path)
+    evaluator.analyze_feature_matching(evaluation_report_save_path,
+                                       effectiveness_analysis_result_path,
+                                       top_n=top_n)
 
 
 def main():

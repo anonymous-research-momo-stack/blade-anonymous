@@ -67,16 +67,19 @@ def demo():
     imake = "/Users/liuchengyue/Desktop/BinarySCA Platform/Data/Test_Cases/TPL_Test_Cases/conan_test_cases/imake/1.0.9/imake_1.0.9_arm_64-gcc-release-shared/full_deploy/host/imake/1.0.9/Release/armv8/bin/imake"
     boost = "/Users/liuchengyue/Desktop/BinarySCA Platform/Data/Test_Cases/TPL_Test_Cases/conan_test_cases/cgal/6.0.1/cgal_6.0.1_x86_64-gcc-release-shared/full_deploy/host/boost/1.83.0/Release/x86_64/lib/libboost_system.so.1.83.0"
 
+    libnsimd_cpu = "/Users/liuchengyue/Desktop/BinarySCA Platform/Data/Test_Cases/TPL_Test_Cases/conan_test_cases/nsimd/3.0.1/nsimd_3.0.1_arm_64-gcc-release-shared/full_deploy/host/nsimd/3.0.1/Release/armv8/lib/libnsimd_cpu.so"
+
     # 分析工作流
     workflow = DetectionWorkflow(
         enable_bin_info_analysis_web_search=False,
         feature_matching_return_top_n=5,
-        debug_mode=False
+        debug_mode=False,
+        # use_agent=False
     )
 
 
     # 分析
-    result = workflow.run(boost)
+    result = workflow.run(libnsimd_cpu)
 
     # 结合上下文分析
     # context = workflow.analyze_context(root_path)

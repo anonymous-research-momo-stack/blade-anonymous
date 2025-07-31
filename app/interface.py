@@ -272,6 +272,7 @@ class AnalysisData(Serializable):
 @dataclass
 class SimpleResult(Serializable):
     target_binary_name: str = None
+    target_binary_size_kb:float = None
     target_binary_sha256: str = None
     target_binary_path: str = None
     detected_library_names: List[str] = dataclasses.field(default_factory=list)
@@ -308,6 +309,7 @@ class AnalysisResult(Serializable):
         """
         return SimpleResult(
             target_binary_name=self.binary_name,
+            target_binary_size_kb=self.analysis_data.target_binary.file_size_kb,
             target_binary_sha256=self.binary_sha256,
             target_binary_path=self.binary_path,
             detected_library_names=[lib.name for lib in self.detected_libraries]
