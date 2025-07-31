@@ -1,17 +1,16 @@
 import json
-from dataclasses import asdict, fields
-from dataclasses import dataclass, field
+from dataclasses import asdict, fields, dataclass, field
 from enum import Enum
-from typing import List, Dict
-from typing import Type, Any
+from typing import List, Dict, Type, Any
 
 from environs import Env
+import subprocess
+from tqdm import tqdm
 
-from find_not_included_tpls import benchmark
 
-env = Env()
-env.read_env(".env")
-
+# =====================
+# 数据结构定义
+# =====================
 @dataclass
 class Serializable:
     def customer_serialize(self) -> Dict[str, Any]:
@@ -26,7 +25,6 @@ class Serializable:
 
     @classmethod
     def init_from_dict(cls: Type['Serializable'], data: Dict[str, Any]) -> 'Serializable':
-
         init_args = {}
         for field in fields(cls):
             try:
@@ -45,16 +43,54 @@ class Serializable:
                 raise e
         return cls(**init_args)
 
-
-# vcpkg package info
-# @dataclass
-# class VcpkgPackageInfo(Serializable):
-#     """函数参数数据类"""
-#     file_path: str
-#     package_name: str
-#     homepage: str
+class ChangeType(Enum):
+    ADD = 'ADD'
+    UPDATE = 'UPDATE'
+    DELETE = 'DELETE'
 
 @dataclass
+class GitTag(Serializable):
+    commit_id: str  # git commit id
+    names: List[str]  # tag names, 可能有多个tag指向同一个commit
+    tag_datetime: str = None  # tag的ISO 8601格式时间字符串
+    commit_datetime: str = None  # commit的ISO 8601格式时间字符串
+
+@dataclass
+class SourceCode(Serializable):
+    version_source: str  # tag, branch, commit, or other version source
+    commit_id: str
+    original_version_strs: List[str]
+    semantic_version_str: str
+    commit_datetime: str = None  # commit的ISO 8601格式时间字符串
+    tag_datetime: str = None  # tag的ISO 8601格式时间字符串
+    change_type: ChangeType = None
+
+@dataclass
+class LibraryStatus(Serializable):
+    is_src_downloaded: bool = False  # 是否成功下载了源代码
+    download_failed_reason: str = None # 下载失败的原因
+    is_version_analyzed: bool = False  # 是否成功分析了版本信息
+    no_version_reason: str = None  # 没有版本信息的原因
+
+@dataclass
+class Library(Serializable):
+    name: str
+    source: List[str]  # 收集来源，vcpkg
+    vendor: str
+    collected_by: str
+    homepage: str = None # 主页，来源上提供的原始主页
+    repo_link: str = None # github repo link e.g.: https://github.com/FFmpeg/FFmpeg
+    repo_link_human_reviewed: bool = False  #是否人工确认过 repo_link
+    alias: str = None# 别名
+    source_codes: List[SourceCode] = field(default_factory=list)  # 源代码列表
+    change_type: ChangeType = None  # meta 变更类型，ADD, UPDATE, DELETE
+    status: LibraryStatus = field(default_factory=lambda: LibraryStatus())
+    tags: str = None
+
+    def get_key(self) -> str:
+        """获取库的唯一标识符"""
+        return f"{self.name}-{self.repo_link}"
+
 class LibrarySource(Enum):
     awesome_cpp = 'awesome_cpp'
     awesome_modern_cpp = 'awesome_modern_cpp'
@@ -72,101 +108,88 @@ class LibrarySource(Enum):
     manual_label = 'manual_label'
     debian = 'debian'
 
-
-
-class ChangeType(Enum):
-    ADD = 'ADD'
-    UPDATE = 'UPDATE'
-    DELETE = 'DELETE'
-
-
-@dataclass
-class GitTag(Serializable):
-    commit_id: str  # git commit id
-    names: List[str]  # tag names, 可能有多个tag指向同一个commit
-    tag_datetime: str = None  # tag的ISO 8601格式时间字符串
-    commit_datetime: str = None  # commit的ISO 8601格式时间字符串
-
-
-@dataclass
-class SourceCode(Serializable):
-    """
-    # 字符串转datetime对象
-    from datetime import datetime
-    dt = datetime.fromisoformat("2016-11-11T06:26:34+00:00")
-
-    # datetime对象转字符串
-    iso_str = dt.isoformat()
-
-    # 转Unix时间戳
-    timestamp = dt.timestamp()
-    """
-    version_source: str  # tag, branch, commit, or other version source
-    commit_id: str
-    original_version_strs: List[str]
-    semantic_version_str: str
-
-    commit_datetime: str = None  # commit的ISO 8601格式时间字符串
-    tag_datetime: str = None  # tag的ISO 8601格式时间字符串
-    change_type: ChangeType = None
-
-
-@dataclass
-class LibraryStatus(Serializable):
-    # src
-    is_src_downloaded:bool = False  # 是否成功下载了源代码
-    download_failed_reason:str = None # 下载失败的原因
-
-    is_version_analyzed: bool = False  # 是否成功分析了版本信息
-    no_version_reason: str = None  # 没有版本信息的原因
-
-@dataclass
-class Library(Serializable):
-    name: str
-    source: List[str]  # 收集来源，vcpkg
-
-    vendor: str
-    collected_by: str
-    homepage: str = None # 主页，来源上提供的原始主页
-    repo_link: str = None # github repo link e.g.: https://github.com/FFmpeg/FFmpeg
-    repo_link_human_reviewed: bool = False  #是否人工确认过 repo_link
-
-    alias: str = None# 别名
-
-    source_codes: List[SourceCode] = field(default_factory=list)  # 源代码列表
-
-    # 相比于上个版本的变化 # TODO 移动到 Status 中去
-    change_type: ChangeType = None  # meta 变更类型，ADD, UPDATE, DELETE
-    status: LibraryStatus = field(default_factory=lambda: LibraryStatus())
-
-    tags: str = None
-
-    def get_key(self) -> str:
-        """获取库的唯一标识符"""
-        return f"{self.name}-{self.repo_link}"
-
+# =====================
+# 常量与环境变量
+# =====================
+env = Env()
+env.read_env(".env")
 
 # Conan Binaries
 Conan_benchmark_meta = "/Users/liuchengyue/Desktop/BinarySCA Platform/Code/sca_agents/bsca-expert-agent-api/evaluation/general_benchmarks/benchmark_meta/conan_library_benchmark.json"
 Conan_test_case_dir = "/Users/liuchengyue/Desktop/BinarySCA Platform/Data/Test_Cases/TPL_Test_Cases/conan_test_cases"
 
-# 加载TPL meta
-tpl_meta = "/Users/liuchengyue/Desktop/BinarySCA Platform/Code/sca_agents/bsca-expert-agent-api/knowledge_jsons/tpl_metas/v1.0.2.json"
+tpl_meta = "/Users/liuchengyue/Desktop/BinarySCA Platform/Code/sca_agents/bsca-expert-agent-api/knowledge_jsons/tpl_metas/v1.0.1.json"
 with open(tpl_meta) as json_file:
     json_data = json.load(json_file)['libraries']
 
-tpls =[Library.init_from_dict(tpl) for tpl in json_data]
-tpl_dict = {tpl.name: tpl for tpl in tpls}
+tpls = [Library.init_from_dict(tpl) for tpl in json_data]
 
-# 加载benchmark
-benchmark_tpl_names = set([lib.name for tc in benchmark.test_cases for lib in tc.reused_libraries])
+GIT_HOSTS = [
+    "github.com", "gitlab.com", "gitee.com", "bitbucket.org"
+]
+OBVIOUS_INVALID_KEYWORDS = [
+    "sourceforge.net", "ftp://", "svn://", ".zip", ".tar.gz", ".7z", ".rar", "http://download", "pypi.org", "npmjs.com", "nuget.org", "crates.io", "cpan.org", "pecl.php.net", "rubygems.org", "apk add", "apt-get", "yum install", "brew install", "docker pull", "manual", "无", "none", "n/a", "not available", "不适用", "不可用", "无链接"
+]
 
 
-filtered_tpls = []
-for tpl in tpls:
-    if tpl.name in benchmark_tpl_names:
-        filtered_tpls.append(tpl_dict.get(tpl.name))
-tpl_meta_mini = "/Users/liuchengyue/Desktop/BinarySCA Platform/Code/sca_agents/bsca-expert-agent-api/knowledge_jsons/tpl_metas/v1.0.2_mini.json"
+# =====================
+# 工具函数
+# =====================
+def is_common_git_host(repo_link):
+    if not repo_link:
+        return False
+    for host in GIT_HOSTS:
+        if host in repo_link:
+            return True
+    return False
 
-with open(tpl_meta_mini, 'w') as f:
-    json.dump({'libraries': [tpl.customer_serialize() for tpl in filtered_tpls]}, f, indent=4, ensure_ascii=False)
+def is_obviously_invalid(repo_link):
+    if not repo_link:
+        return True
+    if not (repo_link.startswith("http") or repo_link.startswith("git@")):
+        return True
+    for kw in OBVIOUS_INVALID_KEYWORDS:
+        if kw in repo_link.lower():
+            return True
+    return False
+
+# =====================
+# 主流程
+# =====================
+"""
+改成用命令：git ls-remote 验证
+"""
+index = 0
+for tpl in tqdm(tpls, desc="检查TPL的repo链接有效性"):
+    if tpl.source ==['vcpkg', 'conan'] or tpl.source == ['conan''vcpkg']:
+        if tpl.homepage.endswith('/'):
+            tpl.homepage = tpl.homepage[:-1]
+        if tpl.repo_link.endswith('/'):
+            tpl.repo_link = tpl.repo_link[:-1]
+        if tpl.repo_link != tpl.homepage:
+            print(tpl.name)
+            print(f"\t homepage: {tpl.homepage}")
+            print(f"\t repolink: {tpl.repo_link}")
+
+
+    # if is_obviously_invalid(repo):
+    #     index += 1
+    #     print(f"{index}: {tpl.name} - {repo} [明显无效]")
+    #     continue
+    # if is_common_git_host(repo):
+    #     # 直接通过
+    #     continue
+    # # 其他情况再用 git ls-remote 检查
+    # try:
+    #     result = subprocess.run(
+    #         ['git', 'ls-remote', '--heads', repo],
+    #         stdout=subprocess.PIPE,
+    #         stderr=subprocess.PIPE,
+    #         timeout=10
+    #     )
+    #     if result.returncode != 0:
+    #         index += 1
+    #         print(f"{index}: {tpl.name} - {repo} [无效或无法访问]")
+    # except Exception as e:
+    #     index += 1
+    #     print(f"{index}: {tpl.name} - {repo} [检测异常: {e}]")

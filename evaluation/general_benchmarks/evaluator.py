@@ -241,28 +241,39 @@ class Evaluator:
         """
 
         # 加载结果
+        print(f"loading data")
         with open(evaluation_result_path, "r", encoding="utf-8") as f:
             data = json.load(f)
 
         # 第一个问题：
         effectiveness_dict = {}
-        evaluation_results = [AnalysisResult.init_from_dict(result) for result in data]
-        for top_n in range(1, 101, 1):
+        evaluation_results = [AnalysisResult.init_from_dict(result) for result in data['evaluation_results']]
+
+        # 只复制一次
+        top_n_evaluation_results = copy.deepcopy(evaluation_results)
+
+        # 从大到小遍历，避免重复复制
+        for top_n in range(10, 0, -1):
+            # 截取每个结果的前top_n个检测结果
+            for result in top_n_evaluation_results:
+                result.detected_libraries = result.detected_libraries[:top_n]
+
             # 检查正确性
-            result_check_lst = self.check_result(evaluation_results)
+            result_check_lst = self.check_result(top_n_evaluation_results)
 
             # 计算评估指标
             effectiveness = self._cal_effectiveness(result_check_lst)
 
             # 预览评估指标
-            print(effectiveness)
+            print(top_n, effectiveness)
             effectiveness_dict[top_n] = effectiveness.customer_serialize()
+
         with open(effectiveness_analysis_result_path, "w", encoding="utf-8") as f:
             json.dump(effectiveness_dict, f, indent=4, ensure_ascii=False)
 
 
     def _cal_effectiveness(self, result_check_lst):
-        # TP, FP, FN,
+        # TP, FP, FN
         tp_count = sum(len(check.tp_lib_names) for check in result_check_lst)
         fp_count = sum(len(check.fp_lib_names) for check in result_check_lst)
         fn_count = sum(len(check.fn_lib_names) for check in result_check_lst)
@@ -515,8 +526,8 @@ def run_feature_matching_only():
     evaluator = Evaluator(config)
 
     # 评估
-    evaluator.run_benchmark(analyze_context=False)
-    evaluator.report.dump(evaluation_report_save_path)
+    # evaluator.run_benchmark(analyze_context=False)
+    # evaluator.report.dump(evaluation_report_save_path)
 
     # 分析结果
     effectiveness_analysis_result_path = "/Users/liuchengyue/Desktop/BinarySCA Platform/Code/sca_agents/bsca-expert-agent-api/tmp/evaluation_reports/Conan/feture_matching/effectiveness_analysis_result.json"
