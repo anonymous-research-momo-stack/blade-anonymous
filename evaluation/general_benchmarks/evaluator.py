@@ -518,16 +518,16 @@ def run_feature_matching_only():
         feature_matching_top_n=10,
         use_agent=False,
         concurrency=10,
-        # slice_start=0,
-        # slice_end=30,
+        slice_start=0,
+        slice_end=100,
     )
 
     # 初始化评估器
     evaluator = Evaluator(config)
 
     # 评估
-    # evaluator.run_benchmark(analyze_context=False)
-    # evaluator.report.dump(evaluation_report_save_path)
+    evaluator.run_benchmark(analyze_context=False)
+    evaluator.report.dump(evaluation_report_save_path)
 
     # 分析结果
     effectiveness_analysis_result_path = "/Users/liuchengyue/Desktop/BinarySCA Platform/Code/sca_agents/bsca-expert-agent-api/tmp/evaluation_reports/Conan/feture_matching/effectiveness_analysis_result.json"

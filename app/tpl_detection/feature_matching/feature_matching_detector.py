@@ -4,7 +4,7 @@ from typing import List
 from loguru import logger
 
 from app.interface import TargetBinary, Library
-from ..databases.postgres.crud import project_curd
+from ..databases.postgres_new.crud import project_curd
 from ..databases.postgres.entities import ProjectFeatureEntity
 
 
@@ -170,7 +170,7 @@ class FeatureMatchingDetector:
             List[Library]: 匹配的候选库列表（Library接口类型）
         """
         # 1. 数据库匹配 - 先按照字符串查询数据库, 至少匹配min_match_num个字符串
-        candidate_project_entities = project_curd.list_projects_by_strings(strings, min_match_num=self.min_match_num)
+        candidate_project_entities = project_curd.list_libraries_by_strings(strings, min_match_num=self.min_match_num)
 
         if not candidate_project_entities:
             logger.info(f"No candidate libraries found for file: {file_name}")
