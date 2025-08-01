@@ -45,7 +45,7 @@ def run_feature_matching_only():
     # 评估结果
     evaluation_report_save_path = Conan_evluation_report_path
     # 评估结果的分析结果
-    effectiveness_analysis_result_path = "/Users/liuchengyue/Desktop/BinarySCA Platform/Code/sca_agents/bsca-expert-agent-api/tmp/evaluation_reports/Conan/feture_matching/effectiveness_analysis_result.json"
+    top_n_effectiveness_analysis_result_path = "/Users/liuchengyue/Desktop/BinarySCA Platform/Code/sca_agents/bsca-expert-agent-api/tmp/evaluation_reports/Conan/feture_matching/effectiveness_analysis_result.json"
 
     # 评估配置
     top_n = 50
@@ -63,14 +63,14 @@ def run_feature_matching_only():
     evaluator = Evaluator(config)
 
     # 评估
-    evaluator.run_benchmark(analyze_context=False)
-    evaluator.report.dump(evaluation_report_save_path)
+    # evaluator.run_benchmark(analyze_context=False)
+    # evaluator.report.dump(evaluation_report_save_path)
 
     # 分析结果
-    evaluator.analyze_feature_matching(evaluation_report_save_path,effectiveness_analysis_result_path,top_n=top_n)
+    evaluator.analyze_feature_matching_top_n_effectiveness(evaluation_report_save_path, top_n_effectiveness_analysis_result_path, top_n=top_n)
 
-    # 绘图
-    plot_feature_matching_top_n_effectiveness_figure(effectiveness_analysis_result_path)
+    # top_n_effectiveness 绘图
+    plot_feature_matching_top_n_effectiveness_figure(top_n_effectiveness_analysis_result_path)
 
 def main():
     # 41 个常见组件
