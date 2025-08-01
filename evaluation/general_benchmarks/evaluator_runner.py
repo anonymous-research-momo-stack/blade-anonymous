@@ -96,7 +96,7 @@ def main():
 
     # Conan Binaries
     Conan_benchmark_meta = "/Users/liuchengyue/Desktop/BinarySCA Platform/Code/sca_agents/bsca-expert-agent-api/evaluation/general_benchmarks/benchmark_meta/conan_library_benchmark.json"
-    Conan_benchmark_meta_updated = "/Users/liuchengyue/Desktop/BinarySCA Platform/Code/sca_agents/bsca-expert-agent-api/evaluation/general_benchmarks/benchmark_meta/conan_library_benchmark_20250801_1526.json"
+    Conan_benchmark_meta_updated = "/Users/liuchengyue/Desktop/BinarySCA Platform/Code/sca_agents/bsca-expert-agent-api/evaluation/general_benchmarks/benchmark_meta/conan_library_benchmark_20250801_2050.json"
     Conan_test_case_dir = "/Users/liuchengyue/Desktop/BinarySCA Platform/Data/Test_Cases/TPL_Test_Cases/conan_test_cases"
     Conan_evluation_report_path = "/Users/liuchengyue/Desktop/BinarySCA Platform/Code/sca_agents/bsca-expert-agent-api/tmp/evaluation_reports/Conan/ours_102_mini_all_0831/evaluation_report.json"
 
@@ -120,11 +120,12 @@ def main():
     evaluator = Evaluator(config)
 
     # 评估
-    evaluator.run_benchmark(analyze_context=False)
-    evaluator.report.dump(evaluation_report_save_path)
+    # evaluator.run_benchmark(analyze_context=False)
+    # evaluator.report.dump(evaluation_report_save_path)
 
     # 重新分析结果
-    report = evaluator.reanalyze_report(evaluation_report_save_path)
+    report = evaluator.reanalyze_report(evaluation_report_save_path,
+                                        ignore_failed_cases=True)
 
     # 可视化分析结果
     visualization_html = "/Users/liuchengyue/Desktop/BinarySCA Platform/Code/sca_agents/bsca-expert-agent-api/tmp/visualization.html"

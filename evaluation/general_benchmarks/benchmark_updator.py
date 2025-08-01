@@ -5,8 +5,9 @@ from typing import Dict, List
 from evaluation.general_benchmarks.interface import Benchmark, BenchmarkNote
 
 # 在类外部定义别名字典
+# 从新数据中提取的真正别名关系
 ALIAS_DICT = {
-    # lib前缀差异（确认正确）
+    # lib前缀差异
     "libalsa": ["alsa-lib"],
     "libuuid": ["util-linux"],
     "libverto": ["verto"],
@@ -17,41 +18,100 @@ ALIAS_DICT = {
     "libgettext": ["gettext"],
     "pupnp": ["libupnp"],
     "aws-libfabric": ["libfabric"],
+    "librasterlite": ["RasterLite"],
+    "libspatialite": ["SpatiaLite"],
+    "b64": ["libb64"],
+    "base64": ["libbase64"],
+    "libsndio": ["sndio"],
+    "libmp3lame": ["LAME"],
+    "vorbis": ["libvorbis"],
+    "ogg": ["libogg"],
+    "iqa": ["libiqa"],
+    "libzen": ["ZenLib"],
+    "cmaes": ["libcmaes"],
 
-    # 版本/实现差异（确认正确）
+    # 版本/实现差异
     "libjpeg": ["libjpeg-turbo"],
     "util-linux-libuuid": ["util-linux", "libuuid"],
     "dd-opentracing-cpp": ["dd-opentracing", "OpenTracing C++"],
+    "tensorflow-lite": ["TensorFlow Lite", "TensorFlow"],  # 添加了TensorFlow
+    "mozjpeg": ["libjpeg-turbo"],  # 从新数据中确认这个关系
 
-    # 命名风格差异（确认正确）
+    # 命名风格差异
     "libsigcpp": ["libsigc++"],
-    "xz_utils": ["XZ Utils"],
+    "xz_utils": ["XZ Utils", "xz"],
     "open-simulation-interface": ["Open Simulation Interface"],
+    "lzma_sdk": ["LZMA SDK"],
+    "editline": ["libedit"],
+    "sdbus-cpp": ["sdbus-c++"],
+    "openddl-parser": ["OpenDDLParser"],
+    "voropp": ["Voro++"],
+    "openal-soft": ["OpenAL Soft"],
+    "llvm-core": ["LLVM"],
+    "llvm-openmp": ["OpenMP"],
+    "bullet3": ["Bullet"],
+    "marisa": ["marisa-trie"],
+    "sqlite3": ["SQLite"],  # 新增：从数据中确认的关系
+    "sassc": ["LibSass"],   # 新增：从数据中确认的关系
 
-    # 包名差异 - COIN-OR项目（修正后）
+    # 包名差异 - COIN-OR项目
     "coin-cgl": ["Cgl"],
     "coin-utils": ["CoinUtils"],
     "coin-osi": ["Osi"],
-    "coin-clp": ["Clp"],  # 删除了 CLP
+    "coin-clp": ["Clp"],
     "coin-lemon": ["lemon"],
 
-    # 确认正确的库名对应
+    # 下划线与连字符差异
+    "http_parser": ["http-parser"],
+    "libfdk_aac": ["fdk-aac"],
+    "hdrhistogram-c": ["HdrHistogram_c"],
+    "foonathan-memory": ["foonathan_memory"],
+
+    # 项目与库名差异
+    "tng": ["tng_io"],
+    "miniscript": ["MiniScript-cpp"],
+    "embree3": ["embree"],
+    "odbc": ["unixODBC"],
+    "libtool": ["libltdl"],
+    "abseil": ["abseil-cpp"],
+    "nodejs": ["Node.js"],
+    "cocoyaxi": ["libco"],
+    "intel-ipsec-mb": ["IPSec_MB"],
+    "andreasbuhr-cppcoro": ["cppcoro"],
+    "pcapplusplus": ["LightPcapNg"],  # 从新数据中确认的关系
+    "grpc-proto": ["gRPC"],           # 从新数据中确认的关系
+    "tree-sitter-cql": ["tree-sitter"], # 从新数据中确认的关系
+
+    # FFT库系列（同一个接口的不同实现）
+    "fft": ["FFTS", "ooura-fft", "FFTW"],  # 新增：FFT的不同实现
+
+    # 特殊项目命名
     "tiny-aes-c": ["TinyAES"],
     "rapidyaml": ["ryml"],
     "jbig": ["jbigkit"],
     "libelfin": ["libelf++"],
     "lcms": ["lcms2"],
+    "json-schema-validator": ["nlohmann/json-schema-validator", "nlohmann_json_schema_validator"],
+    "msdf-atlas-gen": ["msdfgen"],    # 新增：从数据中确认的关系
+    "opengrm": ["OpenGrm Thrax", "Thrax"], # 从新数据中确认的关系
+
+    # Azure SDK 系列
+    "azure-sdk-for-cpp": ["azure-sdk-for-c"],
+    "azure-storage-cpp": ["Azure Storage Client Library for C++"],
+
+    # MariaDB 连接器
+    "mariadb-connector-cpp": ["MariaDB Connector/C++"],
+    "mariadb-connector-c": ["MariaDB Connector/C"],
 
     # 有意义的别名差异
-    "opencv": ["cv2"],  # 删除了 OpenCV
-    "tensorflow": ["tf"],  # 删除了 TensorFlow
-    "boost": ["boost-libs"],  # 删除了 Boost
+    "opencv": ["cv2"],
+    "tensorflow": ["tf"],
+    "boost": ["boost-libs"],
     "eigen": ["Eigen3", "libeigen"],
     "jsoncpp": ["json", "JsonCpp"],
     "protobuf": ["protoc", "Protocol Buffers"],
-    "sqlite": ["sqlite3"],  # 删除了 SQLite
     "zlib": ["libz", "zlib-dev"],
-    "curl": ["libcurl"],  # 删除了 cURL
+    "curl": ["libcurl"],
 }
 
 

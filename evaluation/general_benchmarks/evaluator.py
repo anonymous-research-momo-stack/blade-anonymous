@@ -120,6 +120,8 @@ class Evaluator:
                 binary_name=result.binary_name,
                 binary_path=result.binary_path,
                 binary_hash=result.binary_sha256,
+                succeed= result.error_message is None,  # 是否成功
+                err_msg=result.error_message,  # 错误信息
                 ground_truth_lib_names=[lib.name for lib in ground_truth_reused_libraries],  # Ground Truth 库名称
                 detected_lib_names=[lib.name for lib in result.detected_libraries],  # 检测到的库名称
                 result_count=len(result.detected_libraries),
@@ -143,6 +145,7 @@ class Evaluator:
                     evaluation_duration: float,
                     input_token_price_per_1M: float=2,  # 每百万输入token的价格, OpenAI GPT-4.1
                     output_token_price_per_1M: float=8,  # 每百万输出token的价格, OpenAI GPT-4.1
+                    ignore_failed_cases: bool = False,  # 是否忽略失败的测试用例
                     ) -> tuple[list[AnalysisResultCheck], ResearchQuestionData]:
         """
         生成报告
@@ -154,6 +157,9 @@ class Evaluator:
         """
         # 检查结果
         logger.info("检查结果...")
+        if ignore_failed_cases:
+            evaluation_results = [result for result in evaluation_results if result.error_message is None]
+
         results_check_lst = self.check_result(evaluation_results)
 
         # RQ 1，效率
@@ -182,7 +188,11 @@ class Evaluator:
 
         return results_check_lst, rq_data
 
-    def reanalyze_report(self, evaluation_report_save_path:str):
+    def reanalyze_report(self, evaluation_report_save_path:str,
+                         new_report_save_path:str=None,
+                         ignore_failed_cases:bool=False):
+        if not new_report_save_path:
+            new_report_save_path = evaluation_report_save_path[:-5] + '_reanalyzed.json'
         # load
         report = EvaluationReport.load_from_file(evaluation_report_save_path)
 
@@ -192,6 +202,7 @@ class Evaluator:
             evaluation_duration=report.research_question_data.efficiency.total_actual_duration,
             input_token_price_per_1M=self.evaluation_config.input_token_price_per_1M,  # 每百万输入token的价格, OpenAI GPT-4.1
             output_token_price_per_1M=self.evaluation_config.output_token_price_per_1M,
+            ignore_failed_cases=ignore_failed_cases,
         )
 
         # update
@@ -199,7 +210,7 @@ class Evaluator:
         report.research_question_data = rq_data
 
         # save
-        report.dump(evaluation_report_save_path)
+        report.dump(new_report_save_path)
         return report
 
     def analyze_baseline_result(self, evaluation_result_path, result_checks_save_path:str = None):

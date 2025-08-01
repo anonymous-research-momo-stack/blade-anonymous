@@ -245,6 +245,8 @@ class AnalysisResultCheck(Serializable):
     binary_path: str = None  # Path of the binary file, relative to the test case directory
     binary_hash: str = None  # Hash of the binary file, used for verification
 
+    succeed: bool = True
+    err_msg: str = None  # Error message if the check failed
     perfect:bool = False
     has_multi_results:bool = False
     no_results:bool = False  # No results detected, if True, means no libraries are detected in this binary
