@@ -4,22 +4,13 @@ import os.path
 import time
 from typing import List
 
-import matplotlib.pyplot as plt
 from loguru import logger
-from matplotlib import rcParams
 
 from app.interface import AnalysisResult
 from app.tpl_detection.batch_detection_workflow import BatchDetectionWorkflow
 from app.tpl_detection.detection_workflow import DetectionWorkflow
 from evaluation.general_benchmarks.interface import EvaluationConfig, Benchmark, EvaluationReport, AnalysisResultCheck, \
     ResearchQuestionData, EffectivenessData, EfficiencyData, AblationData, CostData
-from evaluation.general_benchmarks.visualization import generate_analysis_report
-
-import matplotlib.pyplot as plt
-import numpy as np
-from matplotlib import rcParams
-from scipy.interpolate import make_interp_spline
-
 
 
 class Evaluator:
@@ -233,88 +224,6 @@ class Evaluator:
 
         # 预览评估指标
         print(effectiveness)
-
-    def analyze_feature_matching_top_n_effectiveness(self, evaluation_result_path, top_n_effectiveness_analysis_result_path:str = None, top_n=10):
-        """
-        从大到小遍历，计算取不同的top_n的时候的effectiveness, 结果如何？
-        """
-
-        # 加载实验结果
-        print(f"loading data")
-        evaluation_results = self._load_feature_matching_results(evaluation_result_path)
-
-        # 统计分析
-        top_n_effectiveness_dict = {}
-        top_n_evaluation_results = copy.deepcopy(evaluation_results)
-        for top_n in range(top_n, 0, -1):
-            # 截取前top_n个检测结果
-            for result in top_n_evaluation_results:
-                result.detected_libraries = result.detected_libraries[:top_n]
-
-            # 检查正确性
-            result_check_lst = self.check_result(top_n_evaluation_results)
-
-            # 计算评估指标
-            effectiveness = self._cal_effectiveness(result_check_lst)
-
-            # 预览评估指标
-            print(top_n, effectiveness)
-
-            # 记录评估指标
-            top_n_effectiveness_dict[top_n] = effectiveness.customer_serialize()
-
-        with open(top_n_effectiveness_analysis_result_path, "w", encoding="utf-8") as f:
-            json.dump(top_n_effectiveness_dict, f, indent=4, ensure_ascii=False)
-
-    def classify_feature_matching_cases_having_fn(self, evaluation_result_path,
-                                                  failed_cases_save_path:str = None,
-                                                  top_n=3):
-        """
-        漏报的案例的原因是什么？
-            1. 数据原因？
-                1. 没收录？或者收录错了？
-                2. 没特征？
-                3. 有特征，但是太少了？
-
-            2. 测试用例原因
-                1. 没有特征？
-                2. 其他原因？
-
-        :param evaluation_result_path:
-        :param failed_cases_save_path:
-        :return:
-        """
-
-        print(f"loading data")
-        evaluation_results:List[AnalysisResult] = self._load_feature_matching_results(evaluation_result_path)
-
-        # 截取前top_n个检测结果
-        for result in evaluation_results:
-            result.detected_libraries = result.detected_libraries[:top_n]
-
-        # 检查正确性
-        result_check_lst:List[AnalysisResultCheck] = self.check_result(evaluation_results)
-
-        # 找出所有有fn的库
-        failed_cases = []
-        for result, result_check in zip(result_check_lst, result_check_lst):
-            if result_check.hs_fn:
-                failed_cases.append((result, result_check))
-
-        # 统计分析
-
-
-        pass
-    def _load_feature_matching_results(self, evaluation_result_path):
-        """
-        从评估结果文件中加载特征匹配检测结果
-        :param evaluation_result_path: 评估结果文件路径
-        :return: 特征匹配检测结果列表
-        """
-        with open(evaluation_result_path, "r", encoding="utf-8") as f:
-            data = json.load(f)
-        evaluation_results = [AnalysisResult.init_from_dict(result) for result in data['evaluation_results']]
-        return evaluation_results
 
     # 正规化名称
     def _normalize_lib_name(self, lib_name: str):

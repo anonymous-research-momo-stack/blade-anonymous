@@ -1,4 +1,5 @@
 from typing import List
+from typing import Optional
 
 from sqlalchemy import func
 
@@ -73,3 +74,34 @@ def list_libraries_by_strings(strings: List[str], min_match_num: int = 5):
         )
 
         return matched_libraries
+
+
+
+
+
+def get_library_string_count(library_name: str) -> Optional[int]:
+    """
+    查询指定库名相关的字符串数量
+
+    Args:
+        library_name: 库的名称
+
+    Returns:
+        该库相关的字符串数量，如果库不存在则返回 None
+    """
+    with session_generator() as session:
+        # 查询指定库名的字符串数量
+        result = session.query(func.count(StringToLibrary.string_id.distinct())) \
+            .join(Library, StringToLibrary.library_id == Library.id) \
+            .filter(Library.name == library_name) \
+            .scalar()
+
+        # 如果查询结果为 0，需要确认库是否存在
+        if result == 0:
+            library_exists = session.query(Library) \
+                .filter(Library.name == library_name) \
+                .first()
+            if not library_exists:
+                return None
+
+        return result
