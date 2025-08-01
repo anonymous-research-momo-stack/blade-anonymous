@@ -131,6 +131,7 @@ class DetectionWorkflow:
             self.analysis_data.durations["file_preparation"] = prepare_file_duration
             self.analysis_data.target_binary = target_binary
 
+
             # 2. feature matching detection # TODO 这里直接默认返回了匹配数量最多的前三个，应该优化一下，按照匹配的字符串分组（匹配的基本都相似的每个组里，返回前三个）
             feature_matching_start_at = time.perf_counter()
             feature_matching_libraries = self._run_tpl_detection(target_binary)
@@ -161,6 +162,10 @@ class DetectionWorkflow:
             return result
         except Exception as e:
             logger.error(f"Error during detection workflow: {e}")
+            # 总时间
+            total_duration = time.perf_counter() - all_start_at
+            self.analysis_data.durations["total"] = total_duration
+
             result = AnalysisResult(
                 binary_name=os.path.basename(file_path),
                 binary_sha256= calculate_file_sha256(file_path),

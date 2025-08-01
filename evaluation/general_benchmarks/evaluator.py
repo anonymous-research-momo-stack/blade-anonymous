@@ -356,7 +356,7 @@ class Evaluator:
 
         # ----- 时间开销 -----
         # 理论实践开销
-        total_theoretical_duration = sum(result.analysis_data.durations['total'] for result in evaluation_results)  # 总检测时间
+        total_theoretical_duration = sum(result.analysis_data.durations.get('total', 0) for result in evaluation_results)  # 总检测时间
         average_theoretical_duration = total_theoretical_duration / len(evaluation_results) if evaluation_results else 0.0  # 平均检测时间
 
         # 实际检测时间
