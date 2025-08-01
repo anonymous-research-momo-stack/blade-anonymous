@@ -1,11 +1,11 @@
-import os
 import re
 from typing import List
+
 from loguru import logger
 
 from app.interface import TargetBinary, Library
-from ..databases.postgres_new.crud import project_curd
 from ..databases.postgres.entities import ProjectFeatureEntity
+from ..databases.postgres_new.crud import project_curd
 
 
 class FeatureMatchingDetector:
@@ -134,8 +134,7 @@ class FeatureMatchingDetector:
         # 4. 记录筛选效果
         removed_count = len(initial_candidates) - len(filtered_candidates)
         if removed_count > 0:
-            logger.info(
-                f"Filtered out {removed_count} garbage matches from {len(initial_candidates)} initial candidates")
+            logger.debug(f"Filtered out {removed_count} garbage matches from {len(initial_candidates)} initial candidates")
 
         return filtered_candidates
 
