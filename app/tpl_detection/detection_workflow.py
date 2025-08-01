@@ -11,7 +11,7 @@ from app.tpl_detection.agent_analysis.response_models import SoftwareContext
 from app.tpl_detection.agent_analysis.tpl_analyzer import TPLAnalyzer
 from app.tpl_detection.agent_analysis.validator import LibraryValidator
 from app.tpl_detection.feature_matching.feature_matching_detector import FeatureMatchingDetector
-from app.tpl_detection.file_preparation.file_preprocessor import FilePreprocessor
+from app.tpl_detection.file_preparation.file_preprocessor import FilePreprocessor, calculate_file_sha256
 
 # 设置logger级别为INFO，这样debug级别的日志不会显示
 logger.remove()
@@ -121,42 +121,56 @@ class DetectionWorkflow:
 
         all_start_at = time.perf_counter()
         # 0. Context
-        self.analysis_data.context= software_context
+        self.analysis_data.context = software_context
 
-        # 1. Prepare File
-        target_binary = self.file_preprocessor.basic_analyze(file_path)
-        prepare_file_duration = time.perf_counter() - all_start_at
-        self.analysis_data.durations["file_preparation"] = prepare_file_duration
-        self.analysis_data.target_binary = target_binary
 
-        # 2. feature matching detection # TODO 这里直接默认返回了匹配数量最多的前三个，应该优化一下，按照匹配的字符串分组（匹配的基本都相似的每个组里，返回前三个）
-        feature_matching_start_at = time.perf_counter()
-        feature_matching_libraries = self._run_tpl_detection(target_binary)
-        feature_matching_duration = time.perf_counter() - feature_matching_start_at
-        self.analysis_data.durations["feature_matching"] = feature_matching_duration
-        self.analysis_data.feature_matching_results = feature_matching_libraries
+        try:
+            # 1. Prepare File
+            target_binary = self.file_preprocessor.basic_analyze(file_path)
+            prepare_file_duration = time.perf_counter() - all_start_at
+            self.analysis_data.durations["file_preparation"] = prepare_file_duration
+            self.analysis_data.target_binary = target_binary
 
-        # 3. agent analysis
-        if self.analysis_config.use_agent:
-            validation_start_at = time.perf_counter()
-            validated_libraries = self._run_agent_analysis(target_binary, feature_matching_libraries, software_context)
-            self.analysis_data.durations["agent_analysis"] = time.perf_counter() - validation_start_at
-            self.analysis_data.all_candidate_libraries= validated_libraries
-            detected_libraries = [lib for lib in validated_libraries if lib.validation_passed]
-        else:
-            detected_libraries = feature_matching_libraries
+            # 2. feature matching detection # TODO 这里直接默认返回了匹配数量最多的前三个，应该优化一下，按照匹配的字符串分组（匹配的基本都相似的每个组里，返回前三个）
+            feature_matching_start_at = time.perf_counter()
+            feature_matching_libraries = self._run_tpl_detection(target_binary)
+            feature_matching_duration = time.perf_counter() - feature_matching_start_at
+            self.analysis_data.durations["feature_matching"] = feature_matching_duration
+            self.analysis_data.feature_matching_results = feature_matching_libraries
 
-        # 4. Return Results
-        result = AnalysisResult(
-            binary_name=target_binary.binary_name,
-            binary_sha256=target_binary.hash_sha256,
-            binary_path=file_path,
-            detected_libraries=detected_libraries,
-            analysis_data=self.analysis_data
-        )
-        total_duration = time.perf_counter() - all_start_at
-        self.analysis_data.durations["total"] = total_duration
-        return result
+            # 3. agent analysis
+            if self.analysis_config.use_agent:
+                validation_start_at = time.perf_counter()
+                validated_libraries = self._run_agent_analysis(target_binary, feature_matching_libraries, software_context)
+                self.analysis_data.durations["agent_analysis"] = time.perf_counter() - validation_start_at
+                self.analysis_data.all_candidate_libraries= validated_libraries
+                detected_libraries = [lib for lib in validated_libraries if lib.validation_passed]
+            else:
+                detected_libraries = feature_matching_libraries
+
+            # 4. Return Results
+            result = AnalysisResult(
+                binary_name=target_binary.binary_name,
+                binary_sha256=target_binary.hash_sha256,
+                binary_path=file_path,
+                detected_libraries=detected_libraries,
+                analysis_data=self.analysis_data
+            )
+            total_duration = time.perf_counter() - all_start_at
+            self.analysis_data.durations["total"] = total_duration
+            return result
+        except Exception as e:
+            logger.error(f"Error during detection workflow: {e}")
+            result = AnalysisResult(
+                binary_name=os.path.basename(file_path),
+                binary_sha256= calculate_file_sha256(file_path),
+                binary_path=file_path,
+                detected_libraries=[],
+                analysis_data=self.analysis_data,
+                error_message=str(e)
+            )
+            return result
+
 
     def _run_tpl_detection(self, target_binary: TargetBinary) -> List[Library]:
         """

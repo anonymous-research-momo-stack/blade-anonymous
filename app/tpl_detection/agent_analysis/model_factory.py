@@ -54,7 +54,7 @@ def _create_openai_model(model_id: str):
         id=model_id,
         api_key=settings.OPENAI_API_KEY,
         temperature=0,  # 添加temperature参数，设为0获得最大确定性
-        seed=66,        # 添加seed参数，确保可重现性
+        seed=42,        # 添加seed参数，确保可重现性
     )
 
 

@@ -284,6 +284,7 @@ class AnalysisResult(Serializable):
     binary_path: str
     detected_libraries: List[Library] = dataclasses.field(default_factory=list)
     analysis_data: AnalysisData = None
+    error_message: str = None
 
     def dump_to_file(self, file_path: str):
         """

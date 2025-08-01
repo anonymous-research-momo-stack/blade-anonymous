@@ -9,6 +9,7 @@ from typing import List
 
 from loguru import logger
 
+from app.config import settings
 from app.interface import SimpleResult, AnalysisResult
 from app.tpl_detection.agent_analysis.response_models import SoftwareContext
 from evaluation.conan_benchmark.compiled_files_parser import cal_sha256
@@ -360,8 +361,8 @@ class EvaluationConfig(Serializable):
     test_case_dir: str
 
     # llm
-    llm_provider: str = 'openai'  # LLM provider, e.g., OpenAI, Azure, etc.
-    llm_model_id: str = 'gpt-4o'
+    llm_provider: str = settings.LLM_PROVIDER  # LLM provider, e.g., OpenAI, Azure, etc.
+    llm_model_id: str = settings.LLM_MODEL_ID
     input_token_price_per_1M: float = 2.0  # Price per million input tokens
     output_token_price_per_1M: float = 8.0
 
