@@ -2,7 +2,7 @@ from evaluation.general_benchmarks.evaluator import Evaluator
 from evaluation.general_benchmarks.feture_matching_analysis import plot_feature_matching_top_n_effectiveness_figure, \
     analyze_feature_matching_top_n_effectiveness, classify_feature_matching_cases_having_fn
 from evaluation.general_benchmarks.interface import EvaluationConfig
-from evaluation.general_benchmarks.visualization import generate_analysis_report
+from evaluation.general_benchmarks.report_visualization import generate_analysis_report
 
 
 def analyze_baseline():
@@ -96,11 +96,12 @@ def main():
 
     # Conan Binaries
     Conan_benchmark_meta = "/Users/liuchengyue/Desktop/BinarySCA Platform/Code/sca_agents/bsca-expert-agent-api/evaluation/general_benchmarks/benchmark_meta/conan_library_benchmark.json"
+    Conan_benchmark_meta_updated = "/Users/liuchengyue/Desktop/BinarySCA Platform/Code/sca_agents/bsca-expert-agent-api/evaluation/general_benchmarks/benchmark_meta/conan_library_benchmark_20250801_1526.json"
     Conan_test_case_dir = "/Users/liuchengyue/Desktop/BinarySCA Platform/Data/Test_Cases/TPL_Test_Cases/conan_test_cases"
-    Conan_evluation_report_path = "/Users/liuchengyue/Desktop/BinarySCA Platform/Code/sca_agents/bsca-expert-agent-api/tmp/evaluation_reports/Conan/evaluation_report.json"
+    Conan_evluation_report_path = "/Users/liuchengyue/Desktop/BinarySCA Platform/Code/sca_agents/bsca-expert-agent-api/tmp/evaluation_reports/Conan/ours_102_mini_0831/evaluation_report.json"
 
 
-    benchmark_meta = Conan_benchmark_meta
+    benchmark_meta = Conan_benchmark_meta_updated
     benchmark_tc_dir = Conan_test_case_dir
     evaluation_report_save_path = Conan_evluation_report_path
 
@@ -119,8 +120,8 @@ def main():
     evaluator = Evaluator(config)
 
     # 评估
-    evaluator.run_benchmark(analyze_context=False)
-    evaluator.report.dump(evaluation_report_save_path)
+    # evaluator.run_benchmark(analyze_context=False)
+    # evaluator.report.dump(evaluation_report_save_path)
 
     # 重新分析结果
     report = evaluator.reanalyze_report(evaluation_report_save_path)
