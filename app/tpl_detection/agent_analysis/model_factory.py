@@ -52,7 +52,9 @@ def _create_openai_model(model_id: str):
 
     return OpenAIChat(
         id=model_id,
-        api_key=settings.OPENAI_API_KEY
+        api_key=settings.OPENAI_API_KEY,
+        temperature=0,  # 添加temperature参数，设为0获得最大确定性
+        seed=66,        # 添加seed参数，确保可重现性
     )
 
 
@@ -65,7 +67,9 @@ def _create_anthropic_model(model_id: str):
 
     return Claude(
         id=model_id,
-        api_key=settings.ANTHROPIC_API_KEY
+        api_key=settings.ANTHROPIC_API_KEY,
+        temperature=0,  # 添加temperature参数，虽然不能完全确定性，但能减少随机性
+        # 注意：Anthropic不支持seed参数
     )
 
 
@@ -74,7 +78,11 @@ def _create_ollama_model(model_id: str):
     from agno.models.ollama import Ollama
 
     # Ollama的base_url参数根据文档应该传递给构造函数
-    kwargs = {"id": model_id}
+    kwargs = {
+        "id": model_id,
+        "temperature": 0,  # 添加temperature参数
+        # Ollama可能支持seed，具体取决于底层模型
+    }
 
     if settings.OLLAMA_BASE_URL:
         kwargs["base_url"] = settings.OLLAMA_BASE_URL
