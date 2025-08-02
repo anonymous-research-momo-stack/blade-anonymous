@@ -1,27 +1,48 @@
-GitPython
-networkx
-tqdm
-networkx
-matplotlib
-loguru
-SQLAlchemy
+# Web框架和API相关
+fastapi~=0.116.1
+uvicorn~=0.35.0
+pydantic~=2.11.7
+pydantic-settings~=2.10.1
+
+# 数据库相关
+SQLAlchemy~=2.0.39
 psycopg2-binary==2.9.10
-environs
-lief
-requests
-ollama
-anthropic
-agno
-yfinance
-lancedb
-tantivy
-openai
-sqlalchemy
-pylance
-ddgs
 pgvector
-duckduckgo-search
-conan
+lancedb
+
+# 任务队列和缓存
+celery~=5.5.3
+redis~=6.2.0
 schedule
-binaryai
+
+# AI和机器学习相关
+openai
+anthropic
+ollama
+tantivy
+agno~=1.7.4
+
+# 数据处理和分析
+networkx
 scipy
+matplotlib
+yfinance
+
+# 网络和HTTP请求
+requests
+duckduckgo-search
+ddgs
+
+# 版本控制和代码分析
+GitPython
+pylance
+
+# 二进制分析和逆向工程
+lief~=0.16.6
+binaryai
+conan
+
+# 工具和实用程序
+tqdm~=4.67.1
+loguru~=0.7.2
+environs~=14.2.0

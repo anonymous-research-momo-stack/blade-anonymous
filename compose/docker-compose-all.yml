@@ -1,0 +1,88 @@
+services:
+
+  # Redis
+  bsca-expert-redis:
+    image: redis:latest
+    container_name: bsca-expert-redis
+    ports:
+      - "${REDIS_PORT:-6379}:6379"
+    volumes:
+      - ./redis_data:/data
+    command: redis-server --appendonly yes
+    restart: always
+    networks:
+      - bsca-expert-network
+
+  # PostgreSQL
+  bsca-expert-postgres:
+    image: postgres:16
+    container_name: bsca-expert-postgres
+    restart: always
+    environment:
+      POSTGRES_DB: open_binary_sca
+      POSTGRES_USER: open_binary_sca
+      POSTGRES_PASSWORD: open_binary_sca
+    volumes:
+      - ./postgresql_data:/var/lib/postgresql/data
+    ports:
+      - "${POSTGRES_PORT:-5432}:5432"
+    networks:
+      - bsca-expert-network
+
+  # Backend API
+  bsca-expert-api:
+    build:
+      context: ..
+      dockerfile: docker/Dockerfile
+    container_name: bsca-expert-api
+    restart: always
+    env_file:
+      - ../.env
+    environment:
+      WEB_CONCURRENCY: 4
+      MAX_WORKERS: 8
+      MODULE_NAME: 'app.main'
+      APP_MODULE: 'app.main:app'
+      DEBUG: 'True'
+      POSTGRES_HOST: 'bsca-expert-postgres'
+      POSTGRES_PORT: '5432'
+      REDIS_HOST: 'bsca-expert-redis'
+      REDIS_PORT: '6379'
+      BACKEND_CORS_ORIGINS: "*"
+      CORS_ORIGINS: "*"
+    ports:
+      - "${API_PORT:-8000}:8000"
+    volumes:
+      - /etc/localtime:/etc/localtime
+      - .data:/data  # 挂载数据目录
+    depends_on:
+      - bsca-expert-postgres
+      - bsca-expert-redis
+    networks:
+      - bsca-expert-network
+    command: sh -c "uvicorn app.main:app --host ${API_HOST:-0.0.0.0} --port 8000"
+
+
+  bsca-expert-celery-worker:
+    build:
+      context: ..
+      dockerfile: docker/Dockerfile
+    volumes:
+      - ../:/app  # 挂载代码，热更新任务（开发用）
+      - .data:/data  # 挂载数据目录
+    env_file:
+      - ../.env
+    working_dir: /app
+    command: celery -A app.tasks worker --loglevel=info --pool=prefork
+    restart: always
+    depends_on:
+      - bsca-expert-redis
+    networks:
+      - bsca-expert-network
+
+# Networks
+networks:
+  bsca-expert-network:
+    name: bsca-expert-network
+    driver: bridge
+

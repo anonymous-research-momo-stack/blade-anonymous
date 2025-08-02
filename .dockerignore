@@ -1,0 +1,11 @@
+docker/postgresql_data/
+docker/redis_data/
+__pycache__/
+*.pyc
+*.pyo
+.env
+.env.example
+.dockerignore
+.data/
+debug.py
+.evaluation/
