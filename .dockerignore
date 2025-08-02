@@ -9,3 +9,6 @@ __pycache__/
 .data/
 debug.py
 .evaluation/
+.idea/
+data/
+docs/
