@@ -8,6 +8,9 @@ env.read_env()
 
 class Settings(BaseSettings):
     # --------- has default values ----------
+    # use_new_database
+    use_new_database: bool = env.bool("USE_NEW_DATABASE", False)
+
     # Postgres
     POSTGRES_HOST: str = env.str("POSTGRES_HOST", "localhost")
     POSTGRES_PORT: int = env.int("POSTGRES_PORT", 2345)

@@ -6,6 +6,8 @@ from loguru import logger
 from app.interface import TargetBinary, Library
 from ..databases.postgres.entities import ProjectFeatureEntity
 from ..databases.postgres_new.crud import library_curd
+from ..databases.postgres.crud import project_curd
+from ...config import settings
 
 
 def _is_cpp_function_name(string: str) -> bool:
@@ -126,6 +128,8 @@ class FeatureMatchingDetector:
         self.size_ratio_threshold = size_ratio_threshold
 
         self.method_name = "Feature Matching"
+
+        self.use_new_data_base = settings.use_new_database
 
     def detect(self, target_binary: TargetBinary) -> List[Library]:
         """
@@ -253,8 +257,10 @@ class FeatureMatchingDetector:
             List[Library]: 匹配的候选库列表（Library接口类型）
         """
         # 1. 数据库匹配 - 先按照字符串查询数据库, 至少匹配min_match_num个字符串
-        candidate_project_entities = library_curd.list_libraries_by_strings(strings, min_match_num=self.min_match_num)
-
+        if self.use_new_data_base:
+            candidate_project_entities = library_curd.list_libraries_by_strings(strings, min_match_num=self.min_match_num)
+        else:
+            candidate_project_entities = project_curd.list_projects_by_strings(strings, min_match_num=self.min_match_num)
         if not candidate_project_entities:
             logger.info(f"No candidate libraries found for file: {file_name}")
             return []
