@@ -9,6 +9,7 @@ SQLAlchemy~=2.0.39
 psycopg2-binary==2.9.10
 pgvector
 lancedb
+minio
 
 # 任务队列和缓存
 celery~=5.5.3
