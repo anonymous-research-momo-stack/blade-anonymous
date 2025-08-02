@@ -20,7 +20,7 @@ openai
 anthropic
 ollama
 tantivy
-agno~=1.7.4
+agno
 
 # 数据处理和分析
 networkx
