@@ -1,24 +1,23 @@
 import os
-import tempfile
+from datetime import datetime
 from minio import Minio
 from minio.error import S3Error
 
-# MinIO配置
-MINIO_ENDPOINT = "MINIO_ENDPOINT"  # 例如: "localhost:9000"
-MINIO_ACCESS_KEY = "MINIO_ACCESS_KEY"
-MINIO_SECRET_KEY = "MINIO_SECRET_KEY"
-MINIO_SECURE = False  # 是否使用HTTPS
-INPUT_BUCKET = "INPUT_BUCKET"  # 输入文件的bucket
-OUTPUT_BUCKET = "OUTPUT_BUCKET"  # 输出文件的bucket
-LOCAL_TEMP_DIR = "LOCAL_TEMP_DIR"  # 本地临时目录
+from app.config import settings
+
+# 导入配置
+
 
 # 初始化MinIO客户端
 minio_client = Minio(
-    MINIO_ENDPOINT,
-    access_key=MINIO_ACCESS_KEY,
-    secret_key=MINIO_SECRET_KEY,
-    secure=MINIO_SECURE
+    settings.MINIO_ENDPOINT,
+    access_key=settings.MINIO_ACCESS_KEY,
+    secret_key=settings.MINIO_SECRET_KEY,
+    secure=settings.MINIO_SECURE
 )
+
+# 导出常量供其他模块使用
+LOCAL_TEMP_DIR = settings.LOCAL_TEMP_DIR
 
 
 def download_from_minio(minio_file_path: str) -> str:
@@ -33,17 +32,17 @@ def download_from_minio(minio_file_path: str) -> str:
     """
     try:
         # 确保本地临时目录存在
-        os.makedirs(LOCAL_TEMP_DIR, exist_ok=True)
+        os.makedirs(settings.LOCAL_TEMP_DIR, exist_ok=True)
 
         # 生成本地文件名（保持原文件名或生成唯一名称）
         file_name = os.path.basename(minio_file_path)
         if not file_name:
             file_name = f"temp_file_{datetime.now().strftime('%Y%m%d_%H%M%S')}"
 
-        local_file_path = os.path.join(LOCAL_TEMP_DIR, file_name)
+        local_file_path = os.path.join(settings.LOCAL_TEMP_DIR, file_name)
 
         # 从MinIO下载文件
-        minio_client.fget_object(INPUT_BUCKET, minio_file_path, local_file_path)
+        minio_client.fget_object(settings.MINIO_INPUT_BUCKET, minio_file_path, local_file_path)
 
         print(f"文件已从MinIO下载到本地: {local_file_path}")
         return local_file_path
@@ -71,7 +70,7 @@ def upload_to_minio(local_file_path: str, minio_file_path: str) -> str:
             raise FileNotFoundError(f"本地文件不存在: {local_file_path}")
 
         # 上传文件到MinIO
-        minio_client.fput_object(OUTPUT_BUCKET, minio_file_path, local_file_path)
+        minio_client.fput_object(settings.MINIO_OUTPUT_BUCKET, minio_file_path, local_file_path)
 
         print(f"文件已上传到MinIO: {minio_file_path}")
 

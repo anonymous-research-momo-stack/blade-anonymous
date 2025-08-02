@@ -6,16 +6,20 @@ from celery import Celery
 
 from .api.v1.minio_service import download_from_minio, LOCAL_TEMP_DIR, upload_to_minio
 from .tpl_detection.detection_workflow import DetectionWorkflow
+from .config import settings
 
 # 连接 Redis 用于存储任务元数据
-redis_client = redis.Redis(host='bsca-expert-redis', port=6379, db=2)
-broker_url = "redis://bsca-expert-redis:6379/0"
-result_backend = "redis://bsca-expert-redis:6379/0"
+redis_client = redis.Redis(
+    host=settings.REDIS_HOST,
+    port=settings.REDIS_PORT,
+    password=settings.REDIS_PASSWORD if settings.REDIS_PASSWORD else None,
+    db=settings.REDIS_DB_METADATA
+)
 
 celery_app = Celery(
     "bsca_workflow",
-    broker=broker_url,
-    backend=result_backend
+    broker=settings.REDIS_BROKER_URL,
+    backend=settings.REDIS_RESULT_BACKEND_URL
 )
 
 celery_app.conf.update(
