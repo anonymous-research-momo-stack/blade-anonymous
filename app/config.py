@@ -37,5 +37,12 @@ class Settings(BaseSettings):
     # Knowledge Files
     KNOWLEDGE_FILE_PATH: str = env.str("KNOWLEDGE_FILE_PATH")
 
+    # --------- Api Config ----------
+    app_name: str = env.str("APP_NAME", "BSCA Expert Agent API")
+    app_version: str = env.str("APP_VERSION", "0.1.0")
+    host: str = env.str("APP_HOST", "0.0.0.0")
+    port: int = env.int("APP_PORT", 8000)
+    debug: bool = env.bool("APP_DEBUG", True)
+
 # 创建全局配置实例
 settings = Settings() 
