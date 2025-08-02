@@ -2,7 +2,7 @@ import json
 
 from evaluation.general_benchmarks.interface import SimpleEvaluationReport
 
-simple_report_json_path = "/Users/liuchengyue/Desktop/BinarySCA Platform/Code/sca_agents/bsca-expert-agent-api/tmp/evaluation_reports/Conan/ours_102_mini_all_0831/evaluation_report_simple.json"
+simple_report_json_path = "/Users/liuchengyue/Desktop/BinarySCA Platform/Code/sca_agents/bsca-expert-agent-api/tmp/evaluation_reports/Conan/ours_102_mini_all_0831/evaluation_report_reanalyzed_simple.json"
 with open(simple_report_json_path,'r') as f:
     simple_report = json.load(f)
 

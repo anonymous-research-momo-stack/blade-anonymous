@@ -34,8 +34,8 @@ ALIAS_DICT = {
     "libjpeg": ["libjpeg-turbo"],
     "util-linux-libuuid": ["util-linux", "libuuid"],
     "dd-opentracing-cpp": ["dd-opentracing", "OpenTracing C++"],
-    "tensorflow-lite": ["TensorFlow Lite", "TensorFlow"],  # 添加了TensorFlow
-    "mozjpeg": ["libjpeg-turbo"],  # 从新数据中确认这个关系
+    "tensorflow-lite": ["TensorFlow Lite", "TensorFlow"],
+    "mozjpeg": ["libjpeg-turbo"],
 
     # 命名风格差异
     "libsigcpp": ["libsigc++"],
@@ -51,8 +51,8 @@ ALIAS_DICT = {
     "llvm-openmp": ["OpenMP"],
     "bullet3": ["Bullet"],
     "marisa": ["marisa-trie"],
-    "sqlite3": ["SQLite"],  # 新增：从数据中确认的关系
-    "sassc": ["LibSass"],   # 新增：从数据中确认的关系
+    "sqlite3": ["SQLite"],
+    "sassc": ["LibSass"],
 
     # 包名差异 - COIN-OR项目
     "coin-cgl": ["Cgl"],
@@ -75,15 +75,10 @@ ALIAS_DICT = {
     "libtool": ["libltdl"],
     "abseil": ["abseil-cpp"],
     "nodejs": ["Node.js"],
-    "cocoyaxi": ["libco"],
     "intel-ipsec-mb": ["IPSec_MB"],
     "andreasbuhr-cppcoro": ["cppcoro"],
-    "pcapplusplus": ["LightPcapNg"],  # 从新数据中确认的关系
-    "grpc-proto": ["gRPC"],           # 从新数据中确认的关系
-    "tree-sitter-cql": ["tree-sitter"], # 从新数据中确认的关系
+    "grpc-proto": ["gRPC"],
 
-    # FFT库系列（同一个接口的不同实现）
-    "fft": ["FFTS", "ooura-fft", "FFTW"],  # 新增：FFT的不同实现
 
     # 特殊项目命名
     "tiny-aes-c": ["TinyAES"],
@@ -92,11 +87,10 @@ ALIAS_DICT = {
     "libelfin": ["libelf++"],
     "lcms": ["lcms2"],
     "json-schema-validator": ["nlohmann/json-schema-validator", "nlohmann_json_schema_validator"],
-    "msdf-atlas-gen": ["msdfgen"],    # 新增：从数据中确认的关系
-    "opengrm": ["OpenGrm Thrax", "Thrax"], # 从新数据中确认的关系
+    "msdf-atlas-gen": ["msdfgen"],
+    "opengrm": ["OpenGrm Thrax", "Thrax"],
 
     # Azure SDK 系列
-    "azure-sdk-for-cpp": ["azure-sdk-for-c"],
     "azure-storage-cpp": ["Azure Storage Client Library for C++"],
 
     # MariaDB 连接器
