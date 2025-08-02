@@ -32,12 +32,12 @@
         }
     ],
     "summary": {
-        "datetime": "2025-08-02T22:34:12.811174",
-        "libraries_num": 4013,
+        "datetime": "2025-08-02T22:50:24.505677",
+        "libraries_num": 4011,
         "source_stats": {
-            "conan": 1725,
+            "conan": 1724,
             "nvd_vul": 1083,
-            "vcpkg": 2111,
+            "vcpkg": 2110,
             "manual_label": 411
         },
         "repo_link_human_reviewed_count": 0,
@@ -4787,29 +4787,6 @@
                 "no_version_reason": null
             },
             "tags": 81,
-            "repo_link_ai_reviewed": true,
-            "note": ""
-        },
-        {
-            "name": "apache-datasketches",
-            "source": [
-                "vcpkg"
-            ],
-            "vendor": "apache",
-            "collected_by": "gpt",
-            "homepage": "https://datasketches.apache.org/",
-            "repo_link": "https://github.com/apache/datasketches-java-common",
-            "repo_link_human_reviewed": false,
-            "alias": null,
-            "source_codes": [],
-            "change_type": null,
-            "status": {
-                "is_src_downloaded": false,
-                "download_failed_reason": null,
-                "is_version_analyzed": false,
-                "no_version_reason": null
-            },
-            "tags": 0,
             "repo_link_ai_reviewed": true,
             "note": ""
         },
@@ -51794,7 +51771,7 @@
             "vendor": "matrixssl",
             "collected_by": "gpt",
             "homepage": "https://github.com/matrixssl/matrixssl",
-            "repo_link": "https://github.com/gitcollect/matrixssl.git",
+            "repo_link": "https://github.com/matrixssl/matrixssl.git",
             "repo_link_human_reviewed": false,
             "alias": null,
             "source_codes": [],
@@ -63154,29 +63131,6 @@
             "collected_by": "raw",
             "homepage": "https://github.com/OpenImageIO/oiio",
             "repo_link": "https://github.com/OpenImageIO/oiio",
-            "repo_link_human_reviewed": false,
-            "alias": null,
-            "source_codes": [],
-            "change_type": null,
-            "status": {
-                "is_src_downloaded": false,
-                "download_failed_reason": null,
-                "is_version_analyzed": false,
-                "no_version_reason": null
-            },
-            "tags": "100+",
-            "repo_link_ai_reviewed": true,
-            "note": ""
-        },
-        {
-            "name": "openjdk",
-            "source": [
-                "conan"
-            ],
-            "vendor": "openjdk",
-            "collected_by": "gpt",
-            "homepage": "https://jdk.java.net",
-            "repo_link": "https://github.com/openjdk/jdk",
             "repo_link_human_reviewed": false,
             "alias": null,
             "source_codes": [],
