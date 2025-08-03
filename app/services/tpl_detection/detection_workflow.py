@@ -161,6 +161,16 @@ class DetectionWorkflow:
             self.analysis_data.durations["total"] = total_duration
             return result
         except Exception as e:
+            # 打印异常的详细信息来调试
+            logger.error(f"捕获到异常类型: {type(e)}")
+            logger.error(f"异常类名: {e.__class__.__name__}")
+            logger.error(f"异常内容: {e}")
+            logger.error(f"异常模块: {e.__class__.__module__}")
+            # 检查是否是超时异常，如果是则重新抛出
+            from celery.exceptions import SoftTimeLimitExceeded
+            if isinstance(e, SoftTimeLimitExceeded):
+                logger.warning(f"检测工作流超时: {e}")
+                raise  # 重新抛出，让Celery任务处理
             logger.error(f"Error during detection workflow: {e}")
             # 总时间
             total_duration = time.perf_counter() - all_start_at

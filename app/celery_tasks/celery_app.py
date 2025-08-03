@@ -16,6 +16,7 @@ celery_app.conf.update(
     result_serializer='json',
     timezone='Asia/Shanghai',
     enable_utc=True,
+    task_hard_time_limit=6000,  # 设置任务硬超时为600秒
     task_routes={
         'app.celery_tasks.tpl_detection_task.tpl_detection_task': {'queue': 'tpl_detection_tasks'}
     }

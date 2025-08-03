@@ -2,7 +2,7 @@ import os
 import shutil
 from datetime import datetime
 import json
-
+from celery.exceptions import SoftTimeLimitExceeded
 from .celery_app import celery_app
 from ..databases.redis.redis_clients import tpl_detection_task_redis_client
 from ..services.common.minio_service import download_from_minio, upload_to_minio, LOCAL_TEMP_DIR
@@ -98,22 +98,21 @@ def cleanup_task_workspace(task_id: str) -> bool:
 def tpl_detection_task(task_id: str):
     """TPL检测任务 - 只接收task_id参数"""
     print(f"开始处理任务: {task_id}")
-    
     # 1. 从Redis获取任务信息并初始化对象
     task = _get_task_from_redis(task_id)
     if task.status == TPLDetectionTaskStatus.FAILED:
         # 如果任务初始化就失败了，直接返回task的JSON
         print(f"任务 {task_id} 初始化失败，返回错误信息")
         return task.customer_serialize()
-    
+
     print(f"获取到任务: {task.task_id}, 文件路径: {task.file_minio_path}")
-    
+
     # 2. 设置任务工作目录并更新任务开始时间和状态
     task.workspace_dir = get_task_workspace_dir(task_id)
     task.start_at = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
     task.status = TPLDetectionTaskStatus.ANALYZING
     update_redis_task(task)
-    
+
     print(f"任务工作目录: {task.workspace_dir}")
 
     try:
@@ -122,10 +121,10 @@ def tpl_detection_task(task_id: str):
         task.file_download_start_at = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
         task.status = TPLDetectionTaskStatus.FILE_DOWNLOADING
         update_redis_task(task)
-        
+
         # 使用任务ID下载到专用目录
         local_file_path = download_from_minio(task.file_minio_path, task.workspace_dir)
-        
+
         task.file_download_end_at = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
         task.file_local_path = local_file_path
         print(f"文件下载完成，本地路径: {local_file_path}")
@@ -147,7 +146,7 @@ def tpl_detection_task(task_id: str):
         result = workflow.run(local_file_path)
 
         print("保存分析结果到任务专用目录")
-        
+
         # 生成结果文件名
         result_file = task.task_id + "_" + datetime.now().strftime("%Y-%m-%d_%H-%M-%S") + ".json"
         local_result_path = os.path.join(task.workspace_dir, result_file)
@@ -161,13 +160,13 @@ def tpl_detection_task(task_id: str):
         task.result_upload_start_at = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
         task.status = TPLDetectionTaskStatus.RESULT_UPLOADING
         update_redis_task(task)
-        
+
         minio_result_path = result_file
         # 根据配置决定是否清理本地文件
         upload_to_minio(local_result_path, minio_result_path)
 
         task.result_upload_end_at = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
-        
+
         # 7. 更新任务状态为成功
         task.end_at = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
         if result.error_message:
@@ -182,6 +181,18 @@ def tpl_detection_task(task_id: str):
 
         # 返回task的JSON
         return task.customer_serialize()
+    except SoftTimeLimitExceeded:
+        # 处理软超时 - 新添加的异常处理
+        error_msg = f"任务超时: 任务执行时间超过600秒限制" # 在celery app 中设置。
+        print(error_msg)
+
+        task.end_at = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+        task.error_message = error_msg
+        task.status = TPLDetectionTaskStatus.FAILED
+        update_redis_task(task)
+
+        # 重要：确保返回task数据
+        return task.customer_serialize()
 
     except Exception as e:
         # 记录失败信息
@@ -194,12 +205,7 @@ def tpl_detection_task(task_id: str):
         
         # 更新任务状态为失败
         update_redis_task(task)
-        
-        # 根据配置决定是否清理任务工作目录
-        if settings.CLEANUP_ANALYSIS_FILES:
-            cleanup_task_workspace(task_id)
-            print(f"任务失败，已清理任务工作目录: {task_id}")
-        
+
         # 返回task的JSON
         return task.customer_serialize()
     finally:
