@@ -7,12 +7,12 @@ from typing import List, Tuple
 from loguru import logger
 
 from app.interface import AnalysisResult
-from app.tpl_detection.batch_detection_workflow import BatchDetectionWorkflow
-from app.tpl_detection.detection_workflow import DetectionWorkflow
+from app.services.tpl_detection.batch_detection_workflow import BatchDetectionWorkflow
+from app.services.tpl_detection.detection_workflow import DetectionWorkflow
 from evaluation.conan_benchmark.interface import (
     ConanEvaluationConfig, Benchmark, ConanEvaluationReport,
     ProgramAnalysisResult, ProgramAnalysisResultCheck, DetectedLibrary,
-    ConanBenchmarkMeta, TestSoftware, TestBinarySuite, Library, Binary
+    ConanBenchmarkMeta, TestSoftware, TestBinarySuite, Binary
 )
 
 # 导入原有的数据结构用于复用

@@ -4,10 +4,10 @@ from typing import List
 from loguru import logger
 
 from app.interface import TargetBinary, Library
-from ..databases.postgres.entities import ProjectFeatureEntity
-from ..databases.postgres_new.crud import library_curd
-from ..databases.postgres.crud import project_curd
-from ...config import settings
+from app.databases import ProjectFeatureEntity
+from app.databases.postgres_new.crud import library_curd
+from app.databases.postgres.crud import project_curd
+from app.config import settings
 
 
 def _is_cpp_function_name(string: str) -> bool:

@@ -1,7 +1,7 @@
 import os.path
 
-from app.tpl_detection.detection_workflow import DetectionWorkflow
-from app.tpl_detection.batch_detection_workflow import BatchDetectionWorkflow
+from app.services.tpl_detection.detection_workflow import DetectionWorkflow
+from app.services.tpl_detection.batch_detection_workflow import BatchDetectionWorkflow
 import time
 
 def debug_batch():

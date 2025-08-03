@@ -8,8 +8,8 @@ from loguru import logger
 from agno.agent import Agent
 from agno.tools.file import FileTools
 from agno.tools.duckduckgo import DuckDuckGoTools
-from app.tpl_detection.agent_analysis.model_factory import create_model
-from app.tpl_detection.agent_analysis.response_models import SoftwareContext
+from app.services.tpl_detection.agent_analysis.model_factory import create_model
+from app.services.tpl_detection.agent_analysis.response_models import SoftwareContext
 
 
 class SoftwareContextAnalyzer:

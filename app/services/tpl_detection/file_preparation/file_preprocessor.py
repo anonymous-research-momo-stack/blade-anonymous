@@ -2,7 +2,6 @@ import hashlib
 from typing import List, Dict, Any
 import os
 import subprocess
-import platform
 import traceback
 from pathlib import Path
 
@@ -10,7 +9,7 @@ import lief
 from loguru import logger
 
 from app.interface import TargetBinary
-from app.tpl_detection.agent_analysis.string_filter import StringFilter
+from app.services.tpl_detection.agent_analysis.string_filter import StringFilter
 
 
 def calculate_file_sha256(file_path):

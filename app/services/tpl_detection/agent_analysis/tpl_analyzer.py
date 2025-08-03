@@ -8,11 +8,9 @@ from agno.vectordb.search import SearchType
 
 from app.config import settings
 from app.interface import TargetBinary, Library
-from app.tpl_detection.agent_analysis.response_models import TPLAnalysisResult, SoftwareContext
-from app.tpl_detection.agent_analysis.model_factory import create_model
+from app.services.tpl_detection.agent_analysis.response_models import TPLAnalysisResult, SoftwareContext
+from app.services.tpl_detection.agent_analysis.model_factory import create_model
 from agno.tools.duckduckgo import DuckDuckGoTools
-
-from app.tpl_detection.agent_analysis.string_filter import StringFilter
 
 
 class TPLAnalyzer:

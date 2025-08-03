@@ -7,8 +7,8 @@ import numpy as np
 from matplotlib import rcParams
 
 from app.interface import AnalysisResult, TargetBinary
-from app.tpl_detection.databases.postgres_new.crud import library_curd
-from app.tpl_detection.feature_matching.feature_matching_detector import _is_cpp_function_name
+from app.databases.postgres_new.crud import library_curd
+from app.services.tpl_detection.feature_matching.feature_matching_detector import _is_cpp_function_name
 from evaluation.general_benchmarks.interface import AnalysisResultCheck, Benchmark, TestCase
 
 

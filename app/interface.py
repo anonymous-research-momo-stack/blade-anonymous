@@ -7,7 +7,7 @@ from typing import Dict, Type, Any
 from typing import List
 from loguru import logger
 
-from app.tpl_detection.agent_analysis.response_models import BinaryInformation, LibraryValidationResult, \
+from app.services.tpl_detection.agent_analysis.response_models import BinaryInformation, LibraryValidationResult, \
     RedundancyAnalysisResult, SoftwareContext
 
 

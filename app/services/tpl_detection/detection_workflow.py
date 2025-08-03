@@ -1,17 +1,17 @@
 import os
 import time
-from typing import List, Any
+from typing import List
 from loguru import logger
 
 from app.config import settings
 from app.interface import TargetBinary, Library, AnalysisData, AnalysisResult, AnalysisConfig
-from app.tpl_detection.agent_analysis.bin_info_finder import BinaryInformationFinder
-from app.tpl_detection.agent_analysis.contex_analyzer import SoftwareContextAnalyzer
-from app.tpl_detection.agent_analysis.response_models import SoftwareContext
-from app.tpl_detection.agent_analysis.tpl_analyzer import TPLAnalyzer
-from app.tpl_detection.agent_analysis.validator import LibraryValidator
-from app.tpl_detection.feature_matching.feature_matching_detector import FeatureMatchingDetector
-from app.tpl_detection.file_preparation.file_preprocessor import FilePreprocessor, calculate_file_sha256
+from app.services.tpl_detection.agent_analysis.bin_info_finder import BinaryInformationFinder
+from app.services.tpl_detection.agent_analysis.contex_analyzer import SoftwareContextAnalyzer
+from app.services.tpl_detection.agent_analysis.response_models import SoftwareContext
+from app.services.tpl_detection.agent_analysis.tpl_analyzer import TPLAnalyzer
+from app.services.tpl_detection.agent_analysis.validator import LibraryValidator
+from app.services.tpl_detection.feature_matching.feature_matching_detector import FeatureMatchingDetector
+from app.services.tpl_detection.file_preparation.file_preprocessor import FilePreprocessor, calculate_file_sha256
 
 # 设置logger级别为INFO，这样debug级别的日志不会显示
 logger.remove()

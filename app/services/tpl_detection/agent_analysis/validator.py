@@ -1,4 +1,3 @@
-import os
 import time
 import traceback
 from collections import Counter
@@ -13,9 +12,9 @@ from agno.vectordb.search import SearchType
 
 from app.config import settings
 from app.interface import TargetBinary, Library
-from app.tpl_detection.agent_analysis.response_models import IndividualValidationResults, RedundancyAnalysisResult, \
+from app.services.tpl_detection.agent_analysis.response_models import IndividualValidationResults, RedundancyAnalysisResult, \
     RedundancyAnalysisResults, SoftwareContext
-from app.tpl_detection.agent_analysis.model_factory import create_model
+from app.services.tpl_detection.agent_analysis.model_factory import create_model
 from agno.tools.duckduckgo import DuckDuckGoTools
 
 

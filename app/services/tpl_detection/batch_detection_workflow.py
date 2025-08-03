@@ -1,8 +1,8 @@
 import concurrent.futures
 from typing import List, Optional
 
-from app.tpl_detection.agent_analysis.response_models import SoftwareContext
-from app.tpl_detection.detection_workflow import DetectionWorkflow
+from app.services.tpl_detection.agent_analysis.response_models import SoftwareContext
+from app.services.tpl_detection.detection_workflow import DetectionWorkflow
 from app.interface import AnalysisResult
 from tqdm import tqdm
 

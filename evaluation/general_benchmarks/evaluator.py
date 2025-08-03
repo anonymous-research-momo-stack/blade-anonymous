@@ -7,8 +7,8 @@ from typing import List
 from loguru import logger
 
 from app.interface import AnalysisResult
-from app.tpl_detection.batch_detection_workflow import BatchDetectionWorkflow
-from app.tpl_detection.detection_workflow import DetectionWorkflow
+from app.services.tpl_detection.batch_detection_workflow import BatchDetectionWorkflow
+from app.services.tpl_detection.detection_workflow import DetectionWorkflow
 from evaluation.general_benchmarks.interface import EvaluationConfig, Benchmark, EvaluationReport, AnalysisResultCheck, \
     ResearchQuestionData, EffectivenessData, EfficiencyData, AblationData, CostData
 

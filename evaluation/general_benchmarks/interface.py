@@ -11,7 +11,7 @@ from loguru import logger
 
 from app.config import settings
 from app.interface import SimpleResult, AnalysisResult
-from app.tpl_detection.agent_analysis.response_models import SoftwareContext
+from app.services.tpl_detection.agent_analysis.response_models import SoftwareContext
 from evaluation.conan_benchmark.compiled_files_parser import cal_sha256
 import os
 
