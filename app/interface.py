@@ -3,6 +3,7 @@ import traceback
 from dataclasses import asdict, fields
 from dataclasses import dataclass
 from datetime import datetime
+from enum import Enum
 from typing import Dict, Type, Any
 from typing import List
 from loguru import logger
@@ -344,9 +345,40 @@ class BinaryContext(Serializable):
 
 
 
+@dataclass
+class TPLDetectionTaskStatus(Serializable, Enum):
+    """
+    任务状态
+    """
+    PENDING = "pending"  # 任务正在等待执行
+    FILE_DOWNLOADING = "file_downloading" # 文件下载中
+    ANALYZING = "analyzing" # 任务正在分析中
+    RESULT_UPLOADING = "result_uploading" # 结果上传中
+    SUCCESS = "success"  # 任务执行成功
+    FAILED = "failed"
 
 
 
+@dataclass
+class TPLDetectionTask(Serializable):
+    task_id: str
+    file_minio_path: str # minio 路径
+    file_local_path: str = None  # 本地临时路径
+    workspace_dir: str = None  # 任务专用工作目录路径
+
+    start_at: str = dataclasses.field(default_factory=lambda: datetime.now().strftime("%Y-%m-%d %H:%M:%S"))
+    end_at: str = None
+    
+    # 各个步骤的时间
+    file_download_start_at: str = None
+    file_download_end_at: str = None
+    analysis_start_at: str = None
+    analysis_end_at: str = None
+    result_upload_start_at: str = None
+    result_upload_end_at: str = None
+
+    status: TPLDetectionTaskStatus = TPLDetectionTaskStatus.PENDING
+    error_message: str = None
 
 
 

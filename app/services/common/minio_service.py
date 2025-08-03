@@ -1,4 +1,5 @@
 import os
+import shutil
 from datetime import datetime
 from minio import Minio
 from minio.error import S3Error
@@ -20,26 +21,22 @@ minio_client = Minio(
 LOCAL_TEMP_DIR = settings.LOCAL_TEMP_DIR
 
 
-def download_from_minio(minio_file_path: str) -> str:
+
+
+def download_from_minio(minio_file_path: str, download_dir: str = None) -> str:
     """
     从MinIO下载文件到本地临时目录
 
     Args:
         minio_file_path: MinIO中的文件路径（对象key）
+        task_id: 任务ID，如果提供则下载到任务专用目录
 
     Returns:
         str: 本地文件的完整路径
     """
     try:
-        # 确保本地临时目录存在
-        os.makedirs(settings.LOCAL_TEMP_DIR, exist_ok=True)
-
-        # 生成本地文件名（保持原文件名或生成唯一名称）
         file_name = os.path.basename(minio_file_path)
-        if not file_name:
-            file_name = f"temp_file_{datetime.now().strftime('%Y%m%d_%H%M%S')}"
-
-        local_file_path = os.path.join(settings.LOCAL_TEMP_DIR, file_name)
+        local_file_path = os.path.join(download_dir, file_name)
 
         # 从MinIO下载文件
         minio_client.fget_object(settings.MINIO_INPUT_BUCKET, minio_file_path, local_file_path)
@@ -53,13 +50,14 @@ def download_from_minio(minio_file_path: str) -> str:
         raise Exception(f"下载文件时发生错误: {e}")
 
 
-def upload_to_minio(local_file_path: str, minio_file_path: str=None) -> str:
+def upload_to_minio(local_file_path: str, minio_file_path: str = None) -> str:
     """
     将本地文件上传到MinIO
 
     Args:
         local_file_path: 本地文件的完整路径
         minio_file_path: MinIO中的目标路径（对象key）
+        cleanup_local: 是否清理本地文件
 
     Returns:
         str: MinIO中的文件路径
@@ -78,16 +76,11 @@ def upload_to_minio(local_file_path: str, minio_file_path: str=None) -> str:
 
         print(f"文件已上传到MinIO: {minio_file_path}")
 
-        # 清理本地临时文件（可选）
-        try:
-            os.remove(local_file_path)
-            print(f"已清理本地临时文件: {local_file_path}")
-        except Exception as cleanup_error:
-            print(f"清理临时文件失败: {cleanup_error}")
-
         return minio_file_path
 
     except S3Error as e:
         raise Exception(f"上传文件到MinIO失败: {e}")
     except Exception as e:
         raise Exception(f"上传文件时发生错误: {e}")
+
+
