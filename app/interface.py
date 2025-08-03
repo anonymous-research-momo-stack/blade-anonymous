@@ -7,7 +7,7 @@ from typing import Dict, Type, Any
 from typing import List
 from loguru import logger
 
-from app.services.tpl_detection.agent_analysis.response_models import BinaryInformation, LibraryValidationResult, \
+from .services.tpl_detection.agent_analysis.response_models import BinaryInformation, LibraryValidationResult, \
     RedundancyAnalysisResult, SoftwareContext
 
 
@@ -88,7 +88,7 @@ class TargetBinary(Serializable):
         print(f"\tname: {self.binary_name}")
         print(f"\tpath: {self.absolute_path}")
         print(f"\tinformation: {self.information.description if self.information else 'N/A'}")
-        print(f"\tSource TPL: {self.information.source_library.name + ":" + self.information.source_library.description if self.information and self.information.source_library else 'N/A'}")
+        print(f"\tSource TPL: {self.information.source_library.name + ':' + self.information.source_library.description if self.information and self.information.source_library else 'N/A'}")
 
 
 @dataclass

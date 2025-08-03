@@ -3,8 +3,8 @@ from typing import Optional
 
 from sqlalchemy import func
 
-from app.databases.postgres_new.entities import StringFeature, StringToLibrary, Library
-from app.databases.postgres_new.postgres import session_generator
+from ..entities import StringFeature, StringToLibrary, Library
+from ..postgres import session_generator
 
 
 def list_libraries_by_strings(strings: List[str], min_match_num: int = 5):

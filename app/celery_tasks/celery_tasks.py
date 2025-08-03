@@ -4,9 +4,9 @@ from datetime import datetime
 import redis
 from celery import Celery
 
-from .api.v1.minio_service import download_from_minio, LOCAL_TEMP_DIR, upload_to_minio
-from .tpl_detection.detection_workflow import DetectionWorkflow
-from .config import settings
+from ..services.common.minio_service import download_from_minio, LOCAL_TEMP_DIR, upload_to_minio
+from ..services.tpl_detection.detection_workflow import DetectionWorkflow
+from ..config import settings
 
 # 连接 Redis 用于存储任务元数据
 redis_client = redis.Redis(

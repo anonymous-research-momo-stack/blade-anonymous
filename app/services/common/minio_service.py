@@ -3,7 +3,7 @@ from datetime import datetime
 from minio import Minio
 from minio.error import S3Error
 
-from app.config import settings
+from ...config import settings
 
 # 导入配置
 

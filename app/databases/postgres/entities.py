@@ -6,7 +6,7 @@ from sqlalchemy.orm import declarative_base, relationship, declared_attr
 from sqlalchemy.sql import func
 from loguru import logger
 
-from app.config import settings
+from ...config import settings
 
 Base = declarative_base()
 

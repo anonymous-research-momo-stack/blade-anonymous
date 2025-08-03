@@ -4,10 +4,10 @@ from agno.knowledge.json import JSONKnowledgeBase
 from agno.vectordb.pgvector import PgVector
 from agno.vectordb.search import SearchType
 
-from app.config import settings
-from app.interface import TargetBinary
-from app.services.tpl_detection.agent_analysis.response_models import BinaryInformation, SoftwareContext
-from app.services.tpl_detection.agent_analysis.model_factory import create_model
+from ...config import settings
+from ...interface import TargetBinary
+from .response_models import BinaryInformation, SoftwareContext
+from .model_factory import create_model
 from agno.tools.duckduckgo import DuckDuckGoTools
 
 

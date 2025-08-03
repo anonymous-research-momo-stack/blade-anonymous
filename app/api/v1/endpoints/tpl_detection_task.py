@@ -1,7 +1,7 @@
 from celery.result import AsyncResult
 from fastapi import APIRouter, HTTPException, Query
 from pydantic import BaseModel
-from app.celery_tasks import analyze_task, celery_app, redis_client
+from ...celery_tasks.celery_tasks import analyze_task, celery_app, redis_client
 
 router = APIRouter()
 

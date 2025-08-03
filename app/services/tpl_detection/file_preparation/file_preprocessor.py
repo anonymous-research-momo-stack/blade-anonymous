@@ -8,8 +8,8 @@ from pathlib import Path
 import lief
 from loguru import logger
 
-from app.interface import TargetBinary
-from app.services.tpl_detection.agent_analysis.string_filter import StringFilter
+from ...interface import TargetBinary
+from ..agent_analysis.string_filter import StringFilter
 
 
 def calculate_file_sha256(file_path):

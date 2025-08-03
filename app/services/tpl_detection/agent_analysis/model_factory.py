@@ -6,7 +6,7 @@ Model Factory for LLM providers
 from typing import Optional
 from loguru import logger
 
-from app.config import settings
+from ...config import settings
 
 
 def create_model(provider: Optional[str] = None, model_id: Optional[str] = None):
