@@ -16,7 +16,7 @@ celery_app.conf.update(
     result_serializer='json',
     timezone='Asia/Shanghai',
     enable_utc=True,
-    task_hard_time_limit=6000,  # 设置任务硬超时为600秒
+    task_soft_time_limit=6000,  # 设置任务硬超时为600秒 ## TODO 这里有个问题待解决，这里会直接吐出来异常，但是这个异常会被很底层的地方吞掉。因为捕获不到异常，所以最终显式任务还是成功的状态。
     task_routes={
         'app.celery_tasks.tpl_detection_task.tpl_detection_task': {'queue': 'tpl_detection_tasks'}
     }

@@ -1,0 +1,75 @@
+services:
+  bsca-minio:
+    image: minio/minio:latest
+    container_name: bsca-minio
+    ports:
+      - "9000:9000"      # API端口
+      - "9001:9001"      # Console端口
+    environment:
+      MINIO_ROOT_USER: minioadmin
+      MINIO_ROOT_PASSWORD: minioadmin
+    volumes:
+      - ./container_data/minio_data:/data  # 保持您的路径
+    command: server /data --console-address ":9001"
+    restart: unless-stopped
+    healthcheck:
+      test: [ "CMD", "mc", "ready", "local" ]
+      interval: 30s
+      timeout: 20s
+      retries: 3
+      start_period: 40s
+    networks:
+      - bsca-agent-network
+
+  bsca-mc:
+    image: minio/mc:latest
+    container_name: bsca-minio-client
+    depends_on:
+      - bsca-minio
+    command: >
+      sh -c "
+        sleep 10 &&
+        mc alias set myminio http://minio:9000 minioadmin minioadmin &&
+        mc mb myminio/input-bucket --ignore-existing &&
+        mc mb myminio/output-bucket --ignore-existing &&
+        mc anonymous set public myminio/input-bucket &&
+        mc anonymous set public myminio/output-bucket &&
+        echo 'MinIO buckets created successfully' &&
+        tail -f /dev/null
+      "
+    networks:
+      - bsca-agent-network
+
+  bsca-redis:
+    image: redis:latest
+    container_name: bsca-redis
+    ports:
+      - "6689:6379"
+    volumes:
+      - ./container_data/redis_data:/data  # 保持您的路径
+    command: redis-server --appendonly yes
+    restart: always
+    networks:
+      - bsca-agent-network
+  bsca-expert-api:
+    build:
+      context: ..
+      dockerfile: compose/Dockerfile
+    image: bsca-agent-api:latest
+    container_name: bsca-agent-api
+    restart: always
+    ports:
+      - "8000:80"
+    volumes:
+      - /etc/localtime:/etc/localtime
+      - ../.env.docker:/app/.env
+    depends_on:
+      - bsca-redis
+      - bsca-minio
+    networks:
+      - bsca-agent-network
+
+
+networks:
+  bsca-agent-network:
+    driver: bridge
