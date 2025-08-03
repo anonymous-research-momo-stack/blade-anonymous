@@ -1,0 +1,23 @@
+services:
+  bsca-expert-api:
+    build:
+      context: ..
+      dockerfile: compose/Dockerfile
+    image: bsca-agent-api:latest
+    container_name: bsca-agent-api
+    restart: always
+    ports:
+      - "8000:80"
+    volumes:
+      - /etc/localtime:/etc/localtime
+      - ../.env.docker:/app/.env
+    depends_on:
+      - bsca-redis
+      - bsca-minio
+    networks:
+      - bsca-agent-network
+
+
+networks:
+  bsca-agent-network:
+    driver: bridge
