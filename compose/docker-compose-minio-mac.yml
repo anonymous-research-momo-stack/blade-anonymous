@@ -1,0 +1,58 @@
+version: '3.8'
+
+services:
+  minio:
+    image: minio/minio:latest
+    container_name: bsca-minio
+    ports:
+      - "9000:9000"      # API端口
+      - "9001:9001"      # Console端口
+    environment:
+      MINIO_ROOT_USER: minioadmin
+      MINIO_ROOT_PASSWORD: minioadmin
+    volumes:
+      - ./container_data/minio_data:/data
+    command: server /data --console-address ":9001"
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:9000/minio/health/live"]
+      interval: 30s
+      timeout: 20s
+      retries: 3
+      start_period: 40s
+    networks:
+      - bsca-network
+
+  # 可选：添加MinIO客户端用于管理
+  mc:
+    image: minio/mc:latest
+    container_name: bsca-minio-client
+    depends_on:
+      - minio
+    environment:
+      MINIO_SERVER: minio:9000
+      MINIO_ACCESS_KEY: minioadmin
+      MINIO_SECRET_KEY: minioadmin
+    volumes:
+      - ./container_data/minio_data:/data
+    command: >
+      sh -c "
+        sleep 10 &&
+        mc alias set myminio http://minio:9000 minioadmin minioadmin &&
+        mc mb myminio/input-bucket --ignore-existing &&
+        mc mb myminio/output-bucket --ignore-existing &&
+        mc policy set public myminio/input-bucket &&
+        mc policy set public myminio/output-bucket &&
+        echo 'MinIO buckets created successfully' &&
+        tail -f /dev/null
+      "
+    networks:
+      - bsca-network
+
+networks:
+  bsca-network:
+    driver: bridge
+
+volumes:
+  minio_data:
+    driver: local 

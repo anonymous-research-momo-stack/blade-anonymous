@@ -53,7 +53,7 @@ def download_from_minio(minio_file_path: str) -> str:
         raise Exception(f"下载文件时发生错误: {e}")
 
 
-def upload_to_minio(local_file_path: str, minio_file_path: str) -> str:
+def upload_to_minio(local_file_path: str, minio_file_path: str=None) -> str:
     """
     将本地文件上传到MinIO
 
@@ -68,6 +68,10 @@ def upload_to_minio(local_file_path: str, minio_file_path: str) -> str:
         # 检查本地文件是否存在
         if not os.path.exists(local_file_path):
             raise FileNotFoundError(f"本地文件不存在: {local_file_path}")
+
+        # 如果没有指定MinIO路径，使用本地文件名
+        if minio_file_path is None:
+            minio_file_path = os.path.basename(local_file_path)
 
         # 上传文件到MinIO
         minio_client.fput_object(settings.MINIO_OUTPUT_BUCKET, minio_file_path, local_file_path)
