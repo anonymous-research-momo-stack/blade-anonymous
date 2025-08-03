@@ -19,7 +19,7 @@ services:
       retries: 3
       start_period: 40s
     networks:
-      - bsca-network
+      - bsca-agent-network
 
   bsca-mc:
     image: minio/mc:latest
@@ -38,7 +38,7 @@ services:
         tail -f /dev/null
       "
     networks:
-      - bsca-network
+      - bsca-agent-network
 
   bsca-redis:
     image: redis:latest
@@ -50,8 +50,8 @@ services:
     command: redis-server --appendonly yes
     restart: always
     networks:
-      - bsca-network
+      - bsca-agent-network
 
 networks:
-  bsca-network:
+  bsca-agent-network:
     driver: bridge

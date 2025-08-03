@@ -1,0 +1,17 @@
+services:
+  bsca-expert-api:
+    build: .
+    image: bsca-agent-api:latest
+    container_name: bsca-agent-api
+    restart: always
+    ports:
+      - "8000:8000"
+    volumes:
+      - /etc/localtime:/etc/localtime
+      - .env:/app/.env
+    networks:
+      - bsca-agent-network
+
+networks:
+  bsca-agent-network:
+    name: bsca-agent-network

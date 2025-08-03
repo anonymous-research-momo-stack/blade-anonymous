@@ -38,7 +38,7 @@ class Settings(BaseSettings):
     MINIO_SECURE: bool = env.bool("MINIO_SECURE", False)
     MINIO_INPUT_BUCKET: str = env.str("MINIO_INPUT_BUCKET", "input-files")
     MINIO_OUTPUT_BUCKET: str = env.str("MINIO_OUTPUT_BUCKET", "output-results")
-    LOCAL_TEMP_DIR: str = env.str("LOCAL_TEMP_DIR", "/tmp/bsca_analysis")
+    LOCAL_TEMP_DIR: str = env.str("LOCAL_TEMP_DIR", "/tmp/")
     
     # --------- Analysis Configuration ----------
     CLEANUP_ANALYSIS_FILES: bool = env.bool("CLEANUP_ANALYSIS_FILES", True)  # 是否清理分析过程文件
