@@ -170,7 +170,12 @@ def tpl_detection_task(task_id: str):
         
         # 7. 更新任务状态为成功
         task.end_at = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
-        task.status = TPLDetectionTaskStatus.SUCCESS
+        if result.error_message:
+            task.error_message = result.error_message
+            print(f"分析过程中出现错误: {result.error_message}")
+            task.status = TPLDetectionTaskStatus.FAILED
+        else:
+            task.status = TPLDetectionTaskStatus.SUCCESS
         update_redis_task(task)
 
         print(f"任务完成，结果已保存到: {minio_result_path}")

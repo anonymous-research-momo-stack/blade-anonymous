@@ -340,24 +340,23 @@ class BinaryContext(Serializable):
     related_binaries: List[str] = dataclasses.field(default_factory=list)  # 相关的其他二进制文件
 
 
-
-
-
-
-
-@dataclass
-class TPLDetectionTaskStatus(Serializable, Enum):
+class TPLDetectionTaskStatus(Enum):
     """
     任务状态
     """
     PENDING = "pending"  # 任务正在等待执行
-    FILE_DOWNLOADING = "file_downloading" # 文件下载中
-    ANALYZING = "analyzing" # 任务正在分析中
-    RESULT_UPLOADING = "result_uploading" # 结果上传中
+    FILE_DOWNLOADING = "file_downloading"  # 文件下载中
+    ANALYZING = "analyzing"  # 任务正在分析中
+    RESULT_UPLOADING = "result_uploading"  # 结果上传中
     SUCCESS = "success"  # 任务执行成功
     FAILED = "failed"
 
+    def customer_serialize(self) -> str:
+        return self.value
 
+    @classmethod
+    def init_from_dict(cls, data: str) -> 'TPLDetectionTaskStatus':
+        return cls(data)
 
 @dataclass
 class TPLDetectionTask(Serializable):
