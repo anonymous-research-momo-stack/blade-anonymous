@@ -3,11 +3,11 @@ from typing import List
 
 from loguru import logger
 
-from ...interface import TargetBinary, Library
-from ...databases import ProjectFeatureEntity
-from ...databases.postgres_new.crud import library_curd
-from ...databases.postgres.crud import project_curd
-from ...config import settings
+from ....databases.postgres.entities import ProjectFeatureEntity
+from ....interface import TargetBinary, Library
+from ....databases.postgres_new.crud import library_curd
+from ....databases.postgres.crud import project_curd
+from ....config import settings
 
 
 def _is_cpp_function_name(string: str) -> bool:

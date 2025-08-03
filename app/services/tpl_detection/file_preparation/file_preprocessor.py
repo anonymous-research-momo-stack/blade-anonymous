@@ -8,7 +8,7 @@ from pathlib import Path
 import lief
 from loguru import logger
 
-from ...interface import TargetBinary
+from ....interface import TargetBinary
 from ..agent_analysis.string_filter import StringFilter
 
 

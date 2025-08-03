@@ -4,8 +4,8 @@ from agno.knowledge.json import JSONKnowledgeBase
 from agno.vectordb.pgvector import PgVector
 from agno.vectordb.search import SearchType
 
-from ...config import settings
-from ...interface import TargetBinary
+from ....config import settings
+from ....interface import TargetBinary
 from .response_models import BinaryInformation, SoftwareContext
 from .model_factory import create_model
 from agno.tools.duckduckgo import DuckDuckGoTools
