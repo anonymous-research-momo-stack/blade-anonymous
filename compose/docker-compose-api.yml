@@ -1,6 +1,8 @@
 services:
   bsca-expert-api:
-    build: .
+    build:
+      context: ..
+      dockerfile: compose/Dockerfile
     image: bsca-agent-api:latest
     container_name: bsca-agent-api
     restart: always
@@ -8,7 +10,7 @@ services:
       - "8000:8000"
     volumes:
       - /etc/localtime:/etc/localtime
-      - .env:/app/.env
+      - ../.env:/app/.env
     networks:
       - bsca-agent-network
 
