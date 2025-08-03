@@ -166,6 +166,7 @@ class AnalysisConfig(Serializable):
 class AnalysisData(Serializable):
     analysis_datetime: str = dataclasses.field(default_factory=lambda: datetime.now().strftime("%Y-%m-%d %H:%M:%S"))
     config: AnalysisConfig = None
+    error_message: str = None  # 分析过程中可能出现的错误信息
     context: SoftwareContext=None
     target_binary: TargetBinary = None
     all_candidate_libraries: List[Library] = dataclasses.field(default_factory=list)  # 所有候选库列表
@@ -178,6 +179,8 @@ class AnalysisData(Serializable):
 
     def preview(self):
         """预览分析结果"""
+        print("\n" + "=" * 60)
+        print(f"错误日志：{self.error_message}" if self.error_message else "无错误日志")
         print("\n" + "="*60)
         print("📊 分析结果预览 for {}".format(self.target_binary.binary_name))
         print("="*60)
@@ -285,6 +288,7 @@ class AnalysisResult(Serializable):
     binary_path: str
     detected_libraries: List[Library] = dataclasses.field(default_factory=list)
     analysis_data: AnalysisData = None
+    succeed: bool = True  # 分析是否成功
     error_message: str = None
 
     def dump_to_file(self, file_path: str):

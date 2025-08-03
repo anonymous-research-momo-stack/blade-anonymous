@@ -165,13 +165,14 @@ class DetectionWorkflow:
             # 总时间
             total_duration = time.perf_counter() - all_start_at
             self.analysis_data.durations["total"] = total_duration
-
+            self.analysis_data.error_message = str(e)
             result = AnalysisResult(
                 binary_name=os.path.basename(file_path),
                 binary_sha256= calculate_file_sha256(file_path),
                 binary_path=file_path,
                 detected_libraries=[],
                 analysis_data=self.analysis_data,
+                succeed=False,
                 error_message=str(e)
             )
             return result
