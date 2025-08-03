@@ -63,7 +63,7 @@ class Settings(BaseSettings):
     app_version: str = env.str("APP_VERSION", "0.1.0")
     host: str = env.str("APP_HOST", "0.0.0.0")
     port: int = env.int("APP_PORT", 8000)
-    debug: bool = env.bool("APP_DEBUG", True)
+    debug: bool = env.bool("APP_DEBUG", False)
 
     # --------- Computed Properties ----------
     @property
