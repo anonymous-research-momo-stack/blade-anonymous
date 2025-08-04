@@ -380,6 +380,10 @@ class TPLDetectionTask(Serializable):
     result_upload_start_at: str = None
     result_upload_end_at: str = None
 
+    # result
+    result_local_path: str = None
+    result_minio_path: str = None
+
     status: TPLDetectionTaskStatus = TPLDetectionTaskStatus.PENDING
     error_message: str = None
 

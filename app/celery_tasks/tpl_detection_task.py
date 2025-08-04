@@ -158,10 +158,13 @@ def tpl_detection_task(task_id: str):
         # 5. 将分析结果上传到MinIO
         print("上传分析结果到MinIO")
         task.result_upload_start_at = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+        task.result_local_path = local_result_path
+        minio_result_path = result_file
+        task.result_minio_path = minio_result_path  # 可以根据需要修改路径
         task.status = TPLDetectionTaskStatus.RESULT_UPLOADING
         update_redis_task(task)
 
-        minio_result_path = result_file
+
         # 根据配置决定是否清理本地文件
         upload_to_minio(local_result_path, minio_result_path)
 
