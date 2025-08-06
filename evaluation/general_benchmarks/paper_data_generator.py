@@ -231,6 +231,7 @@ def print_dataset_preview():
 def print_RQ1_data():
     generator = PaperDataGenerator()
     generator.generate_comparison_table(
+        binary_ai_result_path="/Users/liuchengyue/Desktop/BinarySCA Platform/Code/sca_agents/bsca-expert-agent-api/tmp/evaluation_reports/Conan/binary_ai/evaluation_report_2025-07-30-12-54-29_converted_reanalyzed_simple.json",
         our_gpt_4_1_mini_result_path="/Users/liuchengyue/Desktop/BinarySCA Platform/Code/sca_agents/bsca-expert-agent-api/tmp/evaluation_reports/Conan/ours_105_0806/evaluation_report_reanalyzed_simple.json",
     )
 

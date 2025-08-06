@@ -253,9 +253,10 @@ class Evaluator:
         )
 
         # reanalyze
+        evaluation_duration = report.research_question_data.efficiency.total_actual_duration if report.research_question_data else 0.0
         results_check_lst, rq_data = self.analyze_result(
             evaluation_results=corrected_results,
-            evaluation_duration=report.research_question_data.efficiency.total_actual_duration,
+            evaluation_duration=evaluation_duration,
             input_token_price_per_1M=self.evaluation_config.input_token_price_per_1M,  # 每百万输入token的价格, OpenAI GPT-4.1
             output_token_price_per_1M=self.evaluation_config.output_token_price_per_1M,
             ignore_failed_cases=ignore_failed_cases,

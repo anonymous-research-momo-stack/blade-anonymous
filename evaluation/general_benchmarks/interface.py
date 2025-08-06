@@ -424,15 +424,15 @@ class EfficiencyData(Serializable):
     Data structure for research question data
     """
     # file size
-    total_file_size_kb: float = None  # Total file size in KB
-    average_file_size_kb: float = None  # Average file size in KB
+    total_file_size_kb: float = 0.0  # Total file size in KB
+    average_file_size_kb: float = 0.0  # Average file size in KB
 
     # duration
-    total_theoretical_duration: float = None  # Total detection duration in seconds
-    average_theoretical_duration: float = None  # Average detection duration in seconds
+    total_theoretical_duration: float = 0.0  # Total detection duration in seconds
+    average_theoretical_duration: float = 0.0  # Average detection duration in seconds
 
-    total_actual_duration: float = None  # Total actual duration in seconds
-    average_actual_duration: float = None  # Average actual duration in seconds
+    total_actual_duration: float = 0.0  # Total actual duration in seconds
+    average_actual_duration: float = 0.0  # Average actual duration in seconds
 
     duration_breakdown: dict = dataclasses.field(default_factory=dict)  # Breakdown of duration by step, e.g., {'agent_analysis': 10.5, 'tpl_analysis': 5.0, 'validation': 2.0}
 
@@ -467,7 +467,7 @@ class ResearchQuestionData(Serializable):
     effectiveness_ablation_study: AblationData = None  # Data for research question 2
 
     # rq 3 效率
-    efficiency: EfficiencyData = None  # Data for research question 3
+    efficiency: EfficiencyData = dataclasses.field(default_factory=EfficiencyData)  # Data for research question 3
 
     # rq 4 成本
     cost: CostData = None
@@ -506,7 +506,7 @@ class SimpleEvaluationReport(Serializable):
     finished_at: str = None
     evaluation_config: EvaluationConfig = None
     benchmark_meta: BenchmarkMeta = None
-    research_question_data: ResearchQuestionData = None
+    research_question_data: ResearchQuestionData = dataclasses.field(default_factory=ResearchQuestionData)
     evaluation_results_check: List[AnalysisResultCheck] = dataclasses.field(default_factory=list)
     simple_results: List[SimpleResult] = dataclasses.field(default_factory=list)
 

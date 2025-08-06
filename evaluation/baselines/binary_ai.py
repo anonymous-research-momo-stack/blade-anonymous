@@ -7,8 +7,8 @@ from binaryai.client_stub import GraphQLClientGraphQLMultiError
 from environs import Env
 from tqdm import tqdm
 
-from app.interface import AnalysisResult, Library
-from evaluation.general_benchmarks.interface import Benchmark
+from app.interface import AnalysisResult, Library, AnalysisData, TargetBinary
+from evaluation.general_benchmarks.interface import Benchmark, EvaluationReport
 
 env = Env()
 env.read_env(".env")  # load .env file
@@ -297,15 +297,28 @@ def convert_result():
                     version=comp['version'],
                     description=comp.get('source_code_url', '') + comp.get('description', '') + comp.get('summary', ''),
                 ) for comp in components
-            ]
+            ],
+            analysis_data=AnalysisData(
+                target_binary=TargetBinary(
+                    binary_name=binary_name,
+                    relative_path=test_case,
+                    hash_sha256=sha256,
+                    file_size_kb=0,
+                )
+            ),
         ))
 
     print(f"status statistics")
     print(f"smartBinary status statistics: {smartBinary_status_statistic}")
     print(f"smartBeat status statistics: {smartBeat_status_statistic}")
-    data = [r.customer_serialize() for r in converted_results]
+
+
+    report = EvaluationReport(
+            evaluation_results = converted_results,
+
+        )
     with open(converted_conan_evluation_report_path, "w", encoding='utf-8') as f:
-        json.dump(data, f, indent=4, ensure_ascii=False)
+        json.dump(report.customer_serialize(), f, indent=4, ensure_ascii=False)
 
 if __name__ == '__main__':
     # main()

@@ -3,12 +3,11 @@ from evaluation.general_benchmarks.feture_matching_analysis import plot_feature_
     analyze_feature_matching_top_n_effectiveness, \
     analyze_feature_matching_failures, print_failure_analysis_report
 from evaluation.general_benchmarks.interface import EvaluationConfig
-from evaluation.general_benchmarks.report_visualization import generate_analysis_report
 
 
 def analyze_baseline():
     # Conan Binaries
-    Conan_benchmark_meta = "/Users/liuchengyue/Desktop/BinarySCA Platform/Code/sca_agents/bsca-expert-agent-api/evaluation/general_benchmarks/benchmark_meta/conan_library_benchmark.json"
+    Conan_benchmark_meta = "/Users/liuchengyue/Desktop/BinarySCA Platform/Code/sca_agents/bsca-expert-agent-api/evaluation/general_benchmarks/benchmark_meta/conan_library_benchmark_20250806_1524.json"
     Conan_test_case_dir = "/Users/liuchengyue/Desktop/BinarySCA Platform/Data/Test_Cases/TPL_Test_Cases/conan_test_cases"
 
 
@@ -31,9 +30,9 @@ def analyze_baseline():
     # 经过格式转换的结果
     # ========================================
     # binary ai
-    binary_result_path = "/Users/liuchengyue/Desktop/BinarySCA Platform/Code/sca_agents/bsca-expert-agent-api/tmp/evaluation_reports/Conan/binary_ai/evaluation_report_2025-07-30-10-03-54_converted.json"
     binary_result_path = "/Users/liuchengyue/Desktop/BinarySCA Platform/Code/sca_agents/bsca-expert-agent-api/tmp/evaluation_reports/Conan/binary_ai/evaluation_report_2025-07-30-12-54-29_converted.json"
-    evaluator.analyze_baseline_result(binary_result_path)
+    report = evaluator.reanalyze_report(binary_result_path,
+                                        ignore_failed_cases=False)
 
 def run_feature_matching_only():
     # 分析输入Conan Binaries
@@ -127,12 +126,12 @@ def main():
                                         ignore_failed_cases=False)
 
     # 可视化分析结果
-    visualization_html = "/Users/liuchengyue/Desktop/BinarySCA Platform/Code/sca_agents/bsca-expert-agent-api/tmp/visualization.html"
-    generate_analysis_report(report,
-                            visualization_html
-                             )
+    # visualization_html = "/Users/liuchengyue/Desktop/BinarySCA Platform/Code/sca_agents/bsca-expert-agent-api/tmp/visualization.html"
+    # generate_analysis_report(report,
+    #                         visualization_html
+    #                          )
 
 if __name__ == '__main__':
-    main()
+    # main()
+    analyze_baseline()
     # run_feature_matching_only()
-    # analyze_baseline()
