@@ -77,19 +77,14 @@ def _create_ollama_model(model_id: str):
     """创建Ollama模型"""
     from agno.models.ollama import Ollama
 
-    # Ollama的base_url参数根据文档应该传递给构造函数
     kwargs = {
         "id": model_id,
-        "temperature": 0,  # 添加temperature参数
-        # Ollama可能支持seed，具体取决于底层模型
     }
 
     if settings.OLLAMA_BASE_URL:
-        kwargs["base_url"] = settings.OLLAMA_BASE_URL
+        kwargs["host"] = settings.OLLAMA_BASE_URL
 
     return Ollama(**kwargs)
-
-
 def get_supported_providers():
     """获取支持的LLM提供商列表"""
     return ["openai", "anthropic", "ollama"]
