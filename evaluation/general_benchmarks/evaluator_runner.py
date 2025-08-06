@@ -76,12 +76,6 @@ def run_feature_matching_only():
     plot_feature_matching_top_n_effectiveness_figure(top_n_effectiveness_analysis_result_path)
 
     # RQ 2 漏报的原因分类
-    # classify_feature_matching_cases_having_fn(evaluator,
-    #                                           benchmark_meta,
-    #                                           evaluation_report_save_path)
-    # 使用示例
-
-
     # 执行分析
     report = analyze_feature_matching_failures(
         evaluator=evaluator,
