@@ -506,6 +506,8 @@ class SimpleEvaluationReport(Serializable):
     start_at: str = None
     finished_at: str = None
     evaluation_config: EvaluationConfig = None
+    succeed_count: int = 0  # Number of successful evaluations
+    failed_count: int = 0
     benchmark_meta: BenchmarkMeta = None
     research_question_data: ResearchQuestionData = dataclasses.field(default_factory=ResearchQuestionData)
     evaluation_results_check: List[AnalysisResultCheck] = dataclasses.field(default_factory=list)
@@ -517,6 +519,8 @@ class EvaluationReport(Serializable):
     start_at: str = None
     finished_at: str = None
     evaluation_config: EvaluationConfig = None
+    succeed_count: int = 0  # Number of successful evaluations
+    failed_count: int = 0
     research_question_data: ResearchQuestionData = None
     evaluation_results_check: List[AnalysisResultCheck] = dataclasses.field(default_factory=list)
     software_context: SoftwareContext = None
@@ -551,6 +555,8 @@ class EvaluationReport(Serializable):
             finished_at=self.finished_at,
             evaluation_config=self.evaluation_config,
             benchmark_meta=self.benchmark.get_meta() if self.benchmark else None,
+            succeed_count = self.succeed_count,
+            failed_count = self.failed_count,
             research_question_data=self.research_question_data,
             evaluation_results_check=self.evaluation_results_check,
             simple_results=[r.get_simple_result() for r in self.evaluation_results] if self.evaluation_results else []

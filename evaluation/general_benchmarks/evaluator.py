@@ -175,13 +175,17 @@ class Evaluator:
         results_check_lst = self.check_result(evaluation_results)
 
         # RQ 1，效率
+        print(f"计算RQ 1 效果性...")
         effectiveness = self._cal_effectiveness(results_check_lst)
+        print(f"RQ 1 效果性计算完成: {effectiveness}, 计算不同编译配置的效果性...")
         gcc_x86_effectiveness, gcc_arm_effectiveness, clang_x86_64_effectiveness = self._cal_effectiveness_group_by_compile_config(results_check_lst)
 
         # RQ 2 消融实验
+        print(f"计算RQ 2 效果性消融实验...")
         effectiveness_ablation_study = self._cal_ablation_data(evaluation_results)
 
         # RQ 3 效率和成本
+        print(f"计算RQ 3 效率和成本...")
         efficiency = self._cal_efficiency(evaluation_results,
                                          evaluation_duration,
                                          input_token_price_per_1M,
@@ -201,7 +205,7 @@ class Evaluator:
             efficiency=efficiency,
             cost=cost,
         )
-
+        print(f"全部研究问题数据计算完成: {rq_data}")
         return results_check_lst, rq_data
 
     def _correct_evaluation_results(self, evaluation_results, benchmark_test_cases):
@@ -266,9 +270,12 @@ class Evaluator:
         )
 
         # update
-        report.evaluation_results = corrected_results
-        report.evaluation_results_check = results_check_lst
-        report.research_question_data = rq_data
+        report.evaluation_results = corrected_results # 更新检测结果
+        report.evaluation_results_check = results_check_lst # 更新检查结果
+        report.research_question_data = rq_data # 更新RQ数据
+        # 更新统计数据
+        report.succeed_count = sum(1 for result in corrected_results if result.error_message is None)
+        report.failed_count = sum(1 for result in corrected_results if result.error_message is not None)
 
         # save
         report.dump(new_report_save_path)

@@ -1,6 +1,8 @@
 import concurrent.futures
 from typing import List, Optional
 
+from loguru import logger
+
 from .agent_analysis.response_models import SoftwareContext
 from .detection_workflow import DetectionWorkflow
 from ...interface import AnalysisResult
@@ -15,7 +17,20 @@ def _process_single_file(args):
     idx, file_path, detection_kwargs, software_context = args
     try:
         workflow = DetectionWorkflow(**detection_kwargs)
-        return idx, workflow.run(file_path, software_context=software_context)
+        result = workflow.run(file_path, software_context=software_context)
+        if not result.succeed:
+            logger.warning(
+                f"File {file_path} analysis failed: {result.error_message}, try again with retry"
+            )
+            workflow = DetectionWorkflow(**detection_kwargs)
+            result = workflow.run(file_path, software_context=software_context)
+            if not result.succeed:
+                logger.error(
+                    f"File {file_path} analysis failed again: {result.error_message}, skipped."
+                )
+            else:
+                logger.info(f"File {file_path} analysis succeeded on retry.")
+        return idx, result
     except Exception as e:
         error_message = f"{e}"
         return idx, error_message
