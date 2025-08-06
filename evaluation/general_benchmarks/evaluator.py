@@ -77,6 +77,8 @@ class Evaluator:
         """
         ground_truth_dict = {test_case.test_binary.sha256: test_case.reused_libraries for test_case in
                              self.benchmark.test_cases}
+        file_size_kb_dict = {test_case.test_binary.sha256: test_case.test_binary.file_size_kb for test_case in
+                                self.benchmark.test_cases}
         results_check_lst = []
         for result in evaluation_results:
             ground_truth_reused_libraries = ground_truth_dict.get(result.binary_sha256, [])
@@ -129,6 +131,7 @@ class Evaluator:
                 binary_name=result.binary_name,
                 binary_path=result.binary_path,
                 binary_hash=result.binary_sha256,
+                binary_size_kb=file_size_kb_dict.get(result.binary_sha256, 0),  # 获取文件大小
                 succeed= result.error_message is None,  # 是否成功
                 err_msg=result.error_message,  # 错误信息
                 ground_truth_lib_names=[lib.name for lib in ground_truth_reused_libraries],  # Ground Truth 库名称

@@ -132,6 +132,6 @@ def main():
     #                          )
 
 if __name__ == '__main__':
-    # main()
-    analyze_baseline()
+    main()
+    # analyze_baseline()
     # run_feature_matching_only()

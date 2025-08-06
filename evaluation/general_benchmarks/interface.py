@@ -359,6 +359,7 @@ class AnalysisResultCheck(Serializable):
     """
     binary_name: str = None  # Name of the binary file
     binary_path: str = None  # Path of the binary file, relative to the test case directory
+    binary_size_kb: float = None  # Size of the binary file in KB
     binary_hash: str = None  # Hash of the binary file, used for verification
 
     succeed: bool = True
