@@ -231,6 +231,122 @@ class Benchmark(Serializable):
             tc_path = os.path.join(new_test_case_dir_path, tc.test_binary.relative_path)
             tc.test_binary.sha256 = cal_sha256(tc_path)
 
+    def stat(self):
+        """
+        统计测试用例的数量，一共重用了多少个库，多少条重用关系
+
+        按照架构分成三组，然后再统计一次。
+        :return:
+        """
+        # 总体统计
+        total_test_cases = len(self.test_cases)
+        total_reuse_relations = 0
+        all_library_names = set()
+
+        # 按架构分组
+        gcc_x86_cases = []
+        gcc_arm_cases = []
+        clang_x86_64_cases = []
+        other_cases = []
+
+        for test_case in self.test_cases:
+            binary_path = test_case.test_binary.relative_path
+
+            # 分组
+            if "x86_64-gcc" in binary_path:
+                gcc_x86_cases.append(test_case)
+            elif "arm_64-gcc" in binary_path:
+                gcc_arm_cases.append(test_case)
+            elif "x86_64-clang" in binary_path:
+                clang_x86_64_cases.append(test_case)
+            else:
+                other_cases.append(test_case)
+
+            # 统计重用关系和库名
+            for reused_lib in test_case.reused_libraries:
+                total_reuse_relations += 1
+                all_library_names.add(reused_lib.name)
+
+        total_unique_libraries = len(all_library_names)
+
+        # 打印总体统计
+        print("=" * 60)
+        print("Benchmark 统计报告")
+        print("=" * 60)
+        print(f"基准测试名称: {self.name}")
+        print(f"版本: {self.version}")
+        print()
+        print("总体统计:")
+        print(f"  测试用例数量: {total_test_cases}")
+        print(f"  重用库数量: {total_unique_libraries}")
+        print(f"  重用关系数量: {total_reuse_relations}")
+        print()
+
+        # 定义统计函数
+        def get_arch_stats(cases, arch_name):
+            if not cases:
+                return 0, 0, 0
+
+            arch_reuse_relations = 0
+            arch_library_names = set()
+
+            for test_case in cases:
+                for reused_lib in test_case.reused_libraries:
+                    arch_reuse_relations += 1
+                    arch_library_names.add(reused_lib.name)
+
+            return len(cases), len(arch_library_names), arch_reuse_relations
+
+        # 按架构统计并打印
+        print("按架构分组统计:")
+        print("-" * 60)
+
+        # GCC x86_64 统计
+        gcc_x86_test_cases, gcc_x86_libs, gcc_x86_relations = get_arch_stats(gcc_x86_cases, "GCC x86_64")
+        print(f"GCC x86_64:")
+        print(f"  测试用例数量: {gcc_x86_test_cases}")
+        print(f"  重用库数量: {gcc_x86_libs}")
+        print(f"  重用关系数量: {gcc_x86_relations}")
+        print()
+
+        # GCC ARM 统计
+        gcc_arm_test_cases, gcc_arm_libs, gcc_arm_relations = get_arch_stats(gcc_arm_cases, "GCC ARM")
+        print(f"GCC ARM:")
+        print(f"  测试用例数量: {gcc_arm_test_cases}")
+        print(f"  重用库数量: {gcc_arm_libs}")
+        print(f"  重用关系数量: {gcc_arm_relations}")
+        print()
+
+        # Clang x86_64 统计
+        clang_x86_64_test_cases, clang_x86_64_libs, clang_x86_64_relations = get_arch_stats(clang_x86_64_cases,
+                                                                                            "Clang x86_64")
+        print(f"Clang x86_64:")
+        print(f"  测试用例数量: {clang_x86_64_test_cases}")
+        print(f"  重用库数量: {clang_x86_64_libs}")
+        print(f"  重用关系数量: {clang_x86_64_relations}")
+        print()
+
+        # 其他架构统计（如果有的话）
+        if other_cases:
+            other_test_cases, other_libs, other_relations = get_arch_stats(other_cases, "其他")
+            print(f"其他架构:")
+            print(f"  测试用例数量: {other_test_cases}")
+            print(f"  重用库数量: {other_libs}")
+            print(f"  重用关系数量: {other_relations}")
+            print()
+
+        # 验证总数
+        arch_total_cases = gcc_x86_test_cases + gcc_arm_test_cases + clang_x86_64_test_cases + len(other_cases)
+        arch_total_relations = gcc_x86_relations + gcc_arm_relations + clang_x86_64_relations
+        if other_cases:
+            arch_total_relations += other_relations
+
+        print("-" * 60)
+        print("验证:")
+        print(f"  架构分组测试用例总数: {arch_total_cases} (应等于总测试用例数: {total_test_cases})")
+        print(f"  架构分组重用关系总数: {arch_total_relations} (应等于总重用关系数: {total_reuse_relations})")
+        print("=" * 60)
+
     def __repr__(self):
         return self.get_meta().__repr__()
 
@@ -343,6 +459,9 @@ class ResearchQuestionData(Serializable):
     """
     # rq 1 效果
     effectiveness: EffectivenessData = None  # Data for research question 1
+    gcc_x86_effectiveness: EffectivenessData = None  # GCC x86 effectiveness data
+    gcc_arm_effectiveness: EffectivenessData = None  # GCC ARM effectiveness data
+    clang_x86_64_effectiveness: EffectivenessData = None  # Clang x86_64 effectiveness data
 
     # rq 2 消融实验
     effectiveness_ablation_study: AblationData = None  # Data for research question 2

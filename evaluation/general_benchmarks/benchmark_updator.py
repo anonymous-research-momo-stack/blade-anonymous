@@ -817,6 +817,13 @@ class BenchmarkUpdator:
             note = BenchmarkNote(message=update_message)
             self.benchmark.notes.append(note)
 
+        # 去除重复的库
+        self.benchmark.test_cases = list({tc.test_binary.sha256: tc for tc in self.benchmark.test_cases}.values())
+
+
+        # 进行统计
+        self.benchmark.stat()
+
         # 生成新文件名（带时间戳）
         new_file_path = self._generate_timestamped_filename()
 

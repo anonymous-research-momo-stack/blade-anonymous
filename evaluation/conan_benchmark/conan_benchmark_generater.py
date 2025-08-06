@@ -848,7 +848,6 @@ def benchmark_check():
     # stats
     benchmark.stat()
 
-    benchmark.paper_stats()
 
 
 if __name__ == '__main__':

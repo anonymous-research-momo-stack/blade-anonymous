@@ -6,7 +6,7 @@ from typing import List
 
 from loguru import logger
 
-from app.interface import AnalysisResult
+from app.interface import AnalysisResult, AnalysisData, TargetBinary
 from app.services.tpl_detection.batch_detection_workflow import BatchDetectionWorkflow
 from app.services.tpl_detection.detection_workflow import DetectionWorkflow
 from evaluation.general_benchmarks.interface import EvaluationConfig, Benchmark, EvaluationReport, AnalysisResultCheck, \
@@ -81,7 +81,8 @@ class Evaluator:
         for result in evaluation_results:
             ground_truth_reused_libraries = ground_truth_dict.get(result.binary_sha256, [])
 
-            undetected_gt_libraries = copy.deepcopy(ground_truth_reused_libraries)
+            # 使用集合跟踪已匹配的GT库，避免重复匹配
+            matched_gt_libraries = set()
             detected_gt_libraries = []
 
             tp_library_names = []
@@ -90,20 +91,27 @@ class Evaluator:
             # 检测到的库名称与Ground Truth进行对比
             for detected_lib in result.detected_libraries:
                 tp = False
-                for gt_lib in undetected_gt_libraries:
+
+                # 遍历所有GT库寻找匹配
+                for i, gt_lib in enumerate(ground_truth_reused_libraries):
+                    # 跳过已经被匹配的GT库
+                    if i in matched_gt_libraries:
+                        continue
+
                     # 与Ground Truth 名称一致
                     if self._normalize_lib_name(detected_lib.name) == self._normalize_lib_name(gt_lib.name):
                         detected_gt_libraries.append(gt_lib)
-                        undetected_gt_libraries.remove(gt_lib)
+                        matched_gt_libraries.add(i)  # 标记该GT库已被匹配
                         tp = True
                         break
                     # 与Ground Truth 名称的其他名称一致
                     elif self._normalize_lib_name(detected_lib.name) in [self._normalize_lib_name(lib_name) for lib_name
                                                                          in gt_lib.other_names]:
                         detected_gt_libraries.append(gt_lib)
-                        undetected_gt_libraries.remove(gt_lib)
+                        matched_gt_libraries.add(i)  # 标记该GT库已被匹配
                         tp = True
                         break
+
                 # 如果找到了匹配的Ground Truth库，则认为是TP，否则是FP
                 if tp:
                     tp_library_names.append(detected_lib.name)
@@ -111,8 +119,9 @@ class Evaluator:
                     fp_library_names.append(detected_lib.name)
 
             # 未检测到的Ground Truth库，均认为是FN
+            undetected_gt_libraries = [gt_lib for i, gt_lib in enumerate(ground_truth_reused_libraries)
+                                       if i not in matched_gt_libraries]
             fn_library_names = [lib.name for lib in undetected_gt_libraries]
-
             # 生成分析结果检查对象
             has_fn = len(fn_library_names) > 0  # 是否有漏报
             has_fp = len(fp_library_names) > 0
@@ -164,6 +173,7 @@ class Evaluator:
 
         # RQ 1，效率
         effectiveness = self._cal_effectiveness(results_check_lst)
+        gcc_x86_effectiveness, gcc_arm_effectiveness, clang_x86_64_effectiveness = self._cal_effectiveness_group_by_compile_config(results_check_lst)
 
         # RQ 2 消融实验
         effectiveness_ablation_study = self._cal_ablation_data(evaluation_results)
@@ -181,12 +191,51 @@ class Evaluator:
 
         rq_data = ResearchQuestionData(
             effectiveness=effectiveness,
+            gcc_x86_effectiveness=gcc_x86_effectiveness,
+            gcc_arm_effectiveness=gcc_arm_effectiveness,
+            clang_x86_64_effectiveness=clang_x86_64_effectiveness,
             effectiveness_ablation_study=effectiveness_ablation_study,
             efficiency=efficiency,
             cost=cost,
         )
 
         return results_check_lst, rq_data
+
+    def _correct_evaluation_results(self, evaluation_results, benchmark_test_cases):
+        # 1. 建立benchmark的索引（用sha256或relative_path）
+        benchmark_dict = {tc.test_binary.sha256: tc for tc in benchmark_test_cases}
+
+        # 2. 过滤evaluation_results，只保留benchmark中存在的
+        corrected_results = []
+        existing_sha256s = set()
+
+        for result in evaluation_results:
+            if result.binary_sha256 in benchmark_dict:
+                corrected_results.append(result)
+                existing_sha256s.add(result.binary_sha256)
+
+        # 3. 为benchmark中存在但evaluation_results中缺失的测试用例创建失败结果
+        for sha256, test_case in benchmark_dict.items():
+            if sha256 not in existing_sha256s:
+                # 创建一个失败的AnalysisResult
+                failed_result = AnalysisResult(
+                    binary_name=test_case.test_binary.original_name,
+                    binary_path=test_case.test_binary.relative_path,
+                    binary_sha256=sha256,
+                    analysis_data=AnalysisData(
+                        target_binary=TargetBinary(
+                            binary_name=test_case.test_binary.original_name,
+                            relative_path=test_case.test_binary.relative_path,
+                            hash_sha256=sha256,
+                            file_size_kb=test_case.test_binary.file_size_kb,
+                        )
+                    ),
+                    succeed=False,
+                    error_message="Analysis failed: No result found for this test case.",
+                )
+                corrected_results.append(failed_result)
+
+        return corrected_results
 
     def reanalyze_report(self, evaluation_report_save_path:str,
                          new_report_save_path:str=None,
@@ -196,9 +245,16 @@ class Evaluator:
         # load
         report = EvaluationReport.load_from_file(evaluation_report_save_path)
 
+        # 根据benchmark 校正结果，如果benchmark中有，但是检测结果中没有的，就添加一个，并且error_msg写上分析失败。
+        # 如果benchmark中没有的，就直接删掉。
+        corrected_results = self._correct_evaluation_results(
+            report.evaluation_results,
+            self.benchmark.test_cases
+        )
+
         # reanalyze
         results_check_lst, rq_data = self.analyze_result(
-            evaluation_results=report.evaluation_results,
+            evaluation_results=corrected_results,
             evaluation_duration=report.research_question_data.efficiency.total_actual_duration,
             input_token_price_per_1M=self.evaluation_config.input_token_price_per_1M,  # 每百万输入token的价格, OpenAI GPT-4.1
             output_token_price_per_1M=self.evaluation_config.output_token_price_per_1M,
@@ -206,6 +262,7 @@ class Evaluator:
         )
 
         # update
+        report.evaluation_results = corrected_results
         report.evaluation_results_check = results_check_lst
         report.research_question_data = rq_data
 
@@ -258,6 +315,27 @@ class Evaluator:
             f1_score=f1_score
         )
         return rq_1_data
+
+    def _cal_effectiveness_group_by_compile_config(self,result_check_lst):
+        gcc_x86 = []
+        gcc_arm = []
+        clang_x86_64 = []
+        for check in result_check_lst:
+            if "x86_64-gcc" in check.binary_path:
+                gcc_x86.append(check)
+            elif "arm_64-gcc" in check.binary_path:
+                gcc_arm.append(check)
+            elif "x86_64-clang" in check.binary_path:
+                clang_x86_64.append(check)
+            else:
+                logger.warning(f"Unknown compile config for binary {check.binary_name}, path: {check.binary_path}")
+                continue
+
+        gcc_x86_effectiveness = self._cal_effectiveness(gcc_x86)
+        gcc_arm_effectiveness = self._cal_effectiveness(gcc_arm)
+        clang_x86_64_effectiveness = self._cal_effectiveness(clang_x86_64)
+
+        return gcc_x86_effectiveness, gcc_arm_effectiveness, clang_x86_64_effectiveness
 
     def _cal_ablation_data(self, evaluation_results):
         # 消融掉Agent 全部分析, 特征匹配取top_n
@@ -438,3 +516,4 @@ class Evaluator:
         )
 
         return cost_data
+
