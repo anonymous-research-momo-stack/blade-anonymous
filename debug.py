@@ -70,6 +70,7 @@ def demo():
     libnsimd_cpu = "/Users/liuchengyue/Desktop/BinarySCA Platform/Data/Test_Cases/TPL_Test_Cases/conan_test_cases/nsimd/3.0.1/nsimd_3.0.1_arm_64-gcc-release-shared/full_deploy/host/nsimd/3.0.1/Release/armv8/lib/libnsimd_cpu.so"
     libz_so = "/Users/liuchengyue/Desktop/BinarySCA Platform/Data/Test_Cases/TPL_Test_Cases/conan_test_cases/cgal/6.0.1/cgal_6.0.1_x86_64-clang-release-shared/full_deploy/host/zlib/1.3.1/Release/x86_64/lib/libz.so.1.3.1"
     boost = "/Users/liuchengyue/Desktop/BinarySCA Platform/Data/Test_Cases/TPL_Test_Cases/conan_test_cases/cgal/6.0.1/cgal_6.0.1_x86_64-gcc-release-shared/full_deploy/host/boost/1.83.0/Release/x86_64/lib/libboost_system.so.1.83.0"
+    libPcap = "/Users/liuchengyue/Desktop/BinarySCA Platform/Data/Test_Cases/TPL_Test_Cases/conan_test_cases/pcapplusplus/25.05/pcapplusplus_25.05_x86_64-gcc-release-shared/full_deploy/host/pcapplusplus/25.05/Release/x86_64/lib/libPcap++.so.25.05"
 
     # 分析工作流
     workflow = DetectionWorkflow(
@@ -81,7 +82,7 @@ def demo():
 
 
     # 分析
-    result = workflow.run(boost)
+    result = workflow.run(libPcap)
 
     # 结合上下文分析
     # context = workflow.analyze_context(root_path)

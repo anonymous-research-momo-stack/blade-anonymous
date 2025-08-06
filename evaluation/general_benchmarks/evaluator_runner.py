@@ -1,6 +1,6 @@
 from evaluation.general_benchmarks.evaluator import Evaluator
 from evaluation.general_benchmarks.feture_matching_analysis import plot_feature_matching_top_n_effectiveness_figure, \
-    analyze_feature_matching_top_n_effectiveness, classify_feature_matching_cases_having_fn, \
+    analyze_feature_matching_top_n_effectiveness, \
     analyze_feature_matching_failures, print_failure_analysis_report
 from evaluation.general_benchmarks.interface import EvaluationConfig
 from evaluation.general_benchmarks.report_visualization import generate_analysis_report
@@ -93,9 +93,9 @@ def main():
 
     # Conan Binaries
     Conan_benchmark_meta = "/Users/liuchengyue/Desktop/BinarySCA Platform/Code/sca_agents/bsca-expert-agent-api/evaluation/general_benchmarks/benchmark_meta/conan_library_benchmark.json"
-    Conan_benchmark_meta_updated = "/Users/liuchengyue/Desktop/BinarySCA Platform/Code/sca_agents/bsca-expert-agent-api/evaluation/general_benchmarks/benchmark_meta/conan_library_benchmark_20250801_2107.json"
+    Conan_benchmark_meta_updated = "/Users/liuchengyue/Desktop/BinarySCA Platform/Code/sca_agents/bsca-expert-agent-api/evaluation/general_benchmarks/benchmark_meta/conan_library_benchmark_20250806_1524.json"
     Conan_test_case_dir = "/Users/liuchengyue/Desktop/BinarySCA Platform/Data/Test_Cases/TPL_Test_Cases/conan_test_cases"
-    Conan_evluation_report_path = "/Users/liuchengyue/Desktop/BinarySCA Platform/Code/sca_agents/bsca-expert-agent-api/tmp/evaluation_reports/Conan/ours_102_mini_all_0831/evaluation_report.json"
+    Conan_evluation_report_path = "/Users/liuchengyue/Desktop/BinarySCA Platform/Code/sca_agents/bsca-expert-agent-api/tmp/evaluation_reports/Conan/ours_105_0806/evaluation_report.json"
 
 
     benchmark_meta = Conan_benchmark_meta_updated
@@ -110,7 +110,9 @@ def main():
         # use_agent=False,
         concurrency=30,
         slice_start=0,
-        # slice_end=1,
+        # slice_end=10,
+        input_token_price_per_1M=0.4,
+        output_token_price_per_1M=1.6,
     )
 
     # 初始化评估器
@@ -122,7 +124,7 @@ def main():
 
     # 重新分析结果
     report = evaluator.reanalyze_report(evaluation_report_save_path,
-                                        ignore_failed_cases=True)
+                                        ignore_failed_cases=False)
 
     # 可视化分析结果
     visualization_html = "/Users/liuchengyue/Desktop/BinarySCA Platform/Code/sca_agents/bsca-expert-agent-api/tmp/visualization.html"
@@ -131,6 +133,6 @@ def main():
                              )
 
 if __name__ == '__main__':
-    # main()
-    run_feature_matching_only()
+    main()
+    # run_feature_matching_only()
     # analyze_baseline()

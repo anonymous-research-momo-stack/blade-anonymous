@@ -276,7 +276,7 @@ class FeatureMatchingDetector:
                 if self._is_similar_name(file_name_for_check, project_entity.name):
                     if project_entity not in filter_candidate_project_entities:
                         filter_candidate_project_entities.append(project_entity)
-                        logger.info(f"Added similar name library: {project_entity.name} for file: {file_name}")
+                        logger.debug(f"Added similar name library: {project_entity.name} for file: {file_name}")
 
         # 4. 转换为Library接口类型
         candidate_libraries = self._convert_to_library_interface(filter_candidate_project_entities)
