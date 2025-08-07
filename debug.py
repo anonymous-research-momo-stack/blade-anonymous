@@ -78,7 +78,7 @@ def demo():
         enable_bin_info_analysis_web_search=False,
         feature_matching_return_top_n=5,
         debug_mode=False,
-        # use_agent=False
+        use_agent=True
     )
 
 
