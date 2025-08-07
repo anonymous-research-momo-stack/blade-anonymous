@@ -10,7 +10,7 @@ from app.interface import AnalysisResult, AnalysisData, TargetBinary
 from app.services.tpl_detection.batch_detection_workflow import BatchDetectionWorkflow
 from app.services.tpl_detection.detection_workflow import DetectionWorkflow
 from evaluation.general_benchmarks.interface import EvaluationConfig, Benchmark, EvaluationReport, AnalysisResultCheck, \
-    ResearchQuestionData, EffectivenessData, EfficiencyData, AblationData, CostData
+    ResearchQuestionData, EffectivenessData, EfficiencyData, AblationData, CostData, BenchmarkSummary
 
 
 class Evaluator:
@@ -33,8 +33,20 @@ class Evaluator:
             evaluation_config=config,
             benchmark=self.benchmark,
         )
+    def run_failed_cases(self, reference_report_path: str, *args, **kwargs):
+        report = EvaluationReport.load_from_file(reference_report_path)
+        failed_hashes = [check.binary_hash for check in report.evaluation_results_check if not check.perfect]
 
-    def run_benchmark(self, analyze_context: bool = True):
+        self.benchmark = copy.deepcopy(self.benchmark)
+        self.benchmark.test_cases = [tc for tc in self.benchmark.test_cases if tc.test_binary.sha256 in failed_hashes][:10]
+        self.benchmark.summary = BenchmarkSummary(
+            test_case_num = len(self.benchmark.test_cases),
+            covered_library_num = len(set(lib.name for tc in self.benchmark.test_cases for lib in tc.reused_libraries)),
+        )
+        print(len(self.benchmark.test_cases))
+        self.run_benchmark(*args, **kwargs)
+
+    def run_benchmark(self, analyze_context: bool = False):
         """
         运行，以获取结果
         :return:
