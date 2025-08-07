@@ -579,35 +579,12 @@ KNOWN_COMPONENTS = \
      'fish', 'spice-vdagent', 'uchardet', 'ecdsautils']
 
 
+import re
+from collections import Counter
+from typing import List, Dict
+from loguru import logger
+
 class StringFilter:
-    """
-    ## 📋 **字符串筛选策略总结**
-
-    ### **筛选目标**
-    从二进制文件的所有字符串中，筛选出对TPL分析最有价值的信息，控制数量在100个左右，避免token浪费并提高分析质量。
-
-    ### **6大类型信息筛选**
-
-    **1. 版权许可信息（15个）** - 宽泛筛选包含copyright、license、author等关键词的字符串，优先显示包含年份和组织名的，这类信息直接表明代码来源
-
-    **2. 路径URL信息（20个）** - 重点筛选可能包含组件信息的路径，如源码路径、仓库URL、库文件路径等，按仓库URL > 源码路径 > 库路径的优先级排序
-
-    **3. 函数前缀统计（15个）** - 从函数名中提取前缀并统计频率，只保留出现2次以上的前缀，通过命名模式识别库的使用情况
-
-    **4. 日志消息（10个）** - 筛选包含错误、警告、初始化等关键词的消息字符串，优先显示错误和警告信息，这些往往包含库名或功能描述
-
-    **5. 版本信息（8个）** - 提取版本号、构建信息、commit hash等，帮助确定具体的库版本
-
-    **6. 组件名匹配（25个）** - 基于已知组件名称列表，筛选包含这些组件名的字符串，支持独立词匹配，按匹配组件数量和信息价值排序
-
-    ### **关键处理机制**
-    - **数量严格控制**：每类都有明确上限，总共约93个字符串
-    - **质量优先排序**：每类都有智能的优先级算法，确保最有价值的信息排在前面
-    - **长度截断**：超长字符串截断到200字符，避免噪音
-    - **去重处理**：同类信息去重，避免重复
-
-    """
-
     def __init__(self,
                  max_copyright: int = 15,  # 版权信息最大数量
                  max_paths: int = 20,  # 路径URL最大数量
@@ -707,9 +684,6 @@ class StringFilter:
         self.component_lib_patterns = {}
 
         self._compile_patterns()
-        self.set_known_components(
-            KNOWN_COMPONENTS
-        )
 
     def _compile_patterns(self):
         """预编译正则表达式以提高性能"""
@@ -803,7 +777,8 @@ class StringFilter:
 
     def extract_copyright_license(self, strings: List[str]) -> List[str]:
         """宽泛筛选版权许可信息"""
-        results = set()
+        results = []
+        seen = set()
 
         for string in strings:
             # 基本长度过滤
@@ -813,11 +788,11 @@ class StringFilter:
             # 使用预编译的模式
             for pattern in self.copyright_compiled_patterns:
                 if pattern.search(string):
-                    results.add(self._truncate_string(string))
+                    truncated = self._truncate_string(string)
+                    if truncated not in seen:
+                        results.append(truncated)
+                        seen.add(truncated)
                     break
-
-        # 转为列表并排序（优先显示包含关键信息的）
-        results_list = list(results)
 
         # 简单的优先级排序：包含年份、公司名等的优先
         def priority_score(s):
@@ -830,14 +805,15 @@ class StringFilter:
                 score += 3
             return score
 
-        results_list.sort(key=priority_score, reverse=True)
+        results.sort(key=lambda s: (priority_score(s), s), reverse=True)
 
-        self._debug_print("COPYRIGHT/LICENSE", results_list[:self.max_copyright])
-        return results_list[:self.max_copyright]
+        self._debug_print("COPYRIGHT/LICENSE", results[:self.max_copyright])
+        return results[:self.max_copyright]
 
     def extract_paths_urls(self, strings: List[str]) -> List[str]:
         """筛选路径和URL，重点关注包含组件信息的"""
-        results = set()
+        results = []
+        seen = set()
 
         for string in strings:
             if not (5 <= len(string) <= self.max_string_length * 2):
@@ -846,10 +822,11 @@ class StringFilter:
             # 使用预编译的模式
             for pattern in self.path_compiled_patterns:
                 if pattern.search(string):
-                    results.add(self._truncate_string(string))
+                    truncated = self._truncate_string(string)
+                    if truncated not in seen:
+                        results.append(truncated)
+                        seen.add(truncated)
                     break
-
-        results_list = list(results)
 
         # 优先级排序：仓库URL > 源码路径 > 库路径 > 其他
         def path_priority(s):
@@ -878,10 +855,10 @@ class StringFilter:
 
             return score
 
-        results_list.sort(key=path_priority, reverse=True)
+        results.sort(key=lambda s: (path_priority(s), s), reverse=True)
 
-        self._debug_print("PATHS/URLS", results_list[:self.max_paths])
-        return results_list[:self.max_paths]
+        self._debug_print("PATHS/URLS", results[:self.max_paths])
+        return results[:self.max_paths]
 
     def extract_function_prefixes(self, strings: List[str]) -> List[str]:
         """分析函数前缀并统计"""
@@ -950,7 +927,7 @@ class StringFilter:
                 score += 5
             return score
 
-        candidates.sort(key=log_relevance, reverse=True)
+        candidates.sort(key=lambda s: (log_relevance(s), s), reverse=True)
 
         # 去重
         unique_candidates = []
@@ -965,7 +942,8 @@ class StringFilter:
 
     def extract_version_info(self, strings: List[str]) -> List[str]:
         """提取版本信息"""
-        results = set()
+        results = []
+        seen = set()
 
         for string in strings:
             if len(string) > self.max_string_length:
@@ -974,13 +952,16 @@ class StringFilter:
             # 使用预编译的模式
             for pattern in self.version_compiled_patterns:
                 if pattern.search(string):
-                    results.add(self._truncate_string(string))
+                    truncated = self._truncate_string(string)
+                    if truncated not in seen:
+                        results.append(truncated)
+                        seen.add(truncated)
                     break
 
-        results_list = sorted(list(results), key=len, reverse=True)
+        results.sort(key=lambda s: (len(s), s), reverse=True)
 
-        self._debug_print("VERSION INFO", results_list[:self.max_versions])
-        return results_list[:self.max_versions]
+        self._debug_print("VERSION INFO", results[:self.max_versions])
+        return results[:self.max_versions]
 
     def extract_component_name_strings(self, strings: List[str]) -> Dict[str, List[str]]:
         """提取包含已知组件名称的字符串，返回按组件名组织的字典"""
@@ -995,18 +976,21 @@ class StringFilter:
                 processed_strings.append(truncated)
 
         # 第一阶段：快速过滤 - 简单的包含匹配
-        candidate_components = set()
+        candidate_components = []
+        seen_components = set()
         all_strings_combined = ' '.join(processed_strings).lower()
 
         if self.debug:
             logger.info(f"Phase 1: Fast filtering from {len(self.known_component_names)} components...")
 
-        for component in self.known_component_names:
+        for component in sorted(self.known_component_names):  # 排序确保确定性
             component_lower = component.lower()
             # 简单的包含检查
             if (component_lower in all_strings_combined or
                     f"lib{component_lower}" in all_strings_combined):
-                candidate_components.add(component)
+                if component not in seen_components:
+                    candidate_components.append(component)
+                    seen_components.add(component)
 
         if self.debug:
             logger.info(f"Phase 1: Filtered down to {len(candidate_components)} candidate components")
@@ -1031,7 +1015,7 @@ class StringFilter:
         component_results = {k: v for k, v in component_results.items() if v}
 
         # 对每个组件的匹配结果去重、排序并限制数量
-        for component in component_results:
+        for component in sorted(component_results.keys()):  # 排序确保确定性
             # 去重
             unique_matches = list(dict.fromkeys(component_results[component]))
             # 排序
@@ -1071,11 +1055,11 @@ class StringFilter:
 
             return score
 
-        return sorted(matches, key=priority_score, reverse=True)
+        return sorted(matches, key=lambda s: (priority_score(s), s), reverse=True)
 
     def set_known_components(self, component_names: List[str]):
         """设置已知组件名称列表"""
-        self.known_component_names = component_names
+        self.known_component_names = sorted(component_names)  # 排序确保确定性
         self._prepare_component_patterns()
         if self.debug:
             logger.info(f"Set {len(component_names)} known component names")

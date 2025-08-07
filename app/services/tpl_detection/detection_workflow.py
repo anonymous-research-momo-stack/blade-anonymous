@@ -1,5 +1,7 @@
 import os
+import sys
 import time
+import traceback
 from typing import List
 from loguru import logger
 
@@ -15,7 +17,7 @@ from .file_preparation.file_preprocessor import FilePreprocessor, calculate_file
 
 # 设置logger级别为INFO，这样debug级别的日志不会显示
 logger.remove()
-logger.add(lambda msg: None, level="INFO")
+logger.add(sys.stdout, level="INFO", format="{time} {level} {message}", colorize=True)
 
 
 class DetectionWorkflow:
@@ -166,6 +168,7 @@ class DetectionWorkflow:
             logger.error(f"异常类名: {e.__class__.__name__}")
             logger.error(f"异常内容: {e}")
             logger.error(f"异常模块: {e.__class__.__module__}")
+            logger.error(traceback.format_exc())
             # 检查是否是超时异常，如果是则重新抛出
             from celery.exceptions import SoftTimeLimitExceeded
             if isinstance(e, SoftTimeLimitExceeded):

@@ -185,6 +185,7 @@ class LibraryValidator:
         if not libraries:
             return [], {}
 
+
         logger.debug(f"\n=== EXPERT VALIDATION WORKFLOW - {target_binary.binary_name} ===")
         logger.debug(f"Validating {len(libraries)} candidate libraries through two-step expert analysis")
 
@@ -508,12 +509,15 @@ VALIDATED LIBRARIES FROM STEP 1 ({len(reasonable_libraries)}):
         # 识别主体库
         primary_libs = []
         other_libs = []
+        # 🔧 先对输入列表排序
+        sorted_libraries = sorted(reasonable_libraries, key=lambda lib: lib.name)
 
-        for lib in reasonable_libraries:
+        for lib in sorted_libraries:
             if self._is_primary_source_library(lib, target_binary):
                 primary_libs.append(lib)
             else:
                 other_libs.append(lib)
+
 
         if primary_libs:
             prompt += f"\nPRIMARY SOURCE LIBRARIES ({len(primary_libs)} - Highest Priority):\n"
@@ -838,8 +842,8 @@ Binary: {target_binary.binary_name} ({target_binary.file_size_kb} KB)
             return result_map[library_name]
 
         # 大小写不敏感匹配
-        for key, result in result_map.items():
+        for key in sorted(result_map.keys()):  # 🔧 添加sorted()
             if key.lower() == library_name.lower():
-                return result
+                return result_map[key]
 
         return None

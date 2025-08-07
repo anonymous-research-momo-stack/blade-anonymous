@@ -241,7 +241,7 @@ class FeatureMatchingDetector:
 
             strings_to_match.add(s.strip())
 
-        return list(strings_to_match)
+        return sorted(strings_to_match)
 
     def match_candidate_libraries(self, file_name: str, strings: List[str]) -> List[Library]:
         """

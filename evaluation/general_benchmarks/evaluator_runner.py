@@ -108,8 +108,8 @@ def run_failed_case_only():
         feature_matching_top_n=5,
         # use_agent=False,
         concurrency=30,
-        slice_start=0,
-        # slice_end=10,
+        slice_start=100,
+        slice_end=120,
         input_token_price_per_1M=0.4,
         output_token_price_per_1M=1.6,
     )
@@ -171,6 +171,6 @@ def main():
 
 if __name__ == '__main__':
     # main()
-    # run_failed_case_only()
+    run_failed_case_only()
     # analyze_baseline()
-    run_feature_matching_only()
+    # run_feature_matching_only()

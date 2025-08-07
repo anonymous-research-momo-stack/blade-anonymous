@@ -38,7 +38,7 @@ class Evaluator:
         failed_hashes = [check.binary_hash for check in report.evaluation_results_check if not check.perfect]
 
         self.benchmark = copy.deepcopy(self.benchmark)
-        self.benchmark.test_cases = [tc for tc in self.benchmark.test_cases if tc.test_binary.sha256 in failed_hashes][:10]
+        self.benchmark.test_cases = [tc for tc in self.benchmark.test_cases if tc.test_binary.sha256 in failed_hashes]
         self.benchmark.summary = BenchmarkSummary(
             test_case_num = len(self.benchmark.test_cases),
             covered_library_num = len(set(lib.name for tc in self.benchmark.test_cases for lib in tc.reused_libraries)),

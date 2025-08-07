@@ -35,5 +35,5 @@ def print_fp_cases(simple_report):
             print(f"\tfp_names: {check.fp_lib_names}")
             print(f"\tfn_names: {check.fn_lib_names}")
 
-
-print_fp_cases(simple_report)
+print(print_fn_cases(simple_report))
+# print_fp_cases(simple_report)

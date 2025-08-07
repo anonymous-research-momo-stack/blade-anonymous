@@ -162,7 +162,8 @@ class FilePreprocessor:
 
             if result.returncode == 0:
                 # 分割输出并过滤空字符串
-                strings = [line.strip() for line in result.stdout.split('\n') if line.strip()]
+                # 在strings提取后进行排序
+                strings = sorted([line.strip() for line in result.stdout.split('\n') if line.strip()])
                 return strings
             else:
                 logger.debug(f"strings命令执行失败: {result.stderr}")
@@ -194,9 +195,10 @@ class FilePreprocessor:
             binary = lief.parse(file_path)
             if binary is None:
                 return [],[],[]
-            dynamic_linked_libraries = list(binary.libraries)
-            imported_symbols = [symbol.name for symbol in binary.imported_symbols if symbol.name]
-            exported_symbols = [symbol.name for symbol in binary.exported_symbols if symbol.name]
+            # 在 _lief_parse 方法中
+            dynamic_linked_libraries = sorted(list(binary.libraries))
+            imported_symbols = sorted([symbol.name for symbol in binary.imported_symbols if symbol.name])
+            exported_symbols = sorted([symbol.name for symbol in binary.exported_symbols if symbol.name])
             return dynamic_linked_libraries, imported_symbols, exported_symbols
         except:
             return [],[],[]
@@ -231,11 +233,14 @@ class FilePreprocessor:
             'prefix_categories': {}
         }
 
-        for prefix, symbols in prefix_categories.items():
-            if len(symbols) >= 1:  # 至少有1个符号
+        # 在 _analyze_exported_symbols 和 _analyze_imported_symbols 中
+        # 对 prefix_categories 的键进行排序遍历
+        for prefix in sorted(prefix_categories.keys()):
+            symbols = prefix_categories[prefix]
+            if len(symbols) >= 1:
                 result['prefix_categories'][prefix] = {
                     'count': len(symbols),
-                    'examples': symbols[:3]  # 每个前缀给3个例子
+                    'examples': sorted(symbols)[:3]  # 对examples也进行排序
                 }
 
         return result
@@ -271,10 +276,14 @@ class FilePreprocessor:
             'significant_prefixes': {}
         }
 
-        for prefix, symbols in significant_prefixes.items():
-            result['significant_prefixes'][prefix] = {
-                'count': len(symbols),
-                'examples': symbols[:2]  # 每个前缀给2个例子
-            }
+        # 在 _analyze_exported_symbols 和 _analyze_imported_symbols 中
+        # 对 prefix_categories 的键进行排序遍历
+        for prefix in sorted(prefix_categories.keys()):
+            symbols = prefix_categories[prefix]
+            if len(symbols) >= 1:
+                result['significant_prefixes'][prefix] = {
+                    'count': len(symbols),
+                    'examples': sorted(symbols)[:3]  # 对examples也进行排序
+                }
 
         return result
