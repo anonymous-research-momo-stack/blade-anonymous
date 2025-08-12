@@ -5,7 +5,7 @@ from evaluation.general_benchmarks.feture_matching_analysis import plot_feature_
 from evaluation.general_benchmarks.interface import EvaluationConfig
 
 
-def analyze_baseline():
+def reanalyze_all_result():
     # Conan Binaries
     Conan_benchmark_meta = "/Users/liuchengyue/Desktop/BinarySCA Platform/Code/sca_agents/bsca-expert-agent-api/evaluation/general_benchmarks/benchmark_meta/conan_library_benchmark_20250806_1524.json"
     Conan_test_case_dir = "/Users/liuchengyue/Desktop/BinarySCA Platform/Data/Test_Cases/TPL_Test_Cases/conan_test_cases"
@@ -26,13 +26,25 @@ def analyze_baseline():
 
     # 初始化评估器
     evaluator = Evaluator(config)
-    # =============== baselines ==============
-    # 经过格式转换的结果
-    # ========================================
-    # binary ai
-    binary_result_path = "/Users/liuchengyue/Desktop/BinarySCA Platform/Code/sca_agents/bsca-expert-agent-api/tmp/evaluation_reports/Conan/binary_ai/evaluation_report_2025-07-30-12-54-29_converted.json"
-    report = evaluator.reanalyze_report(binary_result_path,
-                                        ignore_failed_cases=False)
+    # =============== 重新对比结果与groundtruth ==============
+
+    print(f"Scantist")
+    result_path = "/Users/liuchengyue/Desktop/BinarySCA Platform/Code/sca_agents/bsca-expert-agent-api/tmp/evaluation_reports/Conan/scantist/291-75403-xd70-无agent-扫描报告-2025-08-06T09_36_22+08_00/result_converted.json"
+    report = evaluator.reanalyze_report(result_path, ignore_failed_cases=False)
+
+    print(f"BAT")
+    result_path = "/Users/liuchengyue/Desktop/BinarySCA Platform/Code/sca_agents/bsca-expert-agent-api/tmp/evaluation_reports/Conan/bat/raw_result_converted.json"
+    report = evaluator.reanalyze_report(result_path, ignore_failed_cases=False)
+
+    print(f"OssPolice")
+    result_path = "/Users/liuchengyue/Desktop/BinarySCA Platform/Code/sca_agents/bsca-expert-agent-api/tmp/evaluation_reports/Conan/osspolice/raw_result_converted.json"
+    report = evaluator.reanalyze_report(result_path, ignore_failed_cases=False)
+
+    print(f"Binary AI")
+    result_path = "/Users/liuchengyue/Desktop/BinarySCA Platform/Code/sca_agents/bsca-expert-agent-api/tmp/evaluation_reports/Conan/binary_ai/evaluation_report_2025-07-30-12-54-29_converted.json"
+    report = evaluator.reanalyze_report(result_path, ignore_failed_cases=False)
+
+
 
 def run_feature_matching_only():
     # 分析输入Conan Binaries
@@ -43,8 +55,10 @@ def run_feature_matching_only():
     # 评估输入
     benchmark_meta = Conan_benchmark_meta
     benchmark_tc_dir = Conan_test_case_dir
+
     # 评估结果
     evaluation_report_save_path = Conan_evluation_report_path
+
     # 评估结果的分析结果
     top_n_effectiveness_analysis_result_path = "/Users/liuchengyue/Desktop/BinarySCA Platform/Code/sca_agents/bsca-expert-agent-api/tmp/evaluation_reports/Conan/feture_matching/effectiveness_analysis_result.json"
 
@@ -171,6 +185,6 @@ def main():
 
 if __name__ == '__main__':
     # main()
-    run_failed_case_only()
-    # analyze_baseline()
+    # run_failed_case_only()
+    reanalyze_all_result()
     # run_feature_matching_only()

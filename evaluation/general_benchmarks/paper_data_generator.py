@@ -25,7 +25,6 @@ class PaperDataGenerator():
         TOTAL_TPLS = 995  # 有测试用例覆盖的TPL数量
         TOTAL_REUSE_RELATIONSHIPS = 3489  # 总的复用关系数量 # TODO 待确定最终数字
 
-
         # 表格中各配置的数据
         GCC_X86_BINARIES = 1239  # gcc+x86_64配置的二进制文件数
         GCC_X86_TPLS = 963  # gcc+x86_64配置的TPL数量
@@ -38,8 +37,6 @@ class PaperDataGenerator():
         CLANG_X86_BINARIES = 1211  # clang+x86_64配置的二进制文件数
         CLANG_X86_TPLS = 944  # clang+x86_64配置的TPL数量
         CLANG_X86_REUSES = 1211  # clang+x86_64配置的复用关系数 # TODO 待确定最终数字
-
-
 
         # 打印LaTeX内容
         print(
@@ -75,35 +72,27 @@ Total & \\var{{{TOTAL_BINARY_FILES:,}}} & \\var{{{TOTAL_TPLS:,}}} & \\var{{{TOTA
     import json
     from typing import Optional, Dict, Any
 
-    def generate_comparison_table(self,
-                                  bat_result_path: str = 'bat_results.json',
-                                  osspolice_result_path: str = 'oss_police_results.json',
-                                  b2sfinder_result_path: str = 'b2sfinder_results.json',
-                                  libam_result_path: str = 'libam_results.json',
-                                  binary_ai_result_path: str = 'binary_ai_results.json',
-                                  our_gpt_4_1_result_path: str = 'our_gpt_4_results.json',
-                                  our_gpt_4_1_mini_result_path: str = 'our_gpt_4_mini_results.json',
-                                  our_sonnet_4_result_path: str = 'our_sonnet_4_results.json',
-                                  our_gpt_oss_result_path: str = 'our_gpt_oss_results.json',
-                                  our_qwen_3_result_path: str = 'our_qwen_3_results.json',
-                                  ):
+    def generate_comparison_table(self, tools_config: Dict[str, Dict[str, Dict[str, str]]]):
         """
-        加载每个实验结果，每个生成一行，然后写入LaTeX表格中。
-        """
+        生成对比表格，支持灵活的工具配置。
 
-        # 工具配置：文件路径 -> (显示名称, 是否为我们的工具)
-        tool_configs = [
-            (bat_result_path, "BAT", False),
-            (osspolice_result_path, "OssPolice", False),
-            (b2sfinder_result_path, "B2SFinder", False),
-            (libam_result_path, "LibAM", False),
-            (binary_ai_result_path, "BinaryAI", False),
-            (our_gpt_4_1_result_path, "\\textbf{Ours-G4}", True),
-            (our_gpt_4_1_mini_result_path, "\\textbf{Ours-G4M}", True),
-            (our_sonnet_4_result_path, "\\textbf{Ours-S4}", True),
-            (our_gpt_oss_result_path, "\\textbf{Ours-GOS}", True),
-            (our_qwen_3_result_path, "\\textbf{Ours-QW3}", True),
-        ]
+        Args:
+            tools_config: 两层字典结构
+            {
+                "commercial": {
+                    "tool_key": {"path": "文件路径", "display_name": "显示名称"},
+                    ...
+                },
+                "academic": {
+                    "tool_key": {"path": "文件路径", "display_name": "显示名称"},
+                    ...
+                },
+                "ours": {
+                    "tool_key": {"path": "文件路径", "display_name": "显示名称"},
+                    ...
+                }
+            }
+        """
 
         def load_report_data(file_path: str) -> Optional[Dict[str, Any]]:
             """加载报告数据"""
@@ -135,7 +124,7 @@ Total & \\var{{{TOTAL_BINARY_FILES:,}}} & \\var{{{TOTAL_TPLS:,}}} & \\var{{{TOTA
 
             return {"recall": recall, "precision": precision, "f1_score": f1_score}
 
-        def generate_row_data(tool_name: str, research_data, is_ours: bool) -> str:
+        def generate_row_data(tool_name: str, research_data, tool_type: str, is_first_ours: bool = False) -> str:
             """生成单行数据"""
             if research_data is None:
                 # 没有数据时，所有指标都显示xxx
@@ -154,50 +143,80 @@ Total & \\var{{{TOTAL_BINARY_FILES:,}}} & \\var{{{TOTAL_TPLS:,}}} & \\var{{{TOTA
                     clang_x86_64["recall"], clang_x86_64["precision"], clang_x86_64["f1_score"]
                 ]
 
-            # 如果是我们的工具且是最好的结果(第一个)，加粗显示
-            if is_ours and tool_name == "\\textbf{Ours-G4}":
+            # 如果是我们的工具且是第一个，加粗显示
+            if tool_type == "ours" and is_first_ours:
                 row_data = [f"\\textbf{{{value}}}" if value != "xxx" else value for value in row_data]
 
             # 格式化为LaTeX行
             data_str = " & ".join(row_data)
             return f"        {tool_name} & {data_str} \\\\"
 
-        # 生成所有行数据
+        # 按指定顺序处理工具类型
+        type_order = ["commercial", "academic", "ours"]
         all_rows = []
-        baseline_rows = []
-        our_rows = []
 
-        for file_path, tool_name, is_ours in tool_configs:
-            research_data = load_report_data(file_path)
-            row = generate_row_data(tool_name, research_data, is_ours)
+        for tool_type in type_order:
+            if tool_type not in tools_config:
+                continue
 
-            if is_ours:
-                our_rows.append(row)
-            else:
-                baseline_rows.append(row)
+            type_rows = []
+            is_first_ours = True  # 标记是否为该类型的第一个工具
 
-        # 生成完整的LaTeX表格
-        latex_table = f"""\\begin{{table}}[t]
-        \\captionsetup{{skip=1pt, belowskip=7pt}}
-        \\caption{{SCA Result Comparison on Different Architectures}}
-        \\label{{tab:tpl_detection_comparison}}
-        \\scriptsize  % 使用更小的字体
-        \\setlength{{\\tabcolsep}}{{3pt}}  % 减小列间距
-        \\begin{{tabular*}}{{\\linewidth}}{{@{{\\extracolsep{{\\fill}}}} c|ccc|ccc|ccc|ccc}}
-            \\toprule
-            & \\multicolumn{{3}}{{c|}}{{\\textbf{{Overall}}}} & \\multicolumn{{3}}{{c|}}{{\\textbf{{GCC x86}}}} & \\multicolumn{{3}}{{c|}}{{\\textbf{{GCC ARM}}}} & \\multicolumn{{3}}{{c}}{{\\textbf{{Clang x86\\_64}}}} \\\\  
-            \\cmidrule(lr){{2-4}} \\cmidrule(lr){{5-7}} \\cmidrule(lr){{8-10}} \\cmidrule(lr){{11-13}}
-            \\textbf{{Tool}} & R & P & F1 & R & P & F1 & R & P & F1 & R & P & F1 \\\\
-            \\midrule
-    {chr(10).join(baseline_rows)}
-            \\hline
-    {chr(10).join(our_rows)}
-            \\bottomrule
-        \\end{{tabular*}}
-        \\vspace{{1mm}}
-        \\scriptsize
-        \\textbf{{Note:}} R = Recall (\\%), P = Precision (\\%), F1 = F1-Score (\\%); G4 = OpenAI GPT-4.1, G4M = OpenAI GPT-4.1-mini, S4 = Anthropic Sonnet-4.0, GOS = OpenAI GPT-OSS:20b, QW3 = Qwen3:14b.
-    \\end{{table}}"""
+            for tool_key, tool_info in tools_config[tool_type].items():
+                file_path = tool_info["path"]
+                display_name = tool_info["display_name"]
+
+                research_data = load_report_data(file_path)
+                row = generate_row_data(
+                    display_name,
+                    research_data,
+                    tool_type,
+                    is_first_ours and tool_type == "ours"
+                )
+                type_rows.append(row)
+
+                if tool_type == "ours":
+                    is_first_ours = False
+
+            if type_rows:
+                all_rows.extend(type_rows)
+                # 在类型之间添加分隔线（除了最后一个类型）
+                if tool_type != type_order[-1] and tool_type != "ours":
+                    all_rows.append("            \\hline")
+
+        # 在我们的工具前添加分隔线
+        if "ours" in tools_config and tools_config["ours"]:
+            # 找到我们工具开始的位置，在前面插入分隔线
+            ours_start_idx = len(all_rows)
+            for i, row in enumerate(all_rows):
+                if "\\textbf{Ours-" in row:
+                    ours_start_idx = i
+                    break
+            if ours_start_idx < len(all_rows):
+                all_rows.insert(ours_start_idx, "            \\hline")
+
+            # 生成完整的LaTeX表格
+            latex_table = f"""
+\\begin{{table}}[t]
+\\captionsetup{{skip=1pt, belowskip=7pt}}
+\\caption{{SCA Result Comparison on Different Architectures}}
+\\label{{tab:tpl_detection_comparison}}
+\\scriptsize  % 使用更小的字体
+\\setlength{{\\tabcolsep}}{{3pt}}  % 减小列间距
+\\begin{{tabularx}}{{\\linewidth}}{{>{{\\centering\\arraybackslash}}p{{2.0cm}}|YYY|YYY|YYY|YYY}}
+    \\toprule
+    & \\multicolumn{{3}}{{c|}}{{\\textbf{{Overall}}}} & \\multicolumn{{3}}{{c|}}{{\\textbf{{GCC x86}}}} & \\multicolumn{{3}}{{c|}}{{\\textbf{{GCC ARM}}}} & \\multicolumn{{3}}{{c}}{{\\textbf{{Clang x86\\_64}}}} \\\\  
+    \\cmidrule(lr){{2-4}} \\cmidrule(lr){{5-7}} \\cmidrule(lr){{8-10}} \\cmidrule(lr){{11-13}}
+    \\textbf{{Tool}} & R & P & F1 & R & P & F1 & R & P & F1 & R & P & F1 \\\\
+    \\midrule
+{chr(10).join(all_rows)}
+    \\bottomrule
+\\end{{tabularx}}
+\\vspace{{1mm}}
+\\scriptsize
+\\textbf{{Note:}} R = Recall (\\%), P = Precision (\\%), F1 = F1-Score (\\%); G4 = OpenAI GPT-4.1, G4M = OpenAI GPT-4.1-mini, S4 = Anthropic Sonnet-4.0, GOS = OpenAI GPT-OSS:20b, QW3 = Qwen3:14b.
+\\end{{table}}
+"""
 
         print("Generated LaTeX Table:")
         print("=" * 80)
@@ -228,17 +247,64 @@ def print_dataset_preview():
     # generator.generate_ablation_table()
     # generator.generate_time_breakdown_table()
 
+
 def print_RQ1_data():
     generator = PaperDataGenerator()
-    generator.generate_comparison_table(
-        binary_ai_result_path="/Users/liuchengyue/Desktop/BinarySCA Platform/Code/sca_agents/bsca-expert-agent-api/tmp/evaluation_reports/Conan/binary_ai/evaluation_report_2025-07-30-12-54-29_converted_reanalyzed_simple.json",
-        our_gpt_4_1_mini_result_path="/Users/liuchengyue/Desktop/BinarySCA Platform/Code/sca_agents/bsca-expert-agent-api/tmp/evaluation_reports/Conan/ours_105_0806/evaluation_report_reanalyzed_simple.json",
-    )
+    tools_config = {
+        "commercial": {
+            "scantist": {
+                "path": "/Users/liuchengyue/Desktop/BinarySCA Platform/Code/sca_agents/bsca-expert-agent-api/tmp/evaluation_reports/Conan/scantist/291-75403-xd70-无agent-扫描报告-2025-08-06T09_36_22+08_00/result_converted_reanalyzed_simple.json",
+                "display_name": "CT1"},
+            "cybellum": {
+                "path": "",
+                "display_name": "CT2"},
+            "blackduck": {
+                "path": "",
+                "display_name": "CT3"}
+        },
+        "academic": {
+            "BAT": {
+                "path": "/Users/liuchengyue/Desktop/BinarySCA Platform/Code/sca_agents/bsca-expert-agent-api/tmp/evaluation_reports/Conan/bat/raw_result_converted_reanalyzed_simple.json",
+                "display_name": "BAT"},
+            "OssPolice": {
+                "path": "/Users/liuchengyue/Desktop/BinarySCA Platform/Code/sca_agents/bsca-expert-agent-api/tmp/evaluation_reports/Conan/osspolice/raw_result_converted_reanalyzed_simple.json",
+                "display_name": "OssPolice"},
+            "B2SFinder": {
+                "path": "",
+                "display_name": "B2SFinder"},
+            "LibAM": {
+                "path": "",
+                "display_name": "LibAM"},
+            "binary_ai": {
+                "path": "/Users/liuchengyue/Desktop/BinarySCA Platform/Code/sca_agents/bsca-expert-agent-api/tmp/evaluation_reports/Conan/binary_ai/evaluation_report_2025-07-30-12-54-29_converted_reanalyzed_simple.json",
+                "display_name": "BinaryAI"},
+        },
+        "ours": {
+            "our-OpenAI-GPT-4.1": {
+                "path": "/Users/liuchengyue/Desktop/BinarySCA Platform/Code/sca_agents/bsca-expert-agent-api/tmp/evaluation_reports/Conan/ours_102_mini_all_0831/evaluation_report_reanalyzed_simple.json",
+                "display_name": "\\textbf{Blade-G4.1}"},
+            "our-OpenAI-GPT-4.1-mini": {
+                "path": "/Users/liuchengyue/Desktop/BinarySCA Platform/Code/sca_agents/bsca-expert-agent-api/tmp/evaluation_reports/Conan/ours_105_0806/evaluation_report_reanalyzed_simple.json",
+                "display_name": "\\textbf{Blade-G4.1m}"},
+            "our-Anthropic-Sonnet-4.0": {
+                "path": "",
+                "display_name": "\\textbf{Blade-S4}"},
+            "our-Ollama-gpt-oss-20b": {
+                "path": "",
+                "display_name": "Blade-GOS"},
+            "our-Ollama-qwen3-14b": {
+                "path": "",
+                "display_name": "Blade-QW3"},
+        }
+    }
+    generator.generate_comparison_table(tools_config=tools_config)
 
     pass
 
+
 def main():
     print_RQ1_data()
+
 
 if __name__ == '__main__':
     main()

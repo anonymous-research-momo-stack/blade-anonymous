@@ -53,7 +53,7 @@ def _create_openai_model(model_id: str):
     return OpenAIChat(
         id=model_id,
         api_key=settings.OPENAI_API_KEY,
-        temperature=0,  # 添加temperature参数，设为0获得最大确定性
+        temperature=1,  # 添加temperature参数，设为0获得最大确定性
         seed=42,        # 添加seed参数，确保可重现性
     )
 
@@ -68,7 +68,7 @@ def _create_anthropic_model(model_id: str):
     return Claude(
         id=model_id,
         api_key=settings.ANTHROPIC_API_KEY,
-        temperature=0,  # 添加temperature参数，虽然不能完全确定性，但能减少随机性
+        temperature=1,  # 添加temperature参数，虽然不能完全确定性，但能减少随机性
         # 注意：Anthropic不支持seed参数
     )
 
