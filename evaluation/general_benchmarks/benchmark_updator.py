@@ -195,10 +195,17 @@ alias_mapping_1 = {
         "Twitch IPC Library"
     ],
     "mbedtls": [
-        "mbed TLS"
+        "mbed TLS",
+        "mbed_tls"
     ],
     "libtool": [
         "GNU libtool"
+    ],
+    "libx265": [
+        "x265"
+    ],
+    "compute_library": [
+        "computelibrary"
     ],
     "cpuinfo": [
         "libcpuinfo"
@@ -280,8 +287,13 @@ alias_mapping_1 = {
     "openddl-parser": [
         "OpenDDL Parser"
     ],
+    "tidy-html5": [
+        "tidy"
+    ],
+
     "libpq": [
-        "postgres"
+        "postgres",
+        "postgresql",
     ],
     "intel-ipsec-mb": [
         "Intel Multi-Buffer Crypto Library"
@@ -320,6 +332,12 @@ alias_mapping_1 = {
         "OpenAL Utility Toolkit",
         "OpenAL Utility Toolkit (ALUT)"
     ],
+    "arcus": [
+        "libarcus"
+    ],
+    "llvm-openmp": [
+        "llvm"
+    ],
     "cryptopp": [
         "Crypto++"
     ],
@@ -330,7 +348,8 @@ alias_mapping_1 = {
         "OpenCORE AMR"
     ],
     "tgbot": [
-        "libTgBot"
+        "libTgBot",
+        "tgbot-cpp"
     ],
     "jxrlib": [
         "JPEG XR",
@@ -721,6 +740,8 @@ alias_mapping_2 = {
     "azure-storage-cpp": ["Azure Storage Client Library for C++"],
     "libspatialite": ["SpatiaLite"],
     "opengrm": ["Thrax", "OpenGrm Thrax"],
+    "onetbb": ["tbb"],
+    "libnl": ["libnl3"],
     "cmaes": ["libcmaes"]
 }
 for update_dict in [alias_mapping_1, alias_mapping_2]:

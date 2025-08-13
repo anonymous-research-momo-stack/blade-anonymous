@@ -464,6 +464,11 @@ class ResearchQuestionData(Serializable):
     gcc_arm_effectiveness: EffectivenessData = None  # GCC ARM effectiveness data
     clang_x86_64_effectiveness: EffectivenessData = None  # Clang x86_64 effectiveness data
 
+    size_lt_1000kb_effectiveness: EffectivenessData = None  # Effectiveness data for files smaller than 1000KB
+    size_lt_500kb_effectiveness: EffectivenessData = None  # Effectiveness data for files smaller than 500KB
+    size_lt_100kb_effectiveness: EffectivenessData = None  # Effectiveness data for files between 100KB and 1MB
+
+
     # rq 2 消融实验
     effectiveness_ablation_study: AblationData = None  # Data for research question 2
 

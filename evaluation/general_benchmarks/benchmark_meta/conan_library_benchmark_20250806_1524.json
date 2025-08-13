@@ -4305,7 +4305,7 @@
                     "name": "onetbb",
                     "vendor": null,
                     "repository": "https://github.com/oneapi-src/oneTBB",
-                    "other_names": [],
+                    "other_names": ["tbb"],
                     "version": "2022.2.0",
                     "description": "oneAPI Threading Building Blocks (oneTBB) lets you easily write parallel C++ programs that take full advantage of multicore performance, that are portable, composable and have future-proof scalability.",
                     "type": "tbb, threading, parallelism, tbbmalloc",

@@ -191,6 +191,8 @@ class Evaluator:
         effectiveness = self._cal_effectiveness(results_check_lst)
         print(f"RQ 1 效果性计算完成: {effectiveness}, 计算不同编译配置的效果性...")
         gcc_x86_effectiveness, gcc_arm_effectiveness, clang_x86_64_effectiveness = self._cal_effectiveness_group_by_compile_config(results_check_lst)
+        print(f"RQ 1 计算不同文件大小的效果")
+        size_lt_1000_effectiveness, size_lt_500_effectiveness, size_lt_100_effectiveness = self._cal_effectiveness_group_by_file_size(results_check_lst)
 
         # RQ 2 消融实验
         print(f"计算RQ 2 效果性消融实验...")
@@ -213,6 +215,9 @@ class Evaluator:
             gcc_x86_effectiveness=gcc_x86_effectiveness,
             gcc_arm_effectiveness=gcc_arm_effectiveness,
             clang_x86_64_effectiveness=clang_x86_64_effectiveness,
+            size_lt_1000kb_effectiveness=size_lt_1000_effectiveness,
+            size_lt_500kb_effectiveness=size_lt_500_effectiveness,
+            size_lt_100kb_effectiveness=size_lt_100_effectiveness,
             effectiveness_ablation_study=effectiveness_ablation_study,
             efficiency=efficiency,
             cost=cost,
@@ -359,6 +364,24 @@ class Evaluator:
         clang_x86_64_effectiveness = self._cal_effectiveness(clang_x86_64)
 
         return gcc_x86_effectiveness, gcc_arm_effectiveness, clang_x86_64_effectiveness
+
+    def _cal_effectiveness_group_by_file_size(self,result_check_lst):
+        size_lt_1000= []  # 小于1MB
+        size_lt_500 = []
+        size_lt_100 = []
+        for check in result_check_lst:
+            if check.binary_size_kb < 1000:  # 小于1MB
+                size_lt_1000.append(check)
+            if check.binary_size_kb < 500:
+                size_lt_500.append(check)
+            if check.binary_size_kb < 100:
+                size_lt_100.append(check)
+
+        size_lt_1000_effectiveness = self._cal_effectiveness(size_lt_1000)
+        size_lt_500_effectiveness = self._cal_effectiveness(size_lt_500)
+        size_lt_100_effectiveness = self._cal_effectiveness(size_lt_100)
+
+        return size_lt_1000_effectiveness, size_lt_500_effectiveness, size_lt_100_effectiveness
 
     def _cal_ablation_data(self, evaluation_results):
         # 消融掉Agent 全部分析, 特征匹配取top_n

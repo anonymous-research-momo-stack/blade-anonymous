@@ -44,6 +44,9 @@ def reanalyze_all_result():
     result_path = "/Users/liuchengyue/Desktop/BinarySCA Platform/Code/sca_agents/bsca-expert-agent-api/tmp/evaluation_reports/Conan/binary_ai/evaluation_report_2025-07-30-12-54-29_converted.json"
     report = evaluator.reanalyze_report(result_path, ignore_failed_cases=False)
 
+    print(f"our gpt 4.1 mini")
+    result_path = "/Users/liuchengyue/Desktop/BinarySCA Platform/Code/sca_agents/bsca-expert-agent-api/tmp/evaluation_reports/Conan/ours_105_0806/evaluation_report.json"
+    report = evaluator.reanalyze_report(result_path, ignore_failed_cases=False)
 
 
 def run_feature_matching_only():
