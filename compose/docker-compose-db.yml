@@ -1,0 +1,16 @@
+version: '3.8'
+
+services:
+  postgres:
+#    platform: linux/arm64/v8
+    image: postgres:16
+    container_name: bsca_data_1_0_5
+    restart: always
+    environment:
+      POSTGRES_DB: tpl_data
+      POSTGRES_USER: tpl_data
+      POSTGRES_PASSWORD: tpl_data
+    volumes:
+      - ./postgresql_data:/var/lib/postgresql/data
+    ports:
+      - "5433:5432"
