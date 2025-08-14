@@ -536,6 +536,9 @@ class EvaluationReport(Serializable):
 
 
     def dump(self, file_path):
+        base_dir_path = os.path.dirname(file_path)
+        if not os.path.exists(base_dir_path):
+            os.makedirs(base_dir_path)
         data = self.customer_serialize()
         with open(file_path, 'w', encoding='utf-8') as f:
             json.dump(data, f, indent=4, ensure_ascii=False)

@@ -212,7 +212,7 @@ if __name__ == '__main__':
         conda activate sca
     
     后台运行
-        nohup python3 evaluator_runner.py > evaluation.log 2>&1 &
+        nohup python3 evaluation/general_benchmarks/evaluator_runner.py > evaluation.log 2>&1 &
     
     跟踪查看日志
         tail -f evaluation.log
