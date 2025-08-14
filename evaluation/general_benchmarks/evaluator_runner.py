@@ -3,6 +3,11 @@ from evaluation.general_benchmarks.feture_matching_analysis import plot_feature_
     analyze_feature_matching_top_n_effectiveness, \
     analyze_feature_matching_failures, print_failure_analysis_report
 from evaluation.general_benchmarks.interface import EvaluationConfig
+from pydantic_settings import BaseSettings
+from environs import Env
+
+env = Env()
+env.read_env()
 
 
 def reanalyze_all_result():
@@ -144,40 +149,39 @@ def run_failed_case_only():
 
 
 def main():
+    # benchmark meta
+    evaluation_dir = env.str("EVALUATION_DIR_PATH")
+    evaluation_output_dir = env.str("EVALUATION_OUTPUT_DIR_PATH")
+    conan_test_case_dir = env.str("CONAN_BENCHMARK_TEST_CASE_DIR")
 
-    # Conan Binaries
-    Conan_benchmark_meta = "/Users/liuchengyue/Desktop/BinarySCA Platform/Code/sca_agents/bsca-expert-agent-api/evaluation/general_benchmarks/benchmark_meta/conan_library_benchmark.json"
-    Conan_benchmark_meta_updated = "/Users/liuchengyue/Desktop/BinarySCA Platform/Code/sca_agents/bsca-expert-agent-api/evaluation/general_benchmarks/benchmark_meta/conan_library_benchmark_20250806_1524.json"
-    Conan_test_case_dir = "/Users/liuchengyue/Desktop/BinarySCA Platform/Data/Test_Cases/TPL_Test_Cases/conan_test_cases"
-    Conan_evluation_report_path = "/Users/liuchengyue/Desktop/BinarySCA Platform/Code/sca_agents/bsca-expert-agent-api/tmp/evaluation_reports/Conan/ours_105_0806/evaluation_report.json"
+    conan_benchmark_meta_file = f"{evaluation_dir}/general_benchmarks/benchmark_meta/conan_library_benchmark.json"
 
+    evaluation_result_file = f"{evaluation_output_dir}/Conan/ours/qwen3/evaluation_report.json"
 
-    benchmark_meta = Conan_benchmark_meta_updated
-    benchmark_tc_dir = Conan_test_case_dir
-    evaluation_report_save_path = Conan_evluation_report_path
-
-    # 评估配置
+    # evaluation config
     config = EvaluationConfig(
-        benchmark_file=benchmark_meta,
-        test_case_dir=benchmark_tc_dir,
+        benchmark_file=conan_benchmark_meta_file,
+        test_case_dir=conan_test_case_dir,
         feature_matching_top_n=5,
         # use_agent=False,
-        concurrency=30,
+        concurrency=1,
         slice_start=0,
-        # slice_end=10,
-        input_token_price_per_1M=0.4,
-        output_token_price_per_1M=1.6,
+        slice_end=10,
+        input_token_price_per_1M=0,
+        output_token_price_per_1M=0,
+        # input_token_price_per_1M=0.4,
+        # output_token_price_per_1M=1.6,
     )
 
     # 初始化评估器
     evaluator = Evaluator(config)
 
     # 评估
-    # evaluator.run_benchmark(analyze_context=False)
-    # evaluator.report.dump(evaluation_report_save_path)
+    evaluator.run_benchmark(analyze_context=False)
+    evaluator.report.dump(evaluation_result_file)
 
     # 重新分析结果
-    report = evaluator.reanalyze_report(evaluation_report_save_path,
+    report = evaluator.reanalyze_report(evaluation_result_file,
                                         ignore_failed_cases=False)
 
     # 可视化分析结果
@@ -187,7 +191,7 @@ def main():
     #                          )
 
 if __name__ == '__main__':
-    # main()
+    main()
     # run_failed_case_only()
-    reanalyze_all_result()
+    # reanalyze_all_result()
     # run_feature_matching_only()
