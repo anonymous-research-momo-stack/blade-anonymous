@@ -434,6 +434,7 @@ class EfficiencyData(Serializable):
 
     total_actual_duration: float = 0.0  # Total actual duration in seconds
     average_actual_duration: float = 0.0  # Average actual duration in seconds
+    step_total_theoretical_duration: dict = dataclasses.field(default_factory=dict)  # Breakdown of duration by step, e.g., {'agent_analysis': 10.5, 'tpl_analysis': 5.0, 'validation': 2.0}
 
     duration_breakdown: dict = dataclasses.field(default_factory=dict)  # Breakdown of duration by step, e.g., {'agent_analysis': 10.5, 'tpl_analysis': 5.0, 'validation': 2.0}
 
@@ -445,11 +446,17 @@ class CostData(Serializable):
     Data structure for research question data
     """
     # token
-    input_token_count:int = None  # Input token count
+    uncached_input_token_count:int = None  # Input token count
+    cached_input_token_count:int = None  # Cached input token count
+    total_input_token_count:int = None  # Total input token count
     output_token_count:int = None  # Output token count
     total_token_count:int = None  # Total token count
 
     # cost
+    uncached_input_cost: float = None  # Uncached input cost in USD
+    cached_input_cost: float = None  # Cached input cost in USD
+    total_input_cost: float = None  # Total input cost in USD
+    output_cost: float = None  # Output cost in USD
     total_cost: float = None  # Total cost in USD
     average_cost: float = None  # Average cost per analysis in USD
 

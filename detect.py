@@ -109,7 +109,8 @@ def batch_detection(file_paths: List[str], result_save_path: str, **kwargs):
                     "file_name": file_name,
                     "file_path": file_path,
                     "status": "success",
-                    "analysis_data": result.to_dict() if hasattr(result, 'to_dict') else str(result)
+                    # "result": result.customer_serialize()
+                    "result": result.get_simple_result().customer_serialize()
                 }
 
                 if kwargs.get('show_durations', False) and hasattr(result, 'analysis_data') and hasattr(
@@ -124,7 +125,7 @@ def batch_detection(file_paths: List[str], result_save_path: str, **kwargs):
                     "file_name": file_name,
                     "file_path": file_path,
                     "status": "failed",
-                    "analysis_data": None
+                    "result": None
                 }
                 print(f"File {idx + 1} ({file_name}) detection failed")
 

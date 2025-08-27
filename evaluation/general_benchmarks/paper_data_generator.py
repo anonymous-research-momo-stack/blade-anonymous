@@ -255,12 +255,9 @@ def print_RQ1_data():
             "scantist": {
                 "path": "/Users/liuchengyue/Desktop/BinarySCA Platform/Code/sca_agents/bsca-expert-agent-api/tmp/evaluation_reports/Conan/scantist/291-75403-xd70-无agent-扫描报告-2025-08-06T09_36_22+08_00/result_converted_reanalyzed_simple.json",
                 "display_name": "CT1"},
-            "cybellum": {
-                "path": "",
-                "display_name": "CT2"},
             "blackduck": {
-                "path": "",
-                "display_name": "CT3"}
+                "path": "/Users/liuchengyue/Desktop/BinarySCA Platform/Code/sca_agents/bsca-expert-agent-api/tmp/evaluation_reports/Conan/blackduck/result_converted_reanalyzed_simple.json",
+                "display_name": "CT2"}
         },
         "academic": {
             "BAT": {
@@ -270,11 +267,8 @@ def print_RQ1_data():
                 "path": "/Users/liuchengyue/Desktop/BinarySCA Platform/Code/sca_agents/bsca-expert-agent-api/tmp/evaluation_reports/Conan/osspolice/raw_result_converted_reanalyzed_simple.json",
                 "display_name": "OssPolice"},
             "B2SFinder": {
-                "path": "",
+                "path": "/Users/liuchengyue/Desktop/BinarySCA Platform/Code/sca_agents/bsca-expert-agent-api/tmp/evaluation_reports/Conan/b2sfinder/result_converted_reanalyzed_simple.json",
                 "display_name": "B2SFinder"},
-            "LibAM": {
-                "path": "",
-                "display_name": "LibAM"},
             "binary_ai": {
                 "path": "/Users/liuchengyue/Desktop/BinarySCA Platform/Code/sca_agents/bsca-expert-agent-api/tmp/evaluation_reports/Conan/binary_ai/evaluation_report_2025-07-30-12-54-29_converted_reanalyzed_simple.json",
                 "display_name": "BinaryAI"},
@@ -284,7 +278,7 @@ def print_RQ1_data():
                 "path": "/Users/liuchengyue/Desktop/BinarySCA Platform/Code/sca_agents/bsca-expert-agent-api/tmp/evaluation_reports/Conan/ours_102_mini_all_0831/evaluation_report_reanalyzed_simple.json",
                 "display_name": "\\textbf{Blade-G4.1}"},
             "our-OpenAI-GPT-4.1-mini": {
-                "path": "/Users/liuchengyue/Desktop/BinarySCA Platform/Code/sca_agents/bsca-expert-agent-api/tmp/evaluation_reports/Conan/ours_105_0806/evaluation_report_reanalyzed_simple.json",
+                "path": "/Users/liuchengyue/Desktop/BinarySCA Platform/Code/sca_agents/bsca-expert-agent-api/tmp/evaluation_reports/Conan/ours/gpt_4_1_mini/ours_105_0806/evaluation_report_reanalyzed_simple.json",
                 "display_name": "\\textbf{Blade-G4.1m}"},
             "our-Anthropic-Sonnet-4.0": {
                 "path": "",
@@ -293,7 +287,7 @@ def print_RQ1_data():
                 "path": "",
                 "display_name": "Blade-GOS"},
             "our-Ollama-qwen3-14b": {
-                "path": "",
+                "path": "/Users/liuchengyue/Desktop/BinarySCA Platform/Code/sca_agents/bsca-expert-agent-api/tmp/evaluation_reports/Conan/ours/qwen3/evaluation_report_reanalyzed_simple.json",
                 "display_name": "Blade-QW3"},
         }
     }
@@ -302,8 +296,354 @@ def print_RQ1_data():
     pass
 
 
+def generate_ablation_table(baseline_name,
+                            baseline_data,
+                            ablation_data,
+                            table_title="Ablation Study Results of TPL Detection"):
+    """
+    生成消融研究的LaTeX表格
+
+    Args:
+        baseline_data: 基准模型数据字典
+        ablation_data: 消融实验数据字典
+        table_title: 表格标题
+
+    Returns:
+        完整的LaTeX表格代码字符串
+    """
+
+    # 映射消融实验键名到表格显示名称
+    row_mapping = {
+        "wo_agent_analysis": "w/o r/v \\& n = 5",
+        "wo_agent_analysis_top_1": "w/o r/v \\& n = 1",
+        "wo_agent_analysis_top_2": "w/o r/v \\& n = 2",
+        "wo_agent_analysis_top_3": "w/o r/v \\& n = 3",
+        "wo_agent_tpl_analysis": "w/o r",
+        "wo_validation_step_1": "w/o v step 1",
+        "wo_validation_step_2": "w/o v step 2",
+        "wo_validation_step_1_and_2": "w/o v step 1\\&2"
+    }
+
+    # 定义分组，用于添加 \midrule
+    groups = [
+        ["wo_agent_analysis", "wo_agent_analysis_top_1", "wo_agent_analysis_top_2", "wo_agent_analysis_top_3"],
+        ["wo_agent_tpl_analysis"],
+        ["wo_validation_step_1", "wo_validation_step_2", "wo_validation_step_1_and_2"]
+    ]
+
+    def format_number(num):
+        """格式化数字，数字本身不加逗号，让siunitx自动处理"""
+        return str(num)
+
+    def format_diff_number(num):
+        """格式化差值数字，手动添加逗号用于括号内显示"""
+        if isinstance(num, int) and abs(num) >= 1000:
+            return f"{num:,}"
+        return str(num)
+
+    def calculate_diff_and_color(baseline_val, ablation_val, metric_type):
+        """计算差值并确定颜色"""
+        diff = ablation_val - baseline_val
+
+        # 修复浮点数精度问题
+        if metric_type in ['f1_score', 'recall', 'precision']:
+            diff = round(diff, 2)  # 保留两位小数
+
+        # 确定是否为改善
+        if metric_type in ['f1_score', 'recall', 'precision', 'tp_count']:
+            is_better = diff > 0
+        elif metric_type in ['fp_count', 'fn_count']:
+            is_better = diff < 0
+        else:
+            is_better = False
+
+        # 格式化差值
+        if diff > 0:
+            if metric_type in ['f1_score', 'recall', 'precision']:
+                diff_str = f"+{diff:.2f}"
+            else:
+                diff_str = f"+{format_diff_number(int(diff))}"
+        elif diff < 0:
+            if metric_type in ['f1_score', 'recall', 'precision']:
+                diff_str = f"{diff:.2f}"
+            else:
+                diff_str = format_diff_number(int(diff))
+        else:
+            diff_str = "0"
+
+        # 选择颜色
+        if diff == 0:
+            return diff_str
+        elif is_better:
+            return f"\\textcolor{{OliveGreen}}{{{diff_str}}}"
+        else:
+            return f"\\textcolor{{red}}{{{diff_str}}}"
+
+    # 开始构建LaTeX表格 - 关键修改：移除group-separator参数
+    latex_code = f"""\\begin{{table*}}[htbp]
+   \\centering
+   \\captionsetup{{skip=0pt, belowskip=5pt}}
+   \\caption{{{table_title}}}
+   \\label{{tab:ablation_study}}
+   \\footnotesize
+\\begin{{tabular*}}{{\\textwidth}}{{@{{\\extracolsep{{\\fill}}}}l
+               S[table-format=2.2]@{{\\hspace{{0.1em}}}}l
+               S[table-format=2.2]@{{\\hspace{{0.1em}}}}l
+               S[table-format=2.2]@{{\\hspace{{0.1em}}}}l
+               S[table-format=4.0,group-separator={{,}}]@{{\\hspace{{0.1em}}}}l
+               S[table-format=5.0,group-separator={{,}}]@{{\\hspace{{0.1em}}}}l
+               S[table-format=4.0,group-separator={{,}}]@{{\\hspace{{0.1em}}}}l}}
+       \\toprule
+       \\textbf{{Setting}} & \\multicolumn{{2}}{{l}}{{\\textbf{{F1 Score (\\%)}}}} & \\multicolumn{{2}}{{l}}{{\\textbf{{Recall (\\%)}}}} & \\multicolumn{{2}}{{l}}{{\\textbf{{Precision (\\%)}}}} & \\multicolumn{{2}}{{l}}{{\\textbf{{\\#TP}}}} & \\multicolumn{{2}}{{l}}{{\\textbf{{\\#FP}}}} & \\multicolumn{{2}}{{l}}{{\\textbf{{\\#FN}}}} \\\\
+       \\midrule
+
+       \\textbf{{{baseline_name}}} & \\textbf{{{baseline_data['f1_score']:.2f}}} & & \\textbf{{{baseline_data['recall']:.2f}}} & & \\textbf{{{baseline_data['precision']:.2f}}} & & \\textbf{{{format_number(baseline_data['tp_count'])}}} & & \\textbf{{{format_number(baseline_data['fp_count'])}}} & & \\textbf{{{format_number(baseline_data['fn_count'])}}} & \\\\
+
+       \\midrule
+       """
+
+    # 添加消融实验行
+    current_group = 0
+    for i, (key, display_name) in enumerate(row_mapping.items()):
+        if key in ablation_data:
+            data = ablation_data[key]
+
+            # 计算差值和颜色
+            f1_diff = calculate_diff_and_color(baseline_data['f1_score'], data['f1_score'], 'f1_score')
+            recall_diff = calculate_diff_and_color(baseline_data['recall'], data['recall'], 'recall')
+            precision_diff = calculate_diff_and_color(baseline_data['precision'], data['precision'], 'precision')
+            tp_diff = calculate_diff_and_color(baseline_data['tp_count'], data['tp_count'], 'tp_count')
+            fp_diff = calculate_diff_and_color(baseline_data['fp_count'], data['fp_count'], 'fp_count')
+            fn_diff = calculate_diff_and_color(baseline_data['fn_count'], data['fn_count'], 'fn_count')
+
+            # 添加行 - 数字本身用format_number(不加逗号)，差值用计算出的带逗号的diff字符串
+            latex_code += f"""        {display_name} & {data['f1_score']:.2f} & ({f1_diff}) & {data['recall']:.2f} & ({recall_diff}) & {data['precision']:.2f} & ({precision_diff}) & {format_number(data['tp_count'])} & ({tp_diff}) & {format_number(data['fp_count'])} & ({fp_diff}) & {format_number(data['fn_count'])} & ({fn_diff}) \\\\"""
+
+            # 检查是否需要添加分组分隔符
+            if current_group < len(groups):
+                if key == groups[current_group][-1] and current_group < len(groups) - 1:
+                    latex_code += """
+
+       \\midrule
+       """
+                    current_group += 1
+                else:
+                    latex_code += "\n"
+
+    # 表格结尾
+    latex_code += """        
+       \\bottomrule
+   \\end{tabular*}
+   \\vspace{1mm}
+   \\footnotesize
+   r = Reasoning Agent, v = Validation Agent, n = feature matching method set to take top n results, step 1 = rationality validation, step 2 = redundancy elimination and conflict resolution. Changes relative to full model are shown in parentheses: \\textcolor{OliveGreen}{OliveGreen} indicates better performance, \\textcolor{red}{red} indicates worse performance.
+\\end{table*}"""
+
+    return latex_code
+
+
+
+def print_RQ2_data():
+    baseline_name = "Blade-G4.1m"
+    result_path = "/Users/liuchengyue/Desktop/BinarySCA Platform/Code/sca_agents/bsca-expert-agent-api/tmp/evaluation_reports/Conan/ours/gpt_4_1_mini/ours_105_0806/evaluation_report_reanalyzed_simple.json"
+    with open(result_path, 'r') as f:
+        data = json.load(f)
+    baseline_data = data['research_question_data']['effectiveness']
+    ablation_data = data['research_question_data']['effectiveness_ablation_study']
+    table_latex = generate_ablation_table(baseline_name,baseline_data, ablation_data)
+    print(table_latex)
+    pass
+
+
+import matplotlib.pyplot as plt
+import numpy as np
+from matplotlib.patches import Wedge
+import seaborn as sns
+
+
+def plot_performance_breakdown(duration_breakdown, save_files=True, filename='performance_breakdown'):
+    """
+    绘制性能分析的双层环形图
+
+    Parameters:
+    duration_breakdown (dict): 包含各个步骤耗时的字典
+    save_files (bool): 是否自动保存文件
+    filename (str): 保存文件的名称前缀
+    """
+
+    # 设置图形风格
+    plt.style.use('seaborn-v0_8-whitegrid')
+    sns.set_palette("husl")
+
+    # 创建子图
+    fig, (ax1, ax2) = plt.subplots(1, 2, figsize=(16, 8))
+    fig.suptitle('Performance Analysis Breakdown', fontsize=16, fontweight='bold', y=0.95)
+
+    # 定义颜色方案 - 使用学术论文友好的配色
+    colors_level1 = ['#3498DB', '#E74C3C', '#F39C12', '#95A5A6']  # 蓝、红、橙、灰
+    colors_level2 = ['#3498DB', '#E74C3C', '#2ECC71', '#E67E22', '#F1C40F', '#9B59B6']  # 更丰富的配色
+
+    # ===== 第一个图：第一层分解 =====
+    level1_data = {
+        'file_preparation': duration_breakdown['file_preparation'],
+        'feature_matching': duration_breakdown['feature_matching'],
+        'agent_analysis': duration_breakdown['agent_analysis'],
+    }
+
+    # 计算其他步骤的总和
+    other_steps = 100.0 - sum(level1_data.values())
+    if other_steps > 0:
+        level1_data['others'] = other_steps
+
+    # 准备数据
+    labels1 = list(level1_data.keys())
+    sizes1 = list(level1_data.values())
+
+    # 格式化标签，显示百分比
+    labels1_formatted = [f'{label.replace("_", " ").title()}\n({size:.1f}%)'
+                         for label, size in zip(labels1, sizes1)]
+
+    # 绘制第一个环形图 - 调整环的宽度
+    wedges1, texts1, autotexts1 = ax1.pie(sizes1, labels=labels1_formatted, autopct='',
+                                          colors=colors_level1[:len(sizes1)], startangle=90,
+                                          pctdistance=0.85, wedgeprops=dict(width=0.35, edgecolor='white', linewidth=3))
+
+    # 添加中心圆 - 调整大小
+    centre_circle1 = plt.Circle((0, 0), 0.65, fc='white', edgecolor='lightgray', linewidth=2)
+    ax1.add_artist(centre_circle1)
+
+    # 设置标题和样式
+    ax1.set_title('Level 1: Main Components', fontsize=14, fontweight='bold', pad=20)
+    ax1.axis('equal')
+
+    # 美化文本 - 调整字体大小
+    for text in texts1:
+        text.set_fontsize(12)
+        text.set_fontweight('bold')
+        text.set_color('black')
+
+    # ===== 第二个图：第二层详细分解 =====
+    level2_data = {
+        'file_preparation': duration_breakdown['file_preparation'],
+        'feature_matching': duration_breakdown['feature_matching'],
+        '_bin_info_finder': duration_breakdown['_bin_info_finder'],
+        '_tpl_analyzer': duration_breakdown['_tpl_analyzer'],
+        '__validation_step_1': duration_breakdown['__validation_step_1'],
+        '__validation_step_2': duration_breakdown['__validation_step_2']
+    }
+
+    # 计算其他步骤
+    other_steps_2 = 100.0 - sum(level2_data.values())
+    if other_steps_2 > 0:
+        level2_data['others'] = other_steps_2
+
+    # 准备数据
+    labels2 = list(level2_data.keys())
+    sizes2 = list(level2_data.values())
+
+    # 格式化标签
+    label_mapping = {
+        'file_preparation': 'File Preparation',
+        'feature_matching': 'Feature Matching',
+        '_bin_info_finder': 'Binary Info Finder',
+        '_tpl_analyzer': 'Template Analyzer',
+        '__validation_step_1': 'Validation Step 1',
+        '__validation_step_2': 'Validation Step 2',
+        'others': 'Others'
+    }
+
+    labels2_formatted = [f'{label_mapping.get(label, label.replace("_", " ").title())}\n({size:.1f}%)'
+                         for label, size in zip(labels2, sizes2)]
+
+    # 绘制第二个环形图 - 调整环的宽度
+    wedges2, texts2, autotexts2 = ax2.pie(sizes2, labels=labels2_formatted, autopct='',
+                                          colors=colors_level2[:len(sizes2)], startangle=90,
+                                          pctdistance=0.85, wedgeprops=dict(width=0.35, edgecolor='white', linewidth=3))
+
+    # 添加中心圆 - 调整大小
+    centre_circle2 = plt.Circle((0, 0), 0.65, fc='white', edgecolor='lightgray', linewidth=2)
+    ax2.add_artist(centre_circle2)
+
+    # 设置标题和样式
+    ax2.set_title('Level 2: Detailed Breakdown', fontsize=14, fontweight='bold', pad=20)
+    ax2.axis('equal')
+
+    # 美化文本 - 调整字体大小
+    for text in texts2:
+        text.set_fontsize(11)
+        text.set_fontweight('bold')
+        text.set_color('black')
+
+    # 调整布局
+    plt.tight_layout()
+
+    # 自动保存文件（如果需要）
+    if save_files:
+        save_charts(fig, filename)
+
+    return fig
+
+
+# 如果需要单独的函数来保存不同格式
+def save_charts(fig, filename='performance_breakdown'):
+    """
+    保存图表为多种适合学术论文的格式
+    """
+    # PNG格式 - 高分辨率
+    fig.savefig(f'{filename}.png', dpi=300, bbox_inches='tight',
+                facecolor='white', edgecolor='none')
+
+    # PDF格式 - 矢量图，适合论文
+    fig.savefig(f'{filename}.pdf', bbox_inches='tight',
+                facecolor='white', edgecolor='none')
+
+    # SVG格式 - 矢量图，可编辑
+    fig.savefig(f'{filename}.svg', bbox_inches='tight',
+                facecolor='white', edgecolor='none')
+
+    print(f"Charts saved as {filename}.png, {filename}.pdf, and {filename}.svg")
+
+def print_RQ3_data():
+    """
+    效率和成本
+    效率画一个breakdown的饼图
+
+    成本，主要是token数量的breakdown
+
+    :return:
+    """
+    baseline_name = "Blade-G4.1m"
+    result_path = "/Users/liuchengyue/Desktop/BinarySCA Platform/Code/sca_agents/bsca-expert-agent-api/tmp/evaluation_reports/Conan/ours/gpt_4_1_mini/ours_105_0806/evaluation_report_reanalyzed_simple.json"
+    with open(result_path, 'r') as f:
+        data = json.load(f)
+    duration_breakdown = data['research_question_data']['efficiency']['duration_breakdown']
+
+    # 效率换图
+    fig = plot_performance_breakdown(duration_breakdown)
+
+    # 保存图片（适合论文使用的高质量格式）
+    # plt.savefig('performance_breakdown.png', dpi=300, bbox_inches='tight',
+    #             facecolor='white', edgecolor='none')
+    # plt.savefig('performance_breakdown.pdf', bbox_inches='tight',
+    #             facecolor='white', edgecolor='none')
+
+    plt.show()
+
+
+    # 成本分析，这里先想想怎么写吧。
+    """
+    平均每个二进制文件的成本为XX tokens，约合XX美元。
+    """
+    cost = data['research_question_data']['cost']
+    for key, value in cost.items():
+        print(f"{key}: {value}")
+
+
 def main():
     print_RQ1_data()
+    print_RQ2_data()
+    print_RQ3_data()
+
 
 
 if __name__ == '__main__':

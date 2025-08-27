@@ -167,8 +167,9 @@ class Evaluator:
     def analyze_result(self,
                     evaluation_results: List[AnalysisResult],
                     evaluation_duration: float,
-                    input_token_price_per_1M: float=2,  # 每百万输入token的价格, OpenAI GPT-4.1
-                    output_token_price_per_1M: float=8,  # 每百万输出token的价格, OpenAI GPT-4.1
+                    input_token_price_per_1M: float=0.8,  # 每百万输入token的价格, OpenAI GPT-4.1 mini
+                    cached_input_token_price_per_1M: float=0.2,  # 每百万输入token的价格, OpenAI GPT-4.1  mini
+                    output_token_price_per_1M: float=3.2,  # 每百万输出token的价格, OpenAI GPT-4.1  mini
                     ignore_failed_cases: bool = False,  # 是否忽略失败的测试用例
                     ) -> tuple[list[AnalysisResultCheck], ResearchQuestionData]:
         """
@@ -207,6 +208,7 @@ class Evaluator:
         cost = self._cal_cost(
                 evaluation_results,
                 input_token_price_per_1M,
+            cached_input_token_price_per_1M,
                 output_token_price_per_1M
         )
 
@@ -490,13 +492,14 @@ class Evaluator:
         average_file_size = total_file_size / len(evaluation_results) if evaluation_results else 0.0  # 平均文件大小
 
         # ----- 时间开销 -----
-        # 理论实践开销
+        # 理论时间开销
         total_theoretical_duration = sum(result.analysis_data.durations.get('total', 0) for result in evaluation_results)  # 总检测时间
         average_theoretical_duration = total_theoretical_duration / len(evaluation_results) if evaluation_results else 0.0  # 平均检测时间
 
         # 实际检测时间
         total_actual_duration = evaluation_duration  # 实际总检测时间
         average_actual_duration = evaluation_duration / len(evaluation_results) if evaluation_results else 0.0  # 实际平均检测时间
+
 
         # 每个步骤的时间的 break down
         step_total_theoretical_duration = {}
@@ -506,16 +509,17 @@ class Evaluator:
                     step_total_theoretical_duration[step] = 0.0
                 step_total_theoretical_duration[step] += duration
 
+        # 更正理论总时间，有些中间出错的，导致总时间不等于各步骤时间之和
+        total = 0.0
+        for step, duration in step_total_theoretical_duration.items():
+            if step != 'total' and not step.startswith('_'):
+                total += duration
+        step_total_theoretical_duration['total'] = total_theoretical_duration = total
+
         # 计算比例
         step_total_theoretical_duration_proportions = {}
         for step, duration in step_total_theoretical_duration.items():
             step_total_theoretical_duration_proportions[step] = round((duration / total_theoretical_duration) * 100, 2) if total_theoretical_duration > 0 else 0.0
-
-        # 合并break down数据
-        duration_breakdown = {}
-        for step, (step_total_theoretical_duration, step_proportion) in zip(step_total_theoretical_duration.keys(), step_total_theoretical_duration_proportions.items()):
-            duration_breakdown[step] = (step_total_theoretical_duration, step_proportion)
-
 
         rq_3_data = EfficiencyData(
             total_file_size_kb=total_file_size,
@@ -524,39 +528,61 @@ class Evaluator:
             average_theoretical_duration=average_theoretical_duration,
             total_actual_duration=total_actual_duration,
             average_actual_duration=average_actual_duration,
-            duration_breakdown=duration_breakdown,
+            step_total_theoretical_duration=step_total_theoretical_duration,
+            duration_breakdown=step_total_theoretical_duration_proportions,
         )
         return rq_3_data
 
     def _cal_cost(self,
                         evaluation_results,
                         input_token_price_per_1M,
+                  cached_input_token_price_per_1M,
                         output_token_price_per_1M):
         # ----- 成本 -----
-        input_token_count = 0
+        total_uncached_input_tokens = 0
+        total_cached_input_tokens = 0
+        total_input_tokens = 0
         output_token_count = 0
         total_cost = 0.0
         for result in evaluation_results:
             for agent_name, cost_dict in result.analysis_data.costs.items():
-                # input token
+                # total input token
                 input_tokens = sum(cost_dict.get('input_tokens', []))
-                input_token_count += input_tokens
+                total_input_tokens += input_tokens
+
+                # cached token
+                cached_tokens = sum(cost_dict.get('cached_tokens', []))
+                total_cached_input_tokens += cached_tokens
+
+                # uncached token
+                uncached_tokens = input_tokens - cached_tokens
+                total_uncached_input_tokens += uncached_tokens
 
                 # output token
                 output_tokens = sum(cost_dict.get('output_tokens', []))
                 output_token_count += output_tokens
 
-                # cost
-                input_cost = (input_tokens / 1_000_000) * input_token_price_per_1M
-                output_cost = (output_tokens / 1_000_000) * output_token_price_per_1M
-                total_cost += input_cost + output_cost
+        # cost
+        uncached_input_cost = total_uncached_input_tokens /1_000_000 * input_token_price_per_1M  # 未缓存输入token成本
+        cached_input_cost = total_cached_input_tokens /1_000_000 * cached_input_token_price_per_1M
+
+        input_cost = uncached_input_cost + cached_input_cost
+        output_cost = (output_token_count / 1_000_000) * output_token_price_per_1M
+        total_cost += input_cost + output_cost
 
         average_cost = total_cost / len(evaluation_results) if evaluation_results else 0.0  # 平均成本
 
         cost_data = CostData(
-            input_token_count=input_token_count,
+            uncached_input_token_count=total_uncached_input_tokens,
+            cached_input_token_count=total_cached_input_tokens,
+            total_input_token_count=total_input_tokens,
             output_token_count=output_token_count,
-            total_token_count=input_token_count+output_token_count,
+            total_token_count=total_input_tokens + output_token_count,
+
+            uncached_input_cost=uncached_input_cost,
+            cached_input_cost=cached_input_cost,
+            total_input_cost=input_cost,
+            output_cost=output_cost,
             total_cost=total_cost,
             average_cost=average_cost
         )
