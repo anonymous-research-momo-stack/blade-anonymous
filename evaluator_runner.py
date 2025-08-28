@@ -165,7 +165,7 @@ def main():
 
     conan_benchmark_meta_file = f"{evaluation_dir}/general_benchmarks/benchmark_meta/conan_library_benchmark.json"
 
-    evaluation_result_file = f"{evaluation_output_dir}/Conan/ours/qwen3/evaluation_report.json"
+    evaluation_result_file = f"{evaluation_output_dir}/Conan/ours/gpt_5_mini/evaluation_report.json"
 
     # evaluation config
     config = EvaluationConfig(
@@ -173,9 +173,9 @@ def main():
         test_case_dir=conan_test_case_dir,
         feature_matching_top_n=5,
         # use_agent=False,
-        concurrency=1,
+        concurrency=30,
         slice_start=0,
-        slice_end=3,
+        # slice_end=100,
         input_token_price_per_1M=0,
         output_token_price_per_1M=0,
         # input_token_price_per_1M=0.4,
@@ -200,9 +200,9 @@ def main():
     #                          )
 
 if __name__ == '__main__':
-    # main()
+    main()
     # run_failed_case_only()
-    reanalyze_all_result()
+    # reanalyze_all_result()
     # run_feature_matching_only()
 
 
