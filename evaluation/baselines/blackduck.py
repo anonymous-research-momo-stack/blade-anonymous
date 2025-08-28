@@ -38,6 +38,7 @@ def convert_csv_result():
     with open(raw_csv_report_path, "r", encoding='utf-8') as f:
         csv_reader = csv.DictReader(f)
 
+        result_dict = {}
         for row in csv_reader:
             # 获取组件信息
             component_name = row.get('Component', '')
@@ -53,13 +54,26 @@ def convert_csv_result():
                 name=component_name,
                 version=version
             )
+            if sha256 not in result_dict:
+                result_dict[sha256] = {
+                    "binary_name": binary_name,
+                    "binary_sha256": sha256,
+                    "binary_path": relative_path,
+                    "detected_libraries": [],
+                }
+            result_dict[sha256]["detected_libraries"].append(library)
+
+        for sha256, info in result_dict.items():
+            binary_name = info["binary_name"]
+            relative_path = info["binary_path"]
+            libraries = info["detected_libraries"]
 
             # 创建AnalysisResult对象
             analysis_result = AnalysisResult(
                 binary_name=binary_name,
                 binary_sha256=sha256,  # CSV中没有，填空字符串
                 binary_path=relative_path,
-                detected_libraries=[library],
+                detected_libraries=libraries,
                 analysis_data=AnalysisData(
                     target_binary=TargetBinary(
                         binary_name=binary_name,
@@ -71,6 +85,7 @@ def convert_csv_result():
             )
 
             converted_results.append(analysis_result)
+
 
     print(f"总共转换了 {len(converted_results)} 个分析结果")
 

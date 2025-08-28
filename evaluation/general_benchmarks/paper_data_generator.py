@@ -2,6 +2,8 @@ import json
 import os
 from typing import Optional, Dict, Any
 
+from pandas.core.computation.expr import intersection
+
 from evaluation.general_benchmarks.interface import Benchmark, SimpleEvaluationReport, EvaluationReport
 
 
@@ -118,9 +120,9 @@ Total & \\var{{{TOTAL_BINARY_FILES:,}}} & \\var{{{TOTAL_TPLS:,}}} & \\var{{{TOTA
             if effectiveness_data is None:
                 return {"recall": "xxx", "precision": "xxx", "f1_score": "xxx"}
 
-            recall = f"{effectiveness_data.recall:.1f}" if effectiveness_data.recall is not None else "xxx"
-            precision = f"{effectiveness_data.precision:.1f}" if effectiveness_data.precision is not None else "xxx"
-            f1_score = f"{effectiveness_data.f1_score:.1f}" if effectiveness_data.f1_score is not None else "xxx"
+            recall = f"{effectiveness_data.recall:.2f}" if effectiveness_data.recall is not None else "xxx"
+            precision = f"{effectiveness_data.precision:.2f}" if effectiveness_data.precision is not None else "xxx"
+            f1_score = f"{effectiveness_data.f1_score:.2f}" if effectiveness_data.f1_score is not None else "xxx"
 
             return {"recall": recall, "precision": precision, "f1_score": f1_score}
 
@@ -293,7 +295,173 @@ def print_RQ1_data():
     }
     generator.generate_comparison_table(tools_config=tools_config)
 
+    # 进一步的结果分析
+    all_baseline_paths = []
+    for type, baselines in tools_config.items():
+        if type == "ours":
+            continue
+        for basline_name, baseline_info in baselines.items():
+            if baseline_info["path"]:
+                all_baseline_paths.append(baseline_info["path"])
+
+    analyze_RQ1_results(
+        benchmark_meta="/Users/liuchengyue/Desktop/BinarySCA Platform/Code/sca_agents/bsca-expert-agent-api/evaluation/general_benchmarks/benchmark_meta/conan_library_benchmark_20250806_1524.json",
+        our_result="/Users/liuchengyue/Desktop/BinarySCA Platform/Code/sca_agents/bsca-expert-agent-api/tmp/evaluation_reports/Conan/ours/gpt_4_1_mini/ours_105_0806/evaluation_report_reanalyzed_simple.json",
+        baseline_results=all_baseline_paths
+    )
     pass
+
+def analyze_RQ1_results(benchmark_meta, our_result, baseline_results):
+    benchmark = Benchmark.load_from_json_file(benchmark_meta)
+    test_case_dict = {case.test_binary.sha256: case for case in benchmark.test_cases}
+
+    def load_result(file_path)-> SimpleEvaluationReport:
+        with open(file_path, 'r') as f:
+            data = json.load(f)
+        report = SimpleEvaluationReport.init_from_dict(data)
+        return report
+
+    our_result = load_result(our_result)
+    our_result_check = {check.binary_hash: (check.hs_fn, check.hs_fp) for check in our_result.evaluation_results_check}
+    print(baseline_results)
+    baseline_results = [load_result(path) for path in baseline_results]
+
+    advantage_analysis(baseline_results, benchmark, our_result_check, test_case_dict)
+    failure_analysis(benchmark, our_result)
+
+def failure_analysis(benchmark, our_result:SimpleEvaluationReport):
+
+    print(f"==== Failure Analysis ====")
+    fn_cases = set()
+    fp_cases = set()
+    for check in our_result.evaluation_results_check:
+        if check.hs_fn:
+            fn_cases.add(check.binary_hash)
+        if check.hs_fp:
+            fp_cases.add(check.binary_hash)
+
+    intersection = fn_cases.intersection(fp_cases)
+    print(f"fn_cases数量: {len(fn_cases)}, fp_cases数量: {len(fp_cases)}, fn和fp的交集数量: {len(intersection)}")
+    print(fn_cases)
+
+def advantage_analysis(baseline_results, benchmark, our_result_check, test_case_dict):
+    # 先生成全部的baseline工具的漏报检查
+    baseline_has_fn_cases = {}
+    baseline_has_fp_cases = {}
+    for baseline_result in baseline_results:
+        print(len(baseline_result.evaluation_results_check))
+        for result_check in baseline_result.evaluation_results_check:
+            # fn
+            if result_check.binary_hash not in baseline_has_fn_cases:
+                baseline_has_fn_cases[result_check.binary_hash] = []
+            baseline_has_fn_cases[result_check.binary_hash].append(result_check.hs_fn)
+
+            # fp
+            if result_check.binary_hash not in baseline_has_fp_cases:
+                baseline_has_fp_cases[result_check.binary_hash] = []
+            baseline_has_fp_cases[result_check.binary_hash].append(result_check.hs_fp)
+    # 找到都漏报的结果
+    all_baseline_fn_cases = []
+    for case_hash, hs_fn_checks in baseline_has_fn_cases.items():
+        # 我们的结果
+        if len([check for check in hs_fn_checks if check]) >= 6 and not our_result_check[case_hash][0]:
+            all_baseline_fn_cases.append(case_hash)
+    print(f"全部baseline工具都漏报, 但是我们正常检测的的cases数量: {len(all_baseline_fn_cases)}")
+    # 分类统计
+    mini_size_cases = []
+    TPL_names = set()
+    for case_hash in all_baseline_fn_cases:
+        case = test_case_dict.get(case_hash, None)
+        # print(case.test_binary.file_size_kb)
+        if case.test_binary.file_size_kb <= 100:
+            mini_size_cases.append(case_hash)
+        TPL_names.add(case.reused_libraries[0].name)
+    # benchmark 小文件数量
+    print(
+        f"数据集, 小文件(<=100KB)数量: {len([case for case in benchmark.test_cases if case.test_binary.file_size_kb <= 100])}，占比: {len([case for case in benchmark.test_cases if case.test_binary.file_size_kb <= 100]) / len(benchmark.test_cases):.2%}")
+    # benchmark 平均文件大小
+    print(
+        f"数据集, 平均文件大小: {sum([case.test_binary.file_size_kb for case in benchmark.test_cases]) / len(benchmark.test_cases):.2f} KB")
+    # 小文件数量, 占比
+    print(
+        f"全部baseline工具都漏报的cases中, 小文件(<=100KB)数量: {len(mini_size_cases)}，占比: {len(mini_size_cases) / len(all_baseline_fn_cases):.2%}")
+    print(f"全部baseline工具都漏报的cases中, 涉及的TPL数量: {len(TPL_names)}, preview: {list(TPL_names)[:10]}")
+    print(list(TPL_names))
+    print(f"---" * 20)
+    # 找到都误报的结果
+    all_baseline_fp_cases = []
+    for case_hash, hs_fp_checks in baseline_has_fp_cases.items():
+        # 至少两个误报，hs_fp_checks 里面至少两个True
+        if len([check for check in hs_fp_checks if check]) >= 3 and not our_result_check[case_hash][1]:
+            all_baseline_fp_cases.append(case_hash)
+    print(f"全部baseline工具都误报的cases数量: {len(all_baseline_fp_cases)}")
+    # 分类统计
+    TPL_names = set()
+    for case_hash in all_baseline_fp_cases:
+        case = test_case_dict.get(case_hash, None)
+        TPL_names.add(case.reused_libraries[0].name)
+    print(f"全部baseline工具都误报的cases中, 涉及的TPL数量: {len(TPL_names)}, preview: {list(TPL_names)[:10]}")
+    print(list(TPL_names))
+    """
+        # C/C++库分类列表
+    
+        ## 1. 超高频依赖库（28个，14.3%）
+        ```
+        zlib, sqlite3, protobuf, flatbuffers, libuv, mbedtls, libsodium,
+        bzip2, lz4, zstd, pcre, pcre2, icu, libiconv, utf8proc,
+        base64, cjson, parson, libarchive, minizip, xz_utils, libgettext,
+        libunistring, date, libdb, jemalloc, bdwgc, re2
+        ```
+    
+        ## 2. 标准算法实现库（38个，19.4%）
+        ```
+        lzo, easylzma, fpzip, lerc, crunch, qr - code - generator, poly2tri,
+        rectanglebinpack, tiny - aes - c, libhydrogen, s2n, gnutls, krb5,
+        opus, flac, libmp3lame, alac, dav1d, libaom - av1, libsvtav1,
+        vvenc, libraw, libtiff, libwebp, freeimage, exiv2, mpg123,
+        drwav, libmad, libmodplug, libsndfile, opusfile, pdfium,
+        tesseract, zbar, zint, hunspell, lightpcapng
+        ```
+    
+        ## 3. 通用工具框架库（37个，18.9%）
+        ```
+        poco, cpprestsdk, grpc, fast - dds, benchmark, cppbenchmark,
+        spdlog, g3log, libassert, gperftools, onetbb, llvm - openmp,
+        argtable2, argtable3, json - schema - validator, onnx, openvino,
+        lightgbm, itk, openblas, xnnpack, dpp, tgbot, wt, civetweb,
+        cppserver, angelscript, luajit, jerryscript, duktape, wasmedge,
+        rttr, lief, capstone, doxygen, jinja2cpp, tidy - html5
+        ```
+    
+        ## 4. 底层系统库（29个，14.8%）
+        ```
+        pixman, editline, wayland, libdwarf, libelfin, libdisasm,
+        tcl, flex, bison, yasm, nasm, gn, b2, scdoc,
+        xorg - makedepend, eudev, gobject - introspection, glibmm, gdk - pixbuf,
+        libpcap, libnetfilter_conntrack, rsync, libsafec, libucl,
+        cfgfile, libsersi, libtasn1, tree - sitter - cpp, lemon
+        ```
+    
+        ## 5. 网络协议栈库（15个，7.7%）
+        ```
+        nghttp3, libnghttp2, llhttp, http_parser, libssh2, cnats,
+        hiredis, cassandra - cpp - driver, mariadb - connector - c, libpq,
+        orcania, libgit2, keychain, ohnet, nmea
+        ```
+    
+        ## 6. 其他特定领域库（49个，25.0%）
+        ```
+        ccfits, glbinding, dispenso, openvino, roaring, lightpcapng,
+        laszip, coin - utils, tinyobjloader, openddl - parser, libsvm,
+        libmeshb, libdrawille, litehtml, edyn, spirv - cross,
+        mbits - lngs, sqlcipher, eiquadprog, rocksdb, sbp,
+        libpfm4, dfp, open - dis - cpp, libspatialite, nodesoup, gklib,
+        muparser, proj, metis, nmea, aaf, cnpy, opene57,
+        podofo, implot, spirv - tools, libsquish, libharu, uni - algo,
+        mpir, fastgltf, qdbm, bgfx, shapelib, gdal, rply,
+        imguizmo, cgltf, 以及其他专业领域库
+        ```
+        """
 
 
 def generate_ablation_table(baseline_name,
@@ -641,8 +809,8 @@ def print_RQ3_data():
 
 def main():
     print_RQ1_data()
-    print_RQ2_data()
-    print_RQ3_data()
+    # print_RQ2_data()
+    # print_RQ3_data()
 
 
 

@@ -45,6 +45,7 @@ def convert_csv_result():
             file_paths = row.get('文件路径', '')
 
             # 解析文件路径（多个路径用逗号分隔）
+            libraries = []
             if file_paths:
                 # 分割路径并清理空白字符
                 paths = [path.strip() for path in file_paths.split(',') if path.strip()]
@@ -61,24 +62,25 @@ def convert_csv_result():
                         name=component_name,
                         version=version
                     )
+                    libraries.append(library)
 
-                    # 创建AnalysisResult对象
-                    analysis_result = AnalysisResult(
-                        binary_name=binary_name,
-                        binary_sha256=sha256,  # CSV中没有，填空字符串
-                        binary_path=file_path,
-                        detected_libraries=[library],
-                        analysis_data=AnalysisData(
-                            target_binary=TargetBinary(
-                                binary_name=binary_name,
-                                relative_path=relative_path,
-                                hash_sha256=sha256,  # CSV中没有，填空字符串
-                                file_size_kb=0,  # CSV中没有，填0
-                            )
-                        ),
-                    )
+        # 创建AnalysisResult对象
+        analysis_result = AnalysisResult(
+            binary_name=binary_name,
+            binary_sha256=sha256,  # CSV中没有，填空字符串
+            binary_path=file_path,
+            detected_libraries=libraries,
+            analysis_data=AnalysisData(
+                target_binary=TargetBinary(
+                    binary_name=binary_name,
+                    relative_path=relative_path,
+                    hash_sha256=sha256,  # CSV中没有，填空字符串
+                    file_size_kb=0,  # CSV中没有，填0
+                )
+            ),
+        )
 
-                    converted_results.append(analysis_result)
+        converted_results.append(analysis_result)
 
     print(f"总共转换了 {len(converted_results)} 个分析结果")
 
