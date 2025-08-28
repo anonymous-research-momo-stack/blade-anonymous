@@ -3,7 +3,6 @@ from evaluation.general_benchmarks.feture_matching_analysis import plot_feature_
     analyze_feature_matching_top_n_effectiveness, \
     analyze_feature_matching_failures, print_failure_analysis_report
 from evaluation.general_benchmarks.interface import EvaluationConfig
-from pydantic_settings import BaseSettings
 from environs import Env
 
 env = Env()
@@ -165,7 +164,7 @@ def main():
 
     conan_benchmark_meta_file = f"{evaluation_dir}/general_benchmarks/benchmark_meta/conan_library_benchmark.json"
 
-    evaluation_result_file = f"{evaluation_output_dir}/Conan/ours/gpt_5_nanp/evaluation_report.json"
+    evaluation_result_file = f"{evaluation_output_dir}/Conan/ours/gpt_5_mini/evaluation_report.json"
 
     # evaluation config
     config = EvaluationConfig(
@@ -175,7 +174,7 @@ def main():
         # use_agent=False,
         concurrency=30,
         slice_start=0,
-        # slice_end=100,
+        # slice_end=10,
         input_token_price_per_1M=0,
         output_token_price_per_1M=0,
         # input_token_price_per_1M=0.4,

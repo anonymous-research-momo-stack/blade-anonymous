@@ -610,6 +610,10 @@ CRITICAL ANALYSIS AREAS:
    - Identify same projects detected with different name formats (e.g., postgres vs PostgreSQL)
    - Apply priority resolution: Feature matching method > Repository name proximity > Generic names
    - Consolidate to single best representation
+   - IMPORTANT, if two names refer to the same library, keep only one, and prioritize the name that is closer to the official source code repository name. For example, for 'https://github.com/pnggroup/libpng' what we want is the last part, 'libpng'" 
+   - for Boost, we prefer 'boost' rather than Boost C++ Libraries, or Boost.System or Boost(System) or boost-libs or any other variants. you can mention other names in the description, but keep only the most appropriate name.
+   - if you do not know which one should keep, please think about which one is most easy for us to find the source code in Github. the most appropriate name should be then name that is in the official source code repository name.
+   - another example  "Little CMS" and lcms, we should keep lcms.
    
 CONFLICT RESOLUTION RULES:
 - PRIMARY SOURCE LIBRARIES: Preserve unless compelling technical reasons for removal

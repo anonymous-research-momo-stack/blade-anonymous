@@ -158,9 +158,15 @@ class TPLAnalyzer:
             "RESPONSE FORMAT:",
             "",
             "LIBRARY NAMING PRIORITY (CRITICAL):",
+
             "1. SOURCE REPOSITORY NAME (highest priority) - Use actual repository/project name",
             "2. COMMON TPL ABBREVIATION - Widely recognized short forms (e.g., 'zlib', 'curl')",
             "3. FULL OFFICIAL NAME - Complete project name if no standard abbreviation",
+            "You should always use the highest priority naming available, for example: "
+            "you should report boost rather than Boost C++ Libraries or Boost.System or Boost(System)",
+            "you should avoid using . or () in the name, what we most want is the name of the repository, for example, for 'https://github.com/pnggroup/libpng' what we want is the last part, 'libpng'",
+            'more example: "Little CMS" and lcms, you should report lcms.zstd and Zstandard, you should report zstd' ,
+            "If a library doesn't have its own independent repository and its source code is part of a larger repository, report that larger repository and explain this in your reasoning. For example, like libmount and util-linux. You should report util-linux because it is the actual repository, while libmount is just a part of it. You should mention this point in your reasoning, stating that the library is libmount but libmount doesn't have an independent repository, and its source code is part of util-linux."
             "",
             "NAMING RULES:",
             "- Use CURRENT/LATEST project names (not historical names)",
