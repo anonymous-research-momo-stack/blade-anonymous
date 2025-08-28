@@ -165,7 +165,7 @@ def main():
 
     conan_benchmark_meta_file = f"{evaluation_dir}/general_benchmarks/benchmark_meta/conan_library_benchmark.json"
 
-    evaluation_result_file = f"{evaluation_output_dir}/Conan/ours/gpt_5_mini/evaluation_report.json"
+    evaluation_result_file = f"{evaluation_output_dir}/Conan/ours/gpt_5_nanp/evaluation_report.json"
 
     # evaluation config
     config = EvaluationConfig(
@@ -221,7 +221,7 @@ if __name__ == '__main__':
         conda activate sca
     
     后台运行
-        nohup python3 evaluation/general_benchmarks/evaluator_runner.py > evaluation.log 2>&1 &
+        nohup python3 evaluator_runner.py > evaluation.log 2>&1 &
     
     跟踪查看日志
         tail -f evaluation.log
