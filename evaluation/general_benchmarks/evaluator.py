@@ -278,7 +278,7 @@ class Evaluator:
                         )
                     ),
                     succeed=False,
-                    error_message="Analysis failed: No result found for this test case.",
+                    error_message="Auto added! Analysis failed: No result found for this test case.",
                 )
                 corrected_results.append(failed_result)
 

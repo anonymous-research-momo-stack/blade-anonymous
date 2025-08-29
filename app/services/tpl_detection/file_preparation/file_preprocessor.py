@@ -130,11 +130,11 @@ class FilePreprocessor:
             relative_path=relative_path,
             absolute_path=str(file_path_absolute),
             file_size_kb=file_size_kb,
-            strings=strings_list,
+            strings=list(set(strings_list)),
             classified_strings=filtered_strings,
             dynamic_libraries=dynamic_linked_libraries,
-            imported_symbols=imported_symbols,
-            exported_symbols=exported_symbols,
+            imported_symbols=list(set(imported_symbols)),
+            exported_symbols=list(set(exported_symbols)),
             imported_symbol_analysis=self._analyze_imported_symbols(imported_symbols),
             exported_symbol_analysis=self._analyze_exported_symbols(exported_symbols),
         )
@@ -154,7 +154,7 @@ class FilePreprocessor:
         try:
             # 使用strings命令，设置最小长度为4的字符串
             result = subprocess.run(
-                ['strings', '-n', '4', file_path],
+                ['strings', '-n', '5', file_path],
                 capture_output=True,
                 text=True,
                 timeout=30  # 设置超时时间

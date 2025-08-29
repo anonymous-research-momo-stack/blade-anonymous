@@ -130,8 +130,9 @@ def run_failed_case_only():
     Conan_benchmark_meta = "/Users/liuchengyue/Desktop/BinarySCA Platform/Code/sca_agents/bsca-expert-agent-api/evaluation/general_benchmarks/benchmark_meta/conan_library_benchmark.json"
     Conan_benchmark_meta_updated = "/Users/liuchengyue/Desktop/BinarySCA Platform/Code/sca_agents/bsca-expert-agent-api/evaluation/general_benchmarks/benchmark_meta/conan_library_benchmark_20250806_1524.json"
     Conan_test_case_dir = "/Users/liuchengyue/Desktop/BinarySCA Platform/Data/Test_Cases/TPL_Test_Cases/conan_test_cases"
-    Conan_evluation_report_path = "/Users/liuchengyue/Desktop/BinarySCA Platform/Code/sca_agents/bsca-expert-agent-api/tmp/evaluation_reports/Conan/ours_105_0806/evaluation_report.json"
-    Conan_only_failed_cases_evluation_report_path = "/Users/liuchengyue/Desktop/BinarySCA Platform/Code/sca_agents/bsca-expert-agent-api/tmp/evaluation_reports/Conan/ours_105_0806/only_failed_cases_evaluation_report.json"
+
+    Conan_evluation_report_path = "/Users/liuchengyue/Desktop/BinarySCA Platform/Code/sca_agents/bsca-expert-agent-api/tmp/evaluation_reports/Conan/ours/gpt_5_mini/evaluation_report.json"
+    Conan_only_failed_cases_evluation_report_path = "/Users/liuchengyue/Desktop/BinarySCA Platform/Code/sca_agents/bsca-expert-agent-api/tmp/evaluation_reports/Conan/ours/gpt_5_mini/only_failed_cases_evaluation_report.json"
 
 
     benchmark_meta = Conan_benchmark_meta_updated
@@ -145,7 +146,7 @@ def run_failed_case_only():
         feature_matching_top_n=5,
         # use_agent=False,
         concurrency=30,
-        slice_start=100,
+        slice_start=0,
         slice_end=120,
         input_token_price_per_1M=0.4,
         output_token_price_per_1M=1.6,
@@ -159,8 +160,8 @@ def run_failed_case_only():
     evaluator.report.dump(evaluation_report_save_path)
 
     # 重新分析结果
-    # report = evaluator.reanalyze_report(evaluation_report_save_path,
-    #                                     ignore_failed_cases=False)
+    report = evaluator.reanalyze_report(evaluation_report_save_path,
+                                        ignore_failed_cases=False)
 
 
 def main():
@@ -207,8 +208,8 @@ def main():
 
 if __name__ == '__main__':
     # main()
-    # run_failed_case_only()
-    reanalyze_all_result()
+    run_failed_case_only()
+    # reanalyze_all_result()
     # run_feature_matching_only()
 
 
