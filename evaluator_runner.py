@@ -57,10 +57,17 @@ def reanalyze_all_result():
     result_path = "/Users/liuchengyue/Desktop/BinarySCA Platform/Code/sca_agents/bsca-expert-agent-api/tmp/evaluation_reports/Conan/b2sfinder/result_converted.json"
     report = evaluator.reanalyze_report(result_path, ignore_failed_cases=False)
 
-    print(f"our gpt 4.1 mini")
-    result_path = "/Users/liuchengyue/Desktop/BinarySCA Platform/Code/sca_agents/bsca-expert-agent-api/tmp/evaluation_reports/Conan/ours_105_0806/evaluation_report.json"
-    # report = evaluator.reanalyze_report(result_path, ignore_failed_cases=False)
+    print(f"our gpt 5 mini")
+    result_path = "/Users/liuchengyue/Desktop/BinarySCA Platform/Code/sca_agents/bsca-expert-agent-api/tmp/evaluation_reports/Conan/ours/gpt_5_mini/evaluation_report.json"
+    report = evaluator.reanalyze_report(result_path, ignore_failed_cases=False)
 
+    print(f"our gpt 5 nano")
+    result_path = "/Users/liuchengyue/Desktop/BinarySCA Platform/Code/sca_agents/bsca-expert-agent-api/tmp/evaluation_reports/Conan/ours/gpt_5_nano/evaluation_report.json"
+    report = evaluator.reanalyze_report(result_path, ignore_failed_cases=False)
+
+    print(f"our gpt 4.1 mini")
+    result_path = "/Users/liuchengyue/Desktop/BinarySCA Platform/Code/sca_agents/bsca-expert-agent-api/tmp/evaluation_reports/Conan/ours/gpt_4_1_mini/ours_105_0806/evaluation_report.json"
+    report = evaluator.reanalyze_report(result_path, ignore_failed_cases=False)
 
 def run_feature_matching_only():
     # 分析输入Conan Binaries
@@ -199,9 +206,9 @@ def main():
     #                          )
 
 if __name__ == '__main__':
-    main()
+    # main()
     # run_failed_case_only()
-    # reanalyze_all_result()
+    reanalyze_all_result()
     # run_feature_matching_only()
 
 

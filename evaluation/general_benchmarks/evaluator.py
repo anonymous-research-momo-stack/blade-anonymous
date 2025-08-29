@@ -100,41 +100,59 @@ class Evaluator:
             detected_gt_libraries = []
 
             tp_library_names = []
+            redundant_tp_library_names = []
             fp_library_names = []
 
             # 检测到的库名称与Ground Truth进行对比
             for detected_lib in result.detected_libraries:
-                tp = False
+                # 跳过GCC
+                if detected_lib.name.startswith('gcc'):
+                    continue
 
+                tp = False
+                already_matched_before = False
                 # 遍历所有GT库寻找匹配
                 for i, gt_lib in enumerate(ground_truth_reused_libraries):
-                    # 跳过已经被匹配的GT库
-                    if i in matched_gt_libraries:
-                        continue
 
                     # 与Ground Truth 名称一致
                     if self._normalize_lib_name(detected_lib.name) == self._normalize_lib_name(gt_lib.name):
                         detected_gt_libraries.append(gt_lib)
-                        matched_gt_libraries.add(i)  # 标记该GT库已被匹配
                         tp = True
-                        break
+
+
+                    # 与Ground Truth 名称加前缀lib一致
+                    elif self._normalize_lib_name(detected_lib.name) == self._normalize_lib_name('lib' + gt_lib.name) or self._normalize_lib_name('lib' + detected_lib.name) == self._normalize_lib_name(gt_lib.name):
+                        detected_gt_libraries.append(gt_lib)
+                        tp = True
+
+
                     # 与Ground Truth 名称的其他名称一致
                     elif self._normalize_lib_name(detected_lib.name) in [self._normalize_lib_name(lib_name) for lib_name
                                                                          in gt_lib.other_names]:
                         detected_gt_libraries.append(gt_lib)
-                        matched_gt_libraries.add(i)  # 标记该GT库已被匹配
                         tp = True
+
+                    # 如果是TP, 中止循环，且记录已经匹配过的GT库
+                    if tp == True:
+                        if i in matched_gt_libraries:
+                            already_matched_before = True
+                        else:
+                            matched_gt_libraries.add(i)
                         break
 
-                # 如果找到了匹配的Ground Truth库，则认为是TP，否则是FP
                 if tp:
-                    tp_library_names.append(detected_lib.name)
+                    # 如果之前匹配过，则不重复添加
+                    if not already_matched_before:
+                        tp_library_names.append(detected_lib.name)
+                    else:
+                        redundant_tp_library_names.append(detected_lib.name)
                 else:
                     fp_library_names.append(detected_lib.name)
 
             # 未检测到的Ground Truth库，均认为是FN
             undetected_gt_libraries = [gt_lib for i, gt_lib in enumerate(ground_truth_reused_libraries)
                                        if i not in matched_gt_libraries]
+
             fn_library_names = [lib.name for lib in undetected_gt_libraries]
             # 生成分析结果检查对象
             has_fn = len(fn_library_names) > 0  # 是否有漏报
@@ -150,14 +168,17 @@ class Evaluator:
                 detected_lib_names=[lib.name for lib in result.detected_libraries],  # 检测到的库名称
                 result_count=len(result.detected_libraries),
                 tp_count=len(tp_library_names),  # 检测到的真正库数量
+                redundant_tp_count=len(redundant_tp_library_names), # 正确但重复的结果数量
                 fp_count=len(fp_library_names),  # 检测到的误报库数量
                 fn_count=len(fn_library_names),  # 漏报的库数量
                 perfect= not(has_fn or has_fp),  # 是否完美
                 hs_fn=has_fn,  # 是否有漏报
                 hs_fp=has_fp,  # 是否有误报
+                hs_rd_tp= len(redundant_tp_library_names) > 0,  # 是否有重复的正确结果
                 has_multi_results= len(result.detected_libraries) > 1,  # 是否有多个检测结果
                 no_results=len(result.detected_libraries)==0,
                 tp_lib_names=tp_library_names,  # 真正检测到的库名称
+                redundant_tp_lib_names=redundant_tp_library_names,  # 正确但重复的结果。
                 fp_lib_names=fp_library_names,  # 误报的库名称
                 fn_lib_names=fn_library_names,  # 漏报的库名称
             )
@@ -231,7 +252,7 @@ class Evaluator:
         # 1. 建立benchmark的索引（用sha256或relative_path）
         benchmark_dict = {tc.test_binary.sha256: tc for tc in benchmark_test_cases}
 
-        # 2. 过滤evaluation_results，只保留benchmark中存在的
+        # 2. 删除：过滤evaluation_results，只保留benchmark中存在的测试用例
         corrected_results = []
         existing_sha256s = set()
 
@@ -240,7 +261,7 @@ class Evaluator:
                 corrected_results.append(result)
                 existing_sha256s.add(result.binary_sha256)
 
-        # 3. 为benchmark中存在但evaluation_results中缺失的测试用例创建失败结果
+        # 3. 补充：为benchmark中存在但evaluation_results中缺失的测试用例创建失败结果
         for sha256, test_case in benchmark_dict.items():
             if sha256 not in existing_sha256s:
                 # 创建一个失败的AnalysisResult
@@ -271,8 +292,7 @@ class Evaluator:
         # load
         report = EvaluationReport.load_from_file(evaluation_report_save_path)
 
-        # 根据benchmark 校正结果，如果benchmark中有，但是检测结果中没有的，就添加一个，并且error_msg写上分析失败。
-        # 如果benchmark中没有的，就直接删掉。
+        # 和benchmark对齐测试用例
         corrected_results = self._correct_evaluation_results(
             report.evaluation_results,
             self.benchmark.test_cases
@@ -292,6 +312,7 @@ class Evaluator:
         report.evaluation_results = corrected_results # 更新检测结果
         report.evaluation_results_check = results_check_lst # 更新检查结果
         report.research_question_data = rq_data # 更新RQ数据
+
         # 更新统计数据
         report.succeed_count = sum(1 for result in corrected_results if result.error_message is None)
         report.failed_count = sum(1 for result in corrected_results if result.error_message is not None)
@@ -426,6 +447,16 @@ class Evaluator:
         results_check_lst = self.check_result(evaluation_results_wo_agent_analysis)
         effectiveness_wo_agent_analysis_top_3 = self._cal_effectiveness(results_check_lst)
 
+        # 消融掉Agent 全部分析, 且特征匹配只取top_4
+        evaluation_results_wo_agent_analysis = copy.deepcopy(evaluation_results)
+        for evaluation_result in evaluation_results_wo_agent_analysis:
+            # 只保留检测到的库
+            evaluation_result.detected_libraries = [tpl for tpl in evaluation_result.analysis_data.all_candidate_libraries
+                                                    if self.workflow.feature_matching_detector.method_name in tpl.identify_methods][:4]
+
+        results_check_lst = self.check_result(evaluation_results_wo_agent_analysis)
+        effectiveness_wo_agent_analysis_top_4 = self._cal_effectiveness(results_check_lst)
+
         # 消融实验1： 消融 Agent TPL分析
         # 计算消融后的结果
         evaluation_results_wo_agent_tpl_analysis = copy.deepcopy(evaluation_results)
@@ -476,6 +507,7 @@ class Evaluator:
             wo_agent_analysis_top_1=effectiveness_wo_agent_analysis_top_1,
             wo_agent_analysis_top_2=effectiveness_wo_agent_analysis_top_2,
             wo_agent_analysis_top_3=effectiveness_wo_agent_analysis_top_3,
+            wo_agent_analysis_top_4=effectiveness_wo_agent_analysis_top_4,
             wo_agent_tpl_analysis=effectiveness_wo_agent_tpl_analysis,
             wo_validation_step_1=effectiveness_wo_validation_step_1,
             wo_validation_step_2=effectiveness_wo_validation_step_2,
@@ -521,6 +553,14 @@ class Evaluator:
         for step, duration in step_total_theoretical_duration.items():
             step_total_theoretical_duration_proportions[step] = round((duration / total_theoretical_duration) * 100, 2) if total_theoretical_duration > 0 else 0.0
 
+        # 计算LLM时间
+        all_llm_duration = 0.0
+        for result in evaluation_results:
+            for detector_name, cost_dict in result.analysis_data.costs.items():
+                if 'time' in cost_dict:
+                    llm_duration = sum(cost_dict.get('time', []))
+                    all_llm_duration += llm_duration
+
         rq_3_data = EfficiencyData(
             total_file_size_kb=total_file_size,
             average_file_size_kb=average_file_size,
@@ -530,6 +570,7 @@ class Evaluator:
             average_actual_duration=average_actual_duration,
             step_total_theoretical_duration=step_total_theoretical_duration,
             duration_breakdown=step_total_theoretical_duration_proportions,
+            llm_duration=all_llm_duration
         )
         return rq_3_data
 

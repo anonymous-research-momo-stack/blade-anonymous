@@ -369,8 +369,10 @@ class AnalysisResultCheck(Serializable):
     no_results:bool = False  # No results detected, if True, means no libraries are detected in this binary
     hs_fn: bool = False  # Has False Negative, if True, means there are libraries in ground truth that are not detected
     hs_fp: bool = False  # Has False Positive, if True, means there are libraries detected that are not in ground truth
+    hs_rd_tp: bool = False  # 是否有重复的结果
     result_count:int = 0  # Number of results in this check
     tp_count:int = 0  # True Positive count
+    redundant_tp_count:int = 0  # True Positive count
     fp_count:int = 0  # False Positive count
     fn_count:int = 0  # False Negative count
 
@@ -378,6 +380,7 @@ class AnalysisResultCheck(Serializable):
     detected_lib_names: List[str] = dataclasses.field(default_factory=list)  # Detected Libraries
 
     tp_lib_names: List[str] = dataclasses.field(default_factory=list)  # True Positive Libraries
+    redundant_tp_lib_names: List[str] = dataclasses.field(default_factory=list)  # True Positive Libraries
     fp_lib_names: List[str] = dataclasses.field(default_factory=list)  # False Positive Libraries
     fn_lib_names: List[str] = dataclasses.field(default_factory=list)  # False Negative Libraries
 
@@ -413,6 +416,7 @@ class AblationData(Serializable):
     wo_agent_analysis_top_1:EffectivenessData = None # Effectiveness data without agent analysis, only keep the top 1 results
     wo_agent_analysis_top_2:EffectivenessData = None # Effectiveness data without agent analysis, only keep the top 2 results
     wo_agent_analysis_top_3:EffectivenessData = None # Effectiveness data without agent analysis, only keep the top 3 results
+    wo_agent_analysis_top_4:EffectivenessData = None # Effectiveness data without agent analysis, only keep the top 3 results
     wo_agent_tpl_analysis: EffectivenessData = None  # Effectiveness data without agent analysis
     wo_validation_step_1: EffectivenessData = None  # Effectiveness data without validation step 1
     wo_validation_step_2: EffectivenessData = None  # Effectiveness data without validation step 2
@@ -434,8 +438,10 @@ class EfficiencyData(Serializable):
 
     total_actual_duration: float = 0.0  # Total actual duration in seconds
     average_actual_duration: float = 0.0  # Average actual duration in seconds
-    step_total_theoretical_duration: dict = dataclasses.field(default_factory=dict)  # Breakdown of duration by step, e.g., {'agent_analysis': 10.5, 'tpl_analysis': 5.0, 'validation': 2.0}
 
+    llm_duration: float = 0.0  # Total LLM duration in seconds
+
+    step_total_theoretical_duration: dict = dataclasses.field(default_factory=dict)  # Breakdown of duration by step, e.g., {'agent_analysis': 10.5, 'tpl_analysis': 5.0, 'validation': 2.0}
     duration_breakdown: dict = dataclasses.field(default_factory=dict)  # Breakdown of duration by step, e.g., {'agent_analysis': 10.5, 'tpl_analysis': 5.0, 'validation': 2.0}
 
 

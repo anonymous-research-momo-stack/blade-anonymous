@@ -205,6 +205,8 @@ class LibraryValidator:
             # 更新 library 属性
             reasonable_libs = []
             for lib in enhanced_libraries:
+                if lib.name in ['gcc']:
+                    continue
                 for result in individual_results.results:
                     # 找到对应的分析结果
                     if result.library_name.lower() == lib.name.lower():
@@ -610,10 +612,7 @@ CRITICAL ANALYSIS AREAS:
    - Identify same projects detected with different name formats (e.g., postgres vs PostgreSQL)
    - Apply priority resolution: Feature matching method > Repository name proximity > Generic names
    - Consolidate to single best representation
-   - IMPORTANT, if two names refer to the same library, keep only one, and prioritize the name that is closer to the official source code repository name. For example, for 'https://github.com/pnggroup/libpng' what we want is the last part, 'libpng'" 
-   - for Boost, we prefer 'boost' rather than Boost C++ Libraries, or Boost.System or Boost(System) or boost-libs or any other variants. you can mention other names in the description, but keep only the most appropriate name.
-   - if you do not know which one should keep, please think about which one is most easy for us to find the source code in Github. the most appropriate name should be then name that is in the official source code repository name.
-   - another example  "Little CMS" and lcms, we should keep lcms.
+   - IMPORTANT, When handling naming conflicts, first check whether two different names actually refer to the same library. If they do, and one name comes from feature matching while the other comes from agent analysis, always keep the feature matching name. If this is not the case, resolve by priority: first, keep the name that makes it easiest to find the source code on GitHub, which is usually the last part of the official repository URL (e.g., for https://github.com/pnggroup/libpng the correct name is libpng); next, prefer the name that is closest to the official repository name; and then, prefer the more generic and widely recognized project name instead of submodules or descriptive variants. For example, all Boost variants such as Boost C++ Libraries, Boost.System, or boost-libs should be consolidated as boost; “Little CMS” and lcms should be lcms; Postgres vs PostgreSQL should be PostgreSQL; and Zlib compression library vs zlib should be zlib. In all cases, only one final name should be kept, in its most concise, widely used, and repository-aligned form, while other variants may be mentioned in the description if needed.
    
 CONFLICT RESOLUTION RULES:
 - PRIMARY SOURCE LIBRARIES: Preserve unless compelling technical reasons for removal

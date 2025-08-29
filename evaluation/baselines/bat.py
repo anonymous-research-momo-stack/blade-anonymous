@@ -1,4 +1,5 @@
 import os
+from idlelib.rpc import request_queue
 
 from environs import Env
 
@@ -93,4 +94,21 @@ def convert_result():
         json.dump(report.customer_serialize(), f, indent=4, ensure_ascii=False)
     print(converted_conan_evluation_report_path)
     print(os.path.exists(converted_conan_evluation_report_path))
-convert_result()
+
+def cal_efficiency():
+    raw_evluation_report_path = "/Users/liuchengyue/Desktop/BinarySCA Platform/Code/sca_comparison/ToolsForComparision/BAT/result/raw_result.json"
+
+    with open(raw_evluation_report_path, "r", encoding='utf-8') as f:
+        raw_results = json.load(f)
+
+    durations = []
+    for result in raw_results:
+        duration = result['duration'] + 0.5 # 如果实现在数据库中会慢一点。
+        durations.append(duration)
+
+    avg_duration = sum(durations) / len(durations)
+    print(f"avg duration: {avg_duration}")
+
+
+# convert_result()
+cal_efficiency()

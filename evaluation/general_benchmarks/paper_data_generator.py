@@ -276,12 +276,15 @@ def print_RQ1_data():
                 "display_name": "BinaryAI"},
         },
         "ours": {
-            "our-OpenAI-GPT-4.1": {
-                "path": "/Users/liuchengyue/Desktop/BinarySCA Platform/Code/sca_agents/bsca-expert-agent-api/tmp/evaluation_reports/Conan/ours_102_mini_all_0831/evaluation_report_reanalyzed_simple.json",
-                "display_name": "\\textbf{Blade-G4.1}"},
-            "our-OpenAI-GPT-4.1-mini": {
-                "path": "/Users/liuchengyue/Desktop/BinarySCA Platform/Code/sca_agents/bsca-expert-agent-api/tmp/evaluation_reports/Conan/ours/gpt_4_1_mini/ours_105_0806/evaluation_report_reanalyzed_simple.json",
-                "display_name": "\\textbf{Blade-G4.1m}"},
+            "our-OpenAI-GPT-5": {
+                "path": "",
+                "display_name": "\\textbf{Blade-G5}"},
+            "our-OpenAI-GPT-5-mini": {
+                "path": "/Users/liuchengyue/Desktop/BinarySCA Platform/Code/sca_agents/bsca-expert-agent-api/tmp/evaluation_reports/Conan/ours/gpt_5_mini/evaluation_report_reanalyzed_simple.json",
+                "display_name": "\\textbf{Blade-G5m}"},
+            "our-OpenAI-GPT-5-nano": {
+                "path": "/Users/liuchengyue/Desktop/BinarySCA Platform/Code/sca_agents/bsca-expert-agent-api/tmp/evaluation_reports/Conan/ours/gpt_5_nano/evaluation_report_reanalyzed_simple.json",
+                "display_name": "\\textbf{Blade-G5n}"},
             "our-Anthropic-Sonnet-4.0": {
                 "path": "",
                 "display_name": "\\textbf{Blade-S4}"},
@@ -699,6 +702,11 @@ def plot_performance_breakdown(duration_breakdown, save_files=True, filename='pe
         '__validation_step_1': duration_breakdown['__validation_step_1'],
         '__validation_step_2': duration_breakdown['__validation_step_2']
     }
+    for k,v in duration_breakdown.items():
+        print(k, v)
+
+    for k,v in level2_data.items():
+        print(f"{k}: {v}%")
 
     # 计算其他步骤
     other_steps_2 = 100.0 - sum(level2_data.values())
@@ -786,7 +794,7 @@ def print_RQ3_data():
         data = json.load(f)
     duration_breakdown = data['research_question_data']['efficiency']['duration_breakdown']
 
-    # 效率换图
+    # 时间breakdown
     fig = plot_performance_breakdown(duration_breakdown)
 
     # 保存图片（适合论文使用的高质量格式）

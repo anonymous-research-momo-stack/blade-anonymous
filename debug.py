@@ -72,18 +72,21 @@ def demo():
     boost = "/Users/liuchengyue/Desktop/BinarySCA Platform/Data/Test_Cases/TPL_Test_Cases/conan_test_cases/cgal/6.0.1/cgal_6.0.1_x86_64-gcc-release-shared/full_deploy/host/boost/1.83.0/Release/x86_64/lib/libboost_system.so.1.83.0"
     libPcap = "/Users/liuchengyue/Desktop/BinarySCA Platform/Data/Test_Cases/TPL_Test_Cases/conan_test_cases/pcapplusplus/25.05/pcapplusplus_25.05_x86_64-gcc-release-shared/full_deploy/host/pcapplusplus/25.05/Release/x86_64/lib/libPcap++.so.25.05"
     libazure = "/Users/liuchengyue/Desktop/BinarySCA Platform/Data/Test_Cases/TPL_Test_Cases/conan_test_cases/azure-sdk-for-cpp/1.11.3/azure-sdk-for-cpp_1.11.3_x86_64-gcc-release-shared/full_deploy/host/azure-sdk-for-cpp/1.11.3/Release/x86_64/lib/libazure-core.so"
+    m4 = "/Users/liuchengyue/Desktop/BinarySCA Platform/Data/Test_Cases/TPL_Test_Cases/conan_test_cases/nanodbc/cci.20200807/nanodbc_cci.20200807_x86_64-gcc-release-shared/full_deploy/host/m4/1.4.19/Release/x86_64/bin/m4"
+    libohNet_so = "/Users/liuchengyue/Desktop/BinarySCA Platform/Data/Test_Cases/TPL_Test_Cases/conan_test_cases/ohnet/1.37.5454/ohnet_1.37.5454_x86_64-clang-release-shared/full_deploy/host/ohnet/1.37.5454/Release/x86_64/lib/libohNet.so"
+    clp = "/Users/liuchengyue/Desktop/BinarySCA Platform/Data/Test_Cases/TPL_Test_Cases/conan_test_cases/coin-cgl/0.60.7/coin-cgl_0.60.7_x86_64-clang-release-shared/full_deploy/host/coin-clp/1.17.7/Release/x86_64/bin/clp"
 
     # 分析工作流
     workflow = DetectionWorkflow(
         enable_bin_info_analysis_web_search=False,
         feature_matching_return_top_n=5,
-        debug_mode=True,
+        debug_mode=False,
         use_agent=True
     )
 
 
     # 分析
-    result = workflow.run(libazure)
+    result = workflow.run(clp)
 
     # 结合上下文分析
     # context = workflow.analyze_context(root_path)

@@ -79,7 +79,8 @@ class LibraryResult(BaseModel):
     """
     Agent response model for library analysis
     """
-    name: str = Field(description="Library name - use simple, recognizable names (prefer repository/package names)")
+    name: str = Field(description="Canonical library name - use GitHub repository name or common package manager name (e.g., 'protobuf', 'opencv', 'libidn')")
+    full_name: str = Field(description="Complete official library name (e.g., 'Protocol Buffers', 'GNU Libidn', 'Apache Thrift')")
     description: str = Field(
         description="Brief description, include full name if different from name, mention repository if known")
     evidence_type: str = Field(description="Evidence type: Explicit, Implicit, or Mixed")
