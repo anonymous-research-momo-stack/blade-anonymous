@@ -20,7 +20,11 @@ def preview_failed_cases(simple_report):
     print("=== Failed Cases Preview ===")
     failed_count = 0
 
+    failed_case_name_set = set()
     for check in simple_report.evaluation_results_check:
+        if check.binary_name in failed_case_name_set:
+            continue
+        failed_case_name_set.add(check.binary_name)
         if not check.perfect:
             failed_count += 1
             print(f"""
@@ -90,7 +94,7 @@ def save_failed_cases_to_csv(simple_report, report_path):
 
 def main():
     """主函数"""
-    report_path = "/Users/liuchengyue/Desktop/BinarySCA Platform/Code/sca_agents/bsca-expert-agent-api/tmp/evaluation_reports/Conan/ours/gpt_4_1_mini/ours_105_0806/evaluation_report_reanalyzed_simple.json"
+    report_path = "/Users/liuchengyue/Desktop/BinarySCA Platform/Code/sca_agents/bsca-expert-agent-api/tmp/evaluation_reports/Conan/ours/gpt_5_mini/evaluation_report_reanalyzed_simple.json"
 
     try:
         # 加载报告

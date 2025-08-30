@@ -58,7 +58,7 @@ def reanalyze_all_result():
     report = evaluator.reanalyze_report(result_path, ignore_failed_cases=False)
 
     print(f"our gpt 5 mini")
-    result_path = "/Users/liuchengyue/Desktop/BinarySCA Platform/Code/sca_agents/bsca-expert-agent-api/tmp/evaluation_reports/Conan/ours/gpt_5_mini/evaluation_report.json"
+    result_path = "/tmp/evaluation_reports/Conan/ours/gpt_5_mini_backup/evaluation_report.json"
     report = evaluator.reanalyze_report(result_path, ignore_failed_cases=False)
 
     print(f"our gpt 5 nano")
@@ -131,8 +131,8 @@ def run_failed_case_only():
     Conan_benchmark_meta_updated = "/Users/liuchengyue/Desktop/BinarySCA Platform/Code/sca_agents/bsca-expert-agent-api/evaluation/general_benchmarks/benchmark_meta/conan_library_benchmark_20250806_1524.json"
     Conan_test_case_dir = "/Users/liuchengyue/Desktop/BinarySCA Platform/Data/Test_Cases/TPL_Test_Cases/conan_test_cases"
 
-    Conan_evluation_report_path = "/Users/liuchengyue/Desktop/BinarySCA Platform/Code/sca_agents/bsca-expert-agent-api/tmp/evaluation_reports/Conan/ours/gpt_5_mini/evaluation_report.json"
-    Conan_only_failed_cases_evluation_report_path = "/Users/liuchengyue/Desktop/BinarySCA Platform/Code/sca_agents/bsca-expert-agent-api/tmp/evaluation_reports/Conan/ours/gpt_5_mini/only_failed_cases_evaluation_report.json"
+    Conan_evluation_report_path = "/tmp/evaluation_reports/Conan/ours/gpt_5_mini_backup/evaluation_report.json"
+    Conan_only_failed_cases_evluation_report_path = "/tmp/evaluation_reports/Conan/ours/gpt_5_mini_backup/only_failed_cases_evaluation_report.json"
 
 
     benchmark_meta = Conan_benchmark_meta_updated

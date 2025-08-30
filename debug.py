@@ -82,7 +82,7 @@ def demo():
     workflow = DetectionWorkflow(
         enable_bin_info_analysis_web_search=False,
         feature_matching_return_top_n=5,
-        debug_mode=False,
+        debug_mode=True,
         use_agent=True
     )
 
