@@ -93,6 +93,8 @@ class Evaluator:
                                 self.benchmark.test_cases}
         results_check_lst = []
         for result in evaluation_results:
+            if result.binary_name =="libasound.so.2.0.0":
+                print()
             ground_truth_reused_libraries = ground_truth_dict.get(result.binary_sha256, [])
 
             # 使用集合跟踪已匹配的GT库，避免重复匹配
@@ -346,7 +348,7 @@ class Evaluator:
 
     # 正规化名称
     def _normalize_lib_name(self, lib_name: str):
-        return lib_name.lower().strip()
+        return lib_name.lower().strip().replace('-','_').replace('.','_')
 
     def _cal_effectiveness(self, result_check_lst):
         # TP, FP, FN
