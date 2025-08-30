@@ -912,6 +912,25 @@ class BenchmarkUpdator:
                     if new_aliases:
                         preview[lib_name] = new_aliases
 
+                # 检查github链接的仓库名称是否在是名称，如果不是，要添加到别名
+                if reused_lib.repository and 'github' in reused_lib.repository:
+                    repo_link = reused_lib.repository
+                    if repo_link.endswith('/'):
+                        repo_link = repo_link[:-1]
+                    if repo_link.endswith('.git'):
+                        repo_link = repo_link[:-4]
+                    repo_name = repo_link.split('/')[-1]
+
+                    existing_names = [lib_name]
+                    if reused_lib.other_names:
+                        existing_names.extend(reused_lib.other_names)
+
+                    if not self._is_duplicate_alias(existing_names, repo_name):
+                        if lib_name in preview:
+                            if repo_name not in preview[lib_name]:
+                                preview[lib_name].append(repo_name)
+                        else:
+                            preview[lib_name] = [repo_name]
         return preview
 
 """
@@ -937,7 +956,7 @@ class BenchmarkUpdator:
 现在可以给我第一批案例了！
 """
 if __name__ == '__main__':
-    benchmark_json_path ="/Users/liuchengyue/Desktop/BinarySCA Platform/Code/sca_agents/bsca-expert-agent-api/evaluation/general_benchmarks/benchmark_meta/conan_library_benchmark.json"
+    benchmark_json_path ="/Users/liuchengyue/Desktop/BinarySCA Platform/Code/sca_agents/bsca-expert-agent-api/evaluation/general_benchmarks/benchmark_meta/conan_library_benchmark_20250806_1524.json"
     updator = BenchmarkUpdator(benchmark_json_path)
 
     # 预览将要进行的更新
