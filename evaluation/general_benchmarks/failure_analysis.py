@@ -25,7 +25,7 @@ def preview_failed_cases(simple_report):
         if check.binary_name in failed_case_name_set:
             continue
         failed_case_name_set.add(check.binary_name)
-        if not check.perfect and check.hs_fp and not check.hs_fn:
+        if check.hs_fp and check.hs_fn:
             failed_count += 1
             print(f"""
 --------------------------------------------------------------

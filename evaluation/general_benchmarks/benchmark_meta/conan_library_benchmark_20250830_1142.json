@@ -35667,7 +35667,7 @@
                     "repository": "https://openal.org",
                     "other_names": [
                         "OpenAL Utility Toolkit",
-                        "OpenAL Utility Toolkit (ALUT)"
+                        "OpenAL Utility Toolkit (ALUT)"，"alut"
                     ],
                     "version": "1.1.0",
                     "description": "freealut is a free implementation of OpenAL's ALUT standard.",
@@ -35716,7 +35716,7 @@
                     "repository": "https://openal.org",
                     "other_names": [
                         "OpenAL Utility Toolkit",
-                        "OpenAL Utility Toolkit (ALUT)"
+                        "OpenAL Utility Toolkit (ALUT)"，"alut"
                     ],
                     "version": "1.1.0",
                     "description": "freealut is a free implementation of OpenAL's ALUT standard.",
@@ -35765,7 +35765,7 @@
                     "repository": "https://openal.org",
                     "other_names": [
                         "OpenAL Utility Toolkit",
-                        "OpenAL Utility Toolkit (ALUT)"
+                        "OpenAL Utility Toolkit (ALUT)"，"alut"
                     ],
                     "version": "1.1.0",
                     "description": "freealut is a free implementation of OpenAL's ALUT standard.",
@@ -41663,19 +41663,21 @@
                 "compile_config": null
             },
             "reused_libraries": [
-                {
-                    "name": "libavrocpp",
-                    "vendor": null,
-                    "repository": "https://avro.apache.org/",
-                    "other_names": [
-                        "Apache Avro C++"
-                    ],
-                    "version": "1.11.3",
-                    "description": "Avro is a data serialization system.",
-                    "type": "serialization, deserialization, avro",
-                    "notes": null
-                }
-            ]
+    {
+        "name": "libavrocpp",
+        "vendor": null,
+        "repository": "https://avro.apache.org/",
+        "other_names": [
+            "avro",
+            "Apache Avro C++"
+        ],
+        "version": "1.11.3",
+        "description": "Avro is a data serialization system.",
+        "type": "serialization, deserialization, avro",
+        "notes": null
+    }
+]
+
         },
         {
             "test_binary": {
@@ -41709,19 +41711,21 @@
                 "compile_config": null
             },
             "reused_libraries": [
-                {
-                    "name": "libavrocpp",
-                    "vendor": null,
-                    "repository": "https://avro.apache.org/",
-                    "other_names": [
-                        "Apache Avro C++"
-                    ],
-                    "version": "1.11.3",
-                    "description": "Avro is a data serialization system.",
-                    "type": "serialization, deserialization, avro",
-                    "notes": null
-                }
-            ]
+    {
+        "name": "libavrocpp",
+        "vendor": null,
+        "repository": "https://avro.apache.org/",
+        "other_names": [
+            "avro",
+            "Apache Avro C++"
+        ],
+        "version": "1.11.3",
+        "description": "Avro is a data serialization system.",
+        "type": "serialization, deserialization, avro",
+        "notes": null
+    }
+]
+
         },
         {
             "test_binary": {
@@ -41733,19 +41737,21 @@
                 "compile_config": null
             },
             "reused_libraries": [
-                {
-                    "name": "libavrocpp",
-                    "vendor": null,
-                    "repository": "https://avro.apache.org/",
-                    "other_names": [
-                        "Apache Avro C++"
-                    ],
-                    "version": "1.11.3",
-                    "description": "Avro is a data serialization system.",
-                    "type": "serialization, deserialization, avro",
-                    "notes": null
-                }
-            ]
+    {
+        "name": "libavrocpp",
+        "vendor": null,
+        "repository": "https://avro.apache.org/",
+        "other_names": [
+            "avro",
+            "Apache Avro C++"
+        ],
+        "version": "1.11.3",
+        "description": "Avro is a data serialization system.",
+        "type": "serialization, deserialization, avro",
+        "notes": null
+    }
+]
+
         },
         {
             "test_binary": {
@@ -44445,7 +44451,7 @@
                     "vendor": null,
                     "repository": "https://github.com/TinkoffCreditSystems/uri-template",
                     "other_names": [
-                        "liburitemplate-cpp"
+                        "liburitemplate-cpp", "uri-template"
                     ],
                     "version": "1.2.1",
                     "description": "URI Templates expansion and reverse-matching for C++",
@@ -44469,7 +44475,7 @@
                     "vendor": null,
                     "repository": "https://github.com/TinkoffCreditSystems/uri-template",
                     "other_names": [
-                        "liburitemplate-cpp"
+                        "liburitemplate-cpp", "uri-template"
                     ],
                     "version": "1.2.1",
                     "description": "URI Templates expansion and reverse-matching for C++",
@@ -44493,7 +44499,7 @@
                     "vendor": null,
                     "repository": "https://github.com/TinkoffCreditSystems/uri-template",
                     "other_names": [
-                        "liburitemplate-cpp"
+                        "liburitemplate-cpp", "uri-template"
                     ],
                     "version": "1.2.1",
                     "description": "URI Templates expansion and reverse-matching for C++",
@@ -46629,18 +46635,29 @@
                 "notes": "type: bin, tpl_name: ktx, conan version: Conan version 2.18.1, compile_config: x86_64-gcc-release-shared",
                 "compile_config": null
             },
-            "reused_libraries": [
-                {
-                    "name": "ktx",
-                    "vendor": null,
-                    "repository": "https://github.com/KhronosGroup/KTX-Software",
-                    "other_names": [],
-                    "version": "4.3.2",
-                    "description": "Khronos Texture library and tool.",
-                    "type": "texture, khronos",
-                    "notes": null
-                }
-            ]
+"reused_libraries": [
+    {
+        "name": "ktx",
+        "vendor": null,
+        "repository": "https://github.com/KhronosGroup/KTX-Software",
+        "other_names": [],
+        "version": "4.3.2",
+        "description": "Khronos Texture library and tool.",
+        "type": "texture, khronos",
+        "notes": null
+    },
+    {
+        "name": "cxxopts",
+        "vendor": null,
+        "repository": "https://github.com/jarro2783/cxxopts",
+        "other_names": [],
+        "version": null,
+        "description": "Lightweight C++ header-only library for command line option parsing.",
+        "type": "cli, header-only",
+        "notes": null
+    }
+]
+
         },
         {
             "test_binary": {
@@ -46684,18 +46701,29 @@
                 "notes": "type: bin, tpl_name: ktx, conan version: Conan version 2.18.1, compile_config: x86_64-clang-release-shared",
                 "compile_config": null
             },
-            "reused_libraries": [
-                {
-                    "name": "ktx",
-                    "vendor": null,
-                    "repository": "https://github.com/KhronosGroup/KTX-Software",
-                    "other_names": [],
-                    "version": "4.3.2",
-                    "description": "Khronos Texture library and tool.",
-                    "type": "texture, khronos",
-                    "notes": null
-                }
-            ]
+"reused_libraries": [
+    {
+        "name": "ktx",
+        "vendor": null,
+        "repository": "https://github.com/KhronosGroup/KTX-Software",
+        "other_names": [],
+        "version": "4.3.2",
+        "description": "Khronos Texture library and tool.",
+        "type": "texture, khronos",
+        "notes": null
+    },
+    {
+        "name": "cxxopts",
+        "vendor": null,
+        "repository": "https://github.com/jarro2783/cxxopts",
+        "other_names": [],
+        "version": null,
+        "description": "Lightweight C++ header-only library for command line option parsing.",
+        "type": "cli, header-only",
+        "notes": null
+    }
+]
+
         },
         {
             "test_binary": {
@@ -46739,18 +46767,29 @@
                 "notes": "type: bin, tpl_name: ktx, conan version: Conan version 2.18.1, compile_config: arm_64-gcc-release-shared",
                 "compile_config": null
             },
-            "reused_libraries": [
-                {
-                    "name": "ktx",
-                    "vendor": null,
-                    "repository": "https://github.com/KhronosGroup/KTX-Software",
-                    "other_names": [],
-                    "version": "4.3.2",
-                    "description": "Khronos Texture library and tool.",
-                    "type": "texture, khronos",
-                    "notes": null
-                }
-            ]
+"reused_libraries": [
+    {
+        "name": "ktx",
+        "vendor": null,
+        "repository": "https://github.com/KhronosGroup/KTX-Software",
+        "other_names": [],
+        "version": "4.3.2",
+        "description": "Khronos Texture library and tool.",
+        "type": "texture, khronos",
+        "notes": null
+    },
+    {
+        "name": "cxxopts",
+        "vendor": null,
+        "repository": "https://github.com/jarro2783/cxxopts",
+        "other_names": [],
+        "version": null,
+        "description": "Lightweight C++ header-only library for command line option parsing.",
+        "type": "cli, header-only",
+        "notes": null
+    }
+]
+
         },
         {
             "test_binary": {
@@ -52442,18 +52481,59 @@
                 "notes": "type: lib, tpl_name: c-blosc2, conan version: Conan version 2.18.1, compile_config: arm_64-gcc-release-shared",
                 "compile_config": null
             },
-            "reused_libraries": [
-                {
-                    "name": "c-blosc2",
-                    "vendor": null,
-                    "repository": "https://github.com/Blosc/c-blosc2",
-                    "other_names": [],
-                    "version": "2.17.0",
-                    "description": "A fast, compressed, persistent binary data store library for C.",
-                    "type": "c-blosc, blosc, compression, cache, store",
-                    "notes": null
-                }
-            ]
+"reused_libraries": [
+    {
+        "name": "c-blosc2",
+        "vendor": null,
+        "repository": "https://github.com/Blosc/c-blosc2",
+        "other_names": [],
+        "version": "2.17.0",
+        "description": "A fast, compressed, persistent binary data store library for C.",
+        "type": "c-blosc, blosc, compression, cache, store",
+        "notes": null
+    },
+    {
+        "name": "blosc",
+        "vendor": null,
+        "repository": "https://github.com/Blosc/c-blosc",
+        "other_names": ["c-blosc1"],
+        "version": null,
+        "description": "A high performance compressor optimized for binary data.",
+        "type": "compression, blosc",
+        "notes": "Blosc2 retains support for Blosc1 codecs."
+    },
+    {
+        "name": "zstd",
+        "vendor": "Meta (Facebook)",
+        "repository": "https://github.com/facebook/zstd",
+        "other_names": ["zstandard"],
+        "version": null,
+        "description": "Fast real-time compression algorithm providing high compression ratios.",
+        "type": "compression, zstandard",
+        "notes": null
+    },
+    {
+        "name": "lz4",
+        "vendor": "Yann Collet",
+        "repository": "https://github.com/lz4/lz4",
+        "other_names": [],
+        "version": null,
+        "description": "Extremely fast compression algorithm.",
+        "type": "compression, lz4",
+        "notes": null
+    },
+    {
+        "name": "zfp",
+        "vendor": "LLNL",
+        "repository": "https://github.com/LLNL/zfp",
+        "other_names": [],
+        "version": null,
+        "description": "Compressed floating-point arrays for high throughput scientific computing.",
+        "type": "compression, scientific, lossy",
+        "notes": null
+    }
+]
+
         },
         {
             "test_binary": {
@@ -52464,18 +52544,59 @@
                 "notes": "type: lib, tpl_name: c-blosc2, conan version: Conan version 2.18.1, compile_config: x86_64-clang-release-shared",
                 "compile_config": null
             },
-            "reused_libraries": [
-                {
-                    "name": "c-blosc2",
-                    "vendor": null,
-                    "repository": "https://github.com/Blosc/c-blosc2",
-                    "other_names": [],
-                    "version": "2.17.0",
-                    "description": "A fast, compressed, persistent binary data store library for C.",
-                    "type": "c-blosc, blosc, compression, cache, store",
-                    "notes": null
-                }
-            ]
+"reused_libraries": [
+    {
+        "name": "c-blosc2",
+        "vendor": null,
+        "repository": "https://github.com/Blosc/c-blosc2",
+        "other_names": [],
+        "version": "2.17.0",
+        "description": "A fast, compressed, persistent binary data store library for C.",
+        "type": "c-blosc, blosc, compression, cache, store",
+        "notes": null
+    },
+    {
+        "name": "blosc",
+        "vendor": null,
+        "repository": "https://github.com/Blosc/c-blosc",
+        "other_names": ["c-blosc1"],
+        "version": null,
+        "description": "A high performance compressor optimized for binary data.",
+        "type": "compression, blosc",
+        "notes": "Blosc2 retains support for Blosc1 codecs."
+    },
+    {
+        "name": "zstd",
+        "vendor": "Meta (Facebook)",
+        "repository": "https://github.com/facebook/zstd",
+        "other_names": ["zstandard"],
+        "version": null,
+        "description": "Fast real-time compression algorithm providing high compression ratios.",
+        "type": "compression, zstandard",
+        "notes": null
+    },
+    {
+        "name": "lz4",
+        "vendor": "Yann Collet",
+        "repository": "https://github.com/lz4/lz4",
+        "other_names": [],
+        "version": null,
+        "description": "Extremely fast compression algorithm.",
+        "type": "compression, lz4",
+        "notes": null
+    },
+    {
+        "name": "zfp",
+        "vendor": "LLNL",
+        "repository": "https://github.com/LLNL/zfp",
+        "other_names": [],
+        "version": null,
+        "description": "Compressed floating-point arrays for high throughput scientific computing.",
+        "type": "compression, scientific, lossy",
+        "notes": null
+    }
+]
+
         },
         {
             "test_binary": {
@@ -52486,18 +52607,59 @@
                 "notes": "type: lib, tpl_name: c-blosc2, conan version: Conan version 2.18.1, compile_config: x86_64-gcc-release-shared",
                 "compile_config": null
             },
-            "reused_libraries": [
-                {
-                    "name": "c-blosc2",
-                    "vendor": null,
-                    "repository": "https://github.com/Blosc/c-blosc2",
-                    "other_names": [],
-                    "version": "2.17.0",
-                    "description": "A fast, compressed, persistent binary data store library for C.",
-                    "type": "c-blosc, blosc, compression, cache, store",
-                    "notes": null
-                }
-            ]
+"reused_libraries": [
+    {
+        "name": "c-blosc2",
+        "vendor": null,
+        "repository": "https://github.com/Blosc/c-blosc2",
+        "other_names": [],
+        "version": "2.17.0",
+        "description": "A fast, compressed, persistent binary data store library for C.",
+        "type": "c-blosc, blosc, compression, cache, store",
+        "notes": null
+    },
+    {
+        "name": "blosc",
+        "vendor": null,
+        "repository": "https://github.com/Blosc/c-blosc",
+        "other_names": ["c-blosc1"],
+        "version": null,
+        "description": "A high performance compressor optimized for binary data.",
+        "type": "compression, blosc",
+        "notes": "Blosc2 retains support for Blosc1 codecs."
+    },
+    {
+        "name": "zstd",
+        "vendor": "Meta (Facebook)",
+        "repository": "https://github.com/facebook/zstd",
+        "other_names": ["zstandard"],
+        "version": null,
+        "description": "Fast real-time compression algorithm providing high compression ratios.",
+        "type": "compression, zstandard",
+        "notes": null
+    },
+    {
+        "name": "lz4",
+        "vendor": "Yann Collet",
+        "repository": "https://github.com/lz4/lz4",
+        "other_names": [],
+        "version": null,
+        "description": "Extremely fast compression algorithm.",
+        "type": "compression, lz4",
+        "notes": null
+    },
+    {
+        "name": "zfp",
+        "vendor": "LLNL",
+        "repository": "https://github.com/LLNL/zfp",
+        "other_names": [],
+        "version": null,
+        "description": "Compressed floating-point arrays for high throughput scientific computing.",
+        "type": "compression, scientific, lossy",
+        "notes": null
+    }
+]
+
         },
         {
             "test_binary": {
@@ -70512,17 +70674,20 @@
                 "notes": "type: bin, tpl_name: tree-gen, conan version: Conan version 2.18.1, compile_config: arm_64-gcc-release-shared",
                 "compile_config": null
             },
-            "reused_libraries": [
-    {
-        "name": "fmt",
-        "vendor": null,
-        "repository": "https://github.com/fmtlib/fmt",
-        "other_names": [],
-        "version": "11.2.0",
-        "description": "A safe and fast alternative to printf and IOStreams.",
-        "type": "format, iostream, printf",
-        "notes": null
-    },
+            
+
+
+                "reused_libraries": [
+                {
+                    "name": "tree-gen",
+                    "vendor": null,
+                    "repository": "https://github.com/QuTech-Delft/tree-gen",
+                    "other_names": [],
+                    "version": "1.0.9",
+                    "description": "C++ and Python code generator for tree-like structures common in parser and compiler codebases.",
+                    "type": "code generation, tree, parser, compiler",
+                    "notes": null
+                },
     {
         "name": "nlohmann_json",
         "vendor": null,
@@ -70599,17 +70764,20 @@
                 "notes": "type: bin, tpl_name: tree-gen, conan version: Conan version 2.18.1, compile_config: x86_64-clang-release-shared",
                 "compile_config": null
             },
-            "reused_libraries": [
-    {
-        "name": "fmt",
-        "vendor": null,
-        "repository": "https://github.com/fmtlib/fmt",
-        "other_names": [],
-        "version": "11.2.0",
-        "description": "A safe and fast alternative to printf and IOStreams.",
-        "type": "format, iostream, printf",
-        "notes": null
-    },
+            
+
+
+                "reused_libraries": [
+                {
+                    "name": "tree-gen",
+                    "vendor": null,
+                    "repository": "https://github.com/QuTech-Delft/tree-gen",
+                    "other_names": [],
+                    "version": "1.0.9",
+                    "description": "C++ and Python code generator for tree-like structures common in parser and compiler codebases.",
+                    "type": "code generation, tree, parser, compiler",
+                    "notes": null
+                },
     {
         "name": "nlohmann_json",
         "vendor": null,
@@ -70686,17 +70854,20 @@
                 "notes": "type: bin, tpl_name: tree-gen, conan version: Conan version 2.18.1, compile_config: x86_64-gcc-release-shared",
                 "compile_config": null
             },
-            "reused_libraries": [
-    {
-        "name": "fmt",
-        "vendor": null,
-        "repository": "https://github.com/fmtlib/fmt",
-        "other_names": [],
-        "version": "11.2.0",
-        "description": "A safe and fast alternative to printf and IOStreams.",
-        "type": "format, iostream, printf",
-        "notes": null
-    },
+            
+
+
+                "reused_libraries": [
+                {
+                    "name": "tree-gen",
+                    "vendor": null,
+                    "repository": "https://github.com/QuTech-Delft/tree-gen",
+                    "other_names": [],
+                    "version": "1.0.9",
+                    "description": "C++ and Python code generator for tree-like structures common in parser and compiler codebases.",
+                    "type": "code generation, tree, parser, compiler",
+                    "notes": null
+                },
     {
         "name": "nlohmann_json",
         "vendor": null,
@@ -72852,19 +73023,30 @@
                 "compile_config": null
             },
             "reused_libraries": [
-                {
-                    "name": "p7zip",
-                    "vendor": null,
-                    "repository": "https://sourceforge.net/projects/p7zip/",
-                    "other_names": [
-                        "7-Zip"
-                    ],
-                    "version": "16.02",
-                    "description": "p7zip is a quick port of 7z.exe and 7za.exe (command line version of 7zip, see www.7-zip.org) for Unix",
-                    "type": "7zip, zip, compression, decompression",
-                    "notes": null
-                }
-            ]
+    {
+        "name": "p7zip",
+        "vendor": null,
+        "repository": "https://sourceforge.net/projects/p7zip/",
+        "other_names": [
+            "7-Zip"
+        ],
+        "version": "16.02",
+        "description": "p7zip is a quick port of 7z.exe and 7za.exe (command line version of 7zip, see www.7-zip.org) for Unix",
+        "type": "7zip, zip, compression, decompression",
+        "notes": null
+    },
+    {
+        "name": "7zip",
+        "vendor": "Igor Pavlov",
+        "repository": "https://www.7-zip.org/",
+        "other_names": ["7z"],
+        "version": null,
+        "description": "7-Zip is a high compression ratio file archiver written by Igor Pavlov.",
+        "type": "7zip, zip, compression, decompression",
+        "notes": "Core compression engine reused by p7zip."
+    }
+]
+
         },
         {
             "test_binary": {
@@ -72876,19 +73058,30 @@
                 "compile_config": null
             },
             "reused_libraries": [
-                {
-                    "name": "p7zip",
-                    "vendor": null,
-                    "repository": "https://sourceforge.net/projects/p7zip/",
-                    "other_names": [
-                        "7-Zip"
-                    ],
-                    "version": "16.02",
-                    "description": "p7zip is a quick port of 7z.exe and 7za.exe (command line version of 7zip, see www.7-zip.org) for Unix",
-                    "type": "7zip, zip, compression, decompression",
-                    "notes": null
-                }
-            ]
+    {
+        "name": "p7zip",
+        "vendor": null,
+        "repository": "https://sourceforge.net/projects/p7zip/",
+        "other_names": [
+            "7-Zip"
+        ],
+        "version": "16.02",
+        "description": "p7zip is a quick port of 7z.exe and 7za.exe (command line version of 7zip, see www.7-zip.org) for Unix",
+        "type": "7zip, zip, compression, decompression",
+        "notes": null
+    },
+    {
+        "name": "7zip",
+        "vendor": "Igor Pavlov",
+        "repository": "https://www.7-zip.org/",
+        "other_names": ["7z"],
+        "version": null,
+        "description": "7-Zip is a high compression ratio file archiver written by Igor Pavlov.",
+        "type": "7zip, zip, compression, decompression",
+        "notes": "Core compression engine reused by p7zip."
+    }
+]
+
         },
         {
             "test_binary": {
