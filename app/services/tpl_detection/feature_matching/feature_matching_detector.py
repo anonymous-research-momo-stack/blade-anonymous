@@ -230,8 +230,14 @@ class FeatureMatchingDetector:
         return filtered_candidates
 
     def filter_strings_to_match(self, target_binary: TargetBinary) -> List[str]:
+        filter_out_set = {".note.gnu.build-id", ".gnu.version_r", ".eh_frame_hdr", ".data.rel.ro", ".gnu.version",
+                          ".fini_array", ".init_array", ".eh_frame", ".rela.plt", ".shstrtab", ".gnu.hash", ".rela.dyn",
+                          ".dynamic", ".comment", ".got.plt", ".plt.got", ".rodata", ".dynsym", ".dynstr"}
         strings_to_match = set()
         for s in target_binary.strings:
+            if s in filter_out_set:
+                continue
+
             if not (self.feature_min_length < len(s) < self.feature_max_length):
                 continue
 

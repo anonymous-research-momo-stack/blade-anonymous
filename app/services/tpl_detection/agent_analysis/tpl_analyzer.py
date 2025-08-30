@@ -84,6 +84,7 @@ class TPLAnalyzer:
             "✗ NOT: Libraries that the binary may use but are not compiled in",
             "  (e.g., optional runtime plugins, scripting modules)",
             "✗ NOT: Libraries misidentified only due to similar function names or symbols",
+            "✗ NOT: Protocols/IDLs or schema-only proto packages (e.g., Envoy, xDS, UDPA, Googleapis, protoc-gen-validate, OpenCensus proto, asn1c); these are interface definitions or generated stubs, not compiled third-party libraries",
             "✗ NOT: Static resources, tools, or frameworks bundled as data rather than compiled code",
             "  (e.g., JavaScript libraries such as jQuery, lodash, handlebars inside kcov’s HTML report)",
             " In short, your task is to analyze which C/C++ libraries have their implementation code truly compiled into this binary.",

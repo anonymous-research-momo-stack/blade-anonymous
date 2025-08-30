@@ -46,12 +46,12 @@ def reanalyze_all_result():
     # print(f"Blackduck")
     # result_path = "/Users/liuchengyue/Desktop/BinarySCA Platform/Code/sca_agents/bsca-expert-agent-api/tmp/evaluation_reports/Conan/blackduck/result_converted.json"
     # report = evaluator.reanalyze_report(result_path, ignore_failed_cases=False)
-    #
-    #
+
+
     # print(f"Scantist")
     # result_path = "/Users/liuchengyue/Desktop/BinarySCA Platform/Code/sca_agents/bsca-expert-agent-api/tmp/evaluation_reports/Conan/scantist/291-75403-xd70-无agent-扫描报告-2025-08-06T09_36_22+08_00/result_converted.json"
     # report = evaluator.reanalyze_report(result_path, ignore_failed_cases=False)
-    #
+    # #
     # print(f"BAT")
     # result_path = "/Users/liuchengyue/Desktop/BinarySCA Platform/Code/sca_agents/bsca-expert-agent-api/tmp/evaluation_reports/Conan/bat/raw_result_converted.json"
     # report = evaluator.reanalyze_report(result_path, ignore_failed_cases=False)
@@ -128,12 +128,11 @@ def run_feature_matching_only():
 def run_failed_case_only():
 
     # Conan Binaries
-    Conan_benchmark_meta = "/Users/liuchengyue/Desktop/BinarySCA Platform/Code/sca_agents/bsca-expert-agent-api/evaluation/general_benchmarks/benchmark_meta/conan_library_benchmark.json"
-    Conan_benchmark_meta_updated = "/Users/liuchengyue/Desktop/BinarySCA Platform/Code/sca_agents/bsca-expert-agent-api/evaluation/general_benchmarks/benchmark_meta/conan_library_benchmark_20250806_1524.json"
+    Conan_benchmark_meta_updated = "/Users/liuchengyue/Desktop/BinarySCA Platform/Code/sca_agents/bsca-expert-agent-api/evaluation/general_benchmarks/benchmark_meta/conan_library_benchmark_20250830_1142.json"
     Conan_test_case_dir = "/Users/liuchengyue/Desktop/BinarySCA Platform/Data/Test_Cases/TPL_Test_Cases/conan_test_cases"
 
-    Conan_evluation_report_path = "/tmp/evaluation_reports/Conan/ours/gpt_5_mini_backup/evaluation_report.json"
-    Conan_only_failed_cases_evluation_report_path = "/tmp/evaluation_reports/Conan/ours/gpt_5_mini_backup/only_failed_cases_evaluation_report.json"
+    Conan_evluation_report_path = "/Users/liuchengyue/Desktop/BinarySCA Platform/Code/sca_agents/bsca-expert-agent-api/tmp/evaluation_reports/Conan/ours/gpt_5_mini/evaluation_report_reanalyzed.json"
+    Conan_only_failed_cases_evluation_report_path = "/Users/liuchengyue/Desktop/BinarySCA Platform/Code/sca_agents/bsca-expert-agent-api/tmp/evaluation_reports/Conan/ours/gpt_5_mini/only_failed_cases_evaluation_report.json"
 
 
     benchmark_meta = Conan_benchmark_meta_updated
@@ -146,9 +145,9 @@ def run_failed_case_only():
         test_case_dir=benchmark_tc_dir,
         feature_matching_top_n=5,
         # use_agent=False,
-        concurrency=30,
+        concurrency=20,
         slice_start=0,
-        slice_end=120,
+        # slice_end=0,
         input_token_price_per_1M=0.4,
         output_token_price_per_1M=1.6,
     )

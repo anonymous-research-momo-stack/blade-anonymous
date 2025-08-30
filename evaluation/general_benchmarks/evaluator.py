@@ -35,10 +35,22 @@ class Evaluator:
         )
     def run_failed_cases(self, reference_report_path: str, *args, **kwargs):
         report = EvaluationReport.load_from_file(reference_report_path)
-        failed_hashes = [check.binary_hash for check in report.evaluation_results_check if not check.perfect]
-
         self.benchmark = copy.deepcopy(self.benchmark)
-        self.benchmark.test_cases = [tc for tc in self.benchmark.test_cases if tc.test_binary.sha256 in failed_hashes]
+
+
+        # 筛选漏报的测试用例
+        failed_hashes = [check.binary_hash for check in report.evaluation_results_check if check.hs_fn]
+
+        # 进一步筛选，同名的只分析一个，方面快速分析
+        filtered_test_cases = []
+        filtered_test_case_names = set()
+        for tc in self.benchmark.test_cases:
+            if tc.test_binary.sha256 in failed_hashes and tc.test_binary.original_name not in filtered_test_case_names:
+                filtered_test_cases.append(tc)
+                filtered_test_case_names.add(tc.test_binary.original_name)
+
+        # 替换，分析
+        self.benchmark.test_cases = filtered_test_cases
         self.benchmark.summary = BenchmarkSummary(
             test_case_num = len(self.benchmark.test_cases),
             covered_library_num = len(set(lib.name for tc in self.benchmark.test_cases for lib in tc.reused_libraries)),
@@ -93,8 +105,6 @@ class Evaluator:
                                 self.benchmark.test_cases}
         results_check_lst = []
         for result in evaluation_results:
-            if result.binary_name =="libasound.so.2.0.0":
-                print()
             ground_truth_reused_libraries = ground_truth_dict.get(result.binary_sha256, [])
 
             # 使用集合跟踪已匹配的GT库，避免重复匹配

@@ -25,10 +25,11 @@ def preview_failed_cases(simple_report):
         if check.binary_name in failed_case_name_set:
             continue
         failed_case_name_set.add(check.binary_name)
-        if not check.perfect:
+        if not check.perfect and check.hs_fp and not check.hs_fn:
             failed_count += 1
             print(f"""
 --------------------------------------------------------------
+index: {failed_count}
 binary hash: {check.binary_hash}
     binary path:  {check.binary_path}
     binary name:  {check.binary_name}
@@ -64,7 +65,7 @@ def save_failed_cases_to_csv(simple_report, report_path):
     failed_cases = []
     failed_case_name_set = set()
     for check in simple_report.evaluation_results_check:
-        if not check.perfect:
+        if not check.perfect and check.hs_fp and check.hs_fn:
             if check.binary_name in failed_case_name_set:
                 continue
             failed_case_name_set.add(check.binary_name)

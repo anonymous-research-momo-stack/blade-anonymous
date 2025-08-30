@@ -174,7 +174,7 @@ class DetectionWorkflow:
             if isinstance(e, SoftTimeLimitExceeded):
                 logger.warning(f"检测工作流超时: {e}")
                 raise  # 重新抛出，让Celery任务处理
-            logger.error(f"Error during detection workflow: {e}")
+            logger.error(f"Error during detection workflow: {e}, file_path: {file_path}")
             # 总时间
             total_duration = time.perf_counter() - all_start_at
             self.analysis_data.durations["total"] = total_duration

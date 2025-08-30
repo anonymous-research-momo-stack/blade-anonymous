@@ -77,6 +77,10 @@ def demo():
     clp = "/Users/liuchengyue/Desktop/BinarySCA Platform/Data/Test_Cases/TPL_Test_Cases/conan_test_cases/coin-cgl/0.60.7/coin-cgl_0.60.7_x86_64-clang-release-shared/full_deploy/host/coin-clp/1.17.7/Release/x86_64/bin/clp"
     libboost_system = "/Users/liuchengyue/Desktop/BinarySCA Platform/Data/Test_Cases/TPL_Test_Cases/conan_test_cases/arg_router/1.3.0/arg_router_1.3.0_x86_64-clang-release-shared/full_deploy/host/boost/1.81.0/Release/x86_64/lib/libboost_system.so.1.81.0"
     libuuid = "/Users/liuchengyue/Desktop/BinarySCA Platform/Data/Test_Cases/TPL_Test_Cases/conan_test_cases/bmx/cci.20240517/bmx_cci.20240517_x86_64-gcc-release-shared/full_deploy/host/libuuid/1.0.3/Release/x86_64/lib/libuuid.so.1.0.0"
+    libboost_system_182 = "/Users/liuchengyue/Desktop/BinarySCA Platform/Data/Test_Cases/TPL_Test_Cases/conan_test_cases/boost/1.88.0/boost_1.88.0_arm_64-gcc-release-shared/full_deploy/host/boost/1.88.0/Release/armv8/lib/libboost_system.so.1.88.0"
+    kcov = "/Users/liuchengyue/Desktop/BinarySCA Platform/Data/Test_Cases/TPL_Test_Cases/conan_test_cases/kcov/42/kcov_42_x86_64-gcc-release-shared/full_deploy/host/kcov/42/x86_64/bin/kcov"
+    libgrpc = "/Users/liuchengyue/Desktop/BinarySCA Platform/Data/Test_Cases/TPL_Test_Cases/conan_test_cases/etcd-cpp-apiv3/0.15.4/etcd-cpp-apiv3_0.15.4_x86_64-clang-release-shared/full_deploy/host/grpc/1.54.3/Release/x86_64/lib/libgrpc.so.31.0.0"
+    libtcl8 = "/Users/liuchengyue/Desktop/BinarySCA Platform/Data/Test_Cases/TPL_Test_Cases/conan_test_cases/tcl/8.6.13/tcl_8.6.13_x86_64-gcc-release-shared/full_deploy/host/tcl/8.6.13/Release/x86_64/lib/libtcl8.6.so"
 
     # 分析工作流
     workflow = DetectionWorkflow(
@@ -88,7 +92,7 @@ def demo():
 
 
     # 分析
-    result = workflow.run(libboost_system)
+    result = workflow.run(libtcl8)
 
     # 结合上下文分析
     # context = workflow.analyze_context(root_path)
