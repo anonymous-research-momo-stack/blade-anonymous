@@ -29,7 +29,7 @@ def _process_single_file(args):
                     f"File {file_path} analysis failed again: {result.error_message}, skipped."
                 )
             else:
-                logger.info(f"File {file_path} analysis succeeded on retry.")
+                logger.success(f"File {file_path} analysis succeeded on retry.")
         return idx, result
     except Exception as e:
         error_message = f"{e}"

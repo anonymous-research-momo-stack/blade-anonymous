@@ -274,8 +274,8 @@ class DetectionWorkflow:
         )
 
         # result
-        self.analysis_data.validation_step_1_results = process_data["individual_results"]
-        self.analysis_data.validation_step_2_results = process_data["redundancy_results"]
+        self.analysis_data.validation_step_1_results = process_data.get("individual_results", [])
+        self.analysis_data.validation_step_2_results = process_data.get("redundancy_results", [])
 
         # cost
         self.analysis_data.costs["library_validation_step_1"] = process_data["step_1_response"].metrics if process_data[
@@ -287,6 +287,7 @@ class DetectionWorkflow:
         # sub stage
         for sub_stage, duration in process_data["duration"].items():
             self.analysis_data.durations[sub_stage] = duration
+
         # total
         validation_duration = time.perf_counter() - validation_start_at
         self.analysis_data.durations["_library_validation"] = validation_duration

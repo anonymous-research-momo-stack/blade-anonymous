@@ -81,18 +81,21 @@ def demo():
     kcov = "/Users/liuchengyue/Desktop/BinarySCA Platform/Data/Test_Cases/TPL_Test_Cases/conan_test_cases/kcov/42/kcov_42_x86_64-gcc-release-shared/full_deploy/host/kcov/42/x86_64/bin/kcov"
     libgrpc = "/Users/liuchengyue/Desktop/BinarySCA Platform/Data/Test_Cases/TPL_Test_Cases/conan_test_cases/etcd-cpp-apiv3/0.15.4/etcd-cpp-apiv3_0.15.4_x86_64-clang-release-shared/full_deploy/host/grpc/1.54.3/Release/x86_64/lib/libgrpc.so.31.0.0"
     libtcl8 = "/Users/liuchengyue/Desktop/BinarySCA Platform/Data/Test_Cases/TPL_Test_Cases/conan_test_cases/tcl/8.6.13/tcl_8.6.13_x86_64-gcc-release-shared/full_deploy/host/tcl/8.6.13/Release/x86_64/lib/libtcl8.6.so"
+    libboost_system = "/Users/liuchengyue/Desktop/BinarySCA Platform/Data/Test_Cases/TPL_Test_Cases/conan_test_cases/canary/v1/canary_v1_arm_64-gcc-release-shared/full_deploy/host/boost/1.74.0/Release/armv8/lib/libboost_system.so.1.74.0"
+    libhuffman_so = "/Users/liuchengyue/Desktop/BinarySCA Platform/Data/Test_Cases/TPL_Test_Cases/conan_test_cases/huffman/1.2.7/huffman_1.2.7_x86_64-clang-release-shared/full_deploy/host/huffman/1.2.7/Release/x86_64/lib/libhuffman.so"
 
     # 分析工作流
     workflow = DetectionWorkflow(
         enable_bin_info_analysis_web_search=False,
         feature_matching_return_top_n=5,
         debug_mode=True,
-        use_agent=True
+        use_agent=True,
+        # enable_tpl_analysis_web_search=True
     )
 
 
     # 分析
-    result = workflow.run(libtcl8)
+    result = workflow.run(libhuffman_so)
 
     # 结合上下文分析
     # context = workflow.analyze_context(root_path)

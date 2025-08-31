@@ -183,7 +183,18 @@ class LibraryValidator:
         Expert two-step validation workflow
         """
         if not libraries:
-            return [], {}
+            process_data = {
+                "step_1_response": {},
+                "individual_results": [],
+                "step_2_response": {},
+                "redundancy_results": [],
+                "duration": {
+                    "__validation_enhance": 0.0,
+                    "__validation_step_1": 0.0,
+                    "__validation_step_2": 0.0
+                }
+            }
+            return [], process_data
 
 
         logger.debug(f"\n=== EXPERT VALIDATION WORKFLOW - {target_binary.binary_name} ===")

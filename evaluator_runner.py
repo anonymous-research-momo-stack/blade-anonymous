@@ -208,8 +208,8 @@ def main():
 
 if __name__ == '__main__':
     # main()
-    # run_failed_case_only()
-    reanalyze_all_result()
+    run_failed_case_only()
+    # reanalyze_all_result()
     # run_feature_matching_only()
 
 

@@ -39,7 +39,7 @@ class Evaluator:
 
 
         # 筛选漏报的测试用例
-        failed_hashes = [check.binary_hash for check in report.evaluation_results_check if check.hs_fn]
+        failed_hashes = [check.binary_hash for check in report.evaluation_results_check if not check.perfect]
 
         # 进一步筛选，同名的只分析一个，方面快速分析
         filtered_test_cases = []

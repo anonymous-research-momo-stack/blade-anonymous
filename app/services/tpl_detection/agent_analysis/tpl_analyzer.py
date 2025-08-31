@@ -231,6 +231,7 @@ class TPLAnalyzer:
 
         # Convert to Library objects
         libraries = []
+        # print(analysis_result.analysis_summary)
         for lib_result in analysis_result.libraries:
             library = Library(
                 name=lib_result.name,

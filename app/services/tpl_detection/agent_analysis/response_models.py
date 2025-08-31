@@ -107,6 +107,7 @@ class LibraryResult(BaseModel):
         """
         return cls(
             name=data.get("name", ""),
+            full_name=data.get("full_name", ""),
             description=data.get("description", ""),
             evidence_type=data.get("evidence_type", ""),
             evidences=data.get("evidences", []),
@@ -118,6 +119,7 @@ class TPLAnalysisResult(BaseModel):
     """
     Agent response model for complete TPL analysis
     """
+    analysis_summary:str = Field(description="Concise summary of the overall third-party library analysis results")
     libraries: List[LibraryResult] = Field(description="List of identified third-party libraries")
 
 # validator
