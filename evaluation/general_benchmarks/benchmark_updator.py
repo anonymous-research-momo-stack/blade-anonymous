@@ -839,11 +839,8 @@ class BenchmarkUpdator:
             self.benchmark.notes.append(note)
 
         # 去除重复的库
-        self.benchmark.test_cases = list({tc.test_binary.sha256: tc for tc in self.benchmark.test_cases}.values())
+        self.benchmark.test_cases = list({tc.test_binary.sha256: tc for tc in self.benchmark.test_cases if not tc.test_binary.original_name.startswith('libboost_system.so.')}.values())
 
-
-        # 进行统计
-        self.benchmark.stat()
 
         # 生成新文件名（带时间戳）
         new_file_path = self._generate_timestamped_filename()
@@ -884,6 +881,7 @@ class BenchmarkUpdator:
         preview = {}
 
         for test_case in self.benchmark.test_cases:
+
             for reused_lib in test_case.reused_libraries:
                 lib_name = reused_lib.name
                 normalized_lib_name = self._normalize_name(lib_name)
@@ -956,7 +954,7 @@ class BenchmarkUpdator:
 现在可以给我第一批案例了！
 """
 if __name__ == '__main__':
-    benchmark_json_path ="/Users/liuchengyue/Desktop/BinarySCA Platform/Code/sca_agents/bsca-expert-agent-api/evaluation/general_benchmarks/benchmark_meta/conan_library_benchmark_20250806_1524.json"
+    benchmark_json_path ="/Users/liuchengyue/Desktop/BinarySCA Platform/Code/sca_agents/bsca-expert-agent-api/evaluation/general_benchmarks/benchmark_meta/conan_library_benchmark_20250830_1142.json"
     updator = BenchmarkUpdator(benchmark_json_path)
 
     # 预览将要进行的更新
@@ -966,5 +964,9 @@ if __name__ == '__main__':
         print(f"{lib}: {', '.join(aliases)}")
 
     # 执行更新并保存到新文件
-    new_file_path = updator.update()
-    print(f"Updated benchmark saved to: {new_file_path}")
+    # new_file_path = updator.update()
+    # print(f"Updated benchmark saved to: {new_file_path}")
+
+    benchmark_path = "/Users/liuchengyue/Desktop/BinarySCA Platform/Code/sca_agents/bsca-expert-agent-api/evaluation/general_benchmarks/benchmark_meta/conan_library_benchmark_20250831_2032.json"
+    benchmark = Benchmark.load_from_json_file(benchmark_path)
+    benchmark.stat()

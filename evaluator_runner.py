@@ -11,7 +11,7 @@ env.read_env()
 
 def reanalyze_all_result():
     # Conan Binaries
-    Conan_benchmark_meta = "/Users/liuchengyue/Desktop/BinarySCA Platform/Code/sca_agents/bsca-expert-agent-api/evaluation/general_benchmarks/benchmark_meta/conan_library_benchmark_20250830_1142.json"
+    Conan_benchmark_meta = "/Users/liuchengyue/Desktop/BinarySCA Platform/Code/sca_agents/bsca-expert-agent-api/evaluation/general_benchmarks/benchmark_meta/conan_library_benchmark_20250831_2032.json"
     Conan_test_case_dir = "/Users/liuchengyue/Desktop/BinarySCA Platform/Data/Test_Cases/TPL_Test_Cases/conan_test_cases"
 
 
@@ -208,8 +208,8 @@ def main():
 
 if __name__ == '__main__':
     # main()
-    run_failed_case_only()
-    # reanalyze_all_result()
+    # run_failed_case_only()
+    reanalyze_all_result()
     # run_feature_matching_only()
 
 
