@@ -1,3 +1,5 @@
+import os.path
+
 from evaluation.general_benchmarks.evaluator import Evaluator
 from evaluation.general_benchmarks.feture_matching_analysis import plot_feature_matching_top_n_effectiveness_figure, \
     analyze_feature_matching_top_n_effectiveness, \
@@ -164,15 +166,55 @@ def run_failed_case_only():
                                         ignore_failed_cases=False)
 
 
+def stable_test():
+    # benchmark meta
+    evaluation_dir = env.str("EVALUATION_DIR_PATH")
+    evaluation_output_dir = env.str("EVALUATION_OUTPUT_DIR_PATH")
+    conan_test_case_dir = env.str("CONAN_BENCHMARK_TEST_CASE_DIR")
+
+    conan_benchmark_meta_file = f"{evaluation_dir}/general_benchmarks/benchmark_meta/conan_library_benchmark_20250831_2032.json"
+
+    evaluation_result_dir= f"{evaluation_output_dir}/Conan/ours/gpt_5_nano_5_times"
+
+    # evaluation config
+    config = EvaluationConfig(
+        benchmark_file=conan_benchmark_meta_file,
+        test_case_dir=conan_test_case_dir,
+        feature_matching_top_n=5,
+        # use_agent=False,
+        concurrency=30,
+        slice_start=0,
+        # slice_end=10,
+        input_token_price_per_1M=0,
+        output_token_price_per_1M=0,
+        # input_token_price_per_1M=0.4,
+        # output_token_price_per_1M=1.6,
+    )
+    for i in range(1, 6):
+        print(f"================= Run the {i} time =================")
+        evaluation_result_file = f"{evaluation_result_dir}/evaluation_report_{i}.json"
+
+        # 初始化评估器
+        evaluator = Evaluator(config)
+
+        # 评估
+        evaluator.run_benchmark(analyze_context=False)
+        evaluator.report.dump(evaluation_result_file)
+
+        # 重新分析结果
+        report = evaluator.reanalyze_report(evaluation_result_file,
+                                            ignore_failed_cases=False)
+
+
 def main():
     # benchmark meta
     evaluation_dir = env.str("EVALUATION_DIR_PATH")
     evaluation_output_dir = env.str("EVALUATION_OUTPUT_DIR_PATH")
     conan_test_case_dir = env.str("CONAN_BENCHMARK_TEST_CASE_DIR")
 
-    conan_benchmark_meta_file = f"{evaluation_dir}/general_benchmarks/benchmark_meta/conan_library_benchmark.json"
+    conan_benchmark_meta_file = f"{evaluation_dir}/general_benchmarks/benchmark_meta/conan_library_benchmark_20250831_2032.json"
 
-    evaluation_result_file = f"{evaluation_output_dir}/Conan/ours/gpt_5_mini/evaluation_report.json"
+    evaluation_result_file = f"{evaluation_output_dir}/Conan/ours/gpt_5_nano/evaluation_report.json"
 
     # evaluation config
     config = EvaluationConfig(
@@ -206,10 +248,12 @@ def main():
     #                         visualization_html
     #                          )
 
+
 if __name__ == '__main__':
     # main()
+    stable_test()
     # run_failed_case_only()
-    reanalyze_all_result()
+    # reanalyze_all_result()
     # run_feature_matching_only()
 
 
