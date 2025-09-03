@@ -216,7 +216,7 @@ Total & \\var{{{TOTAL_BINARY_FILES:,}}} & \\var{{{TOTAL_TPLS:,}}} & \\var{{{TOTA
 \\end{{tabularx}}
 \\vspace{{1mm}}
 \\scriptsize
-\\textbf{{Note:}} R = Recall (\\%), P = Precision (\\%), F1 = F1-Score (\\%); G4 = OpenAI GPT-4.1, G4M = OpenAI GPT-4.1-mini, S4 = Anthropic Sonnet-4.0, GOS = OpenAI GPT-OSS:20b, QW3 = Qwen3:14b.
+\\textbf{{Note:}} R = Recall (\\%), P = Precision (\\%), F1 = F1-Score (\\%); G5 = OpenAI GPT-5, G5m = OpenAI GPT-5-mini, G5n = OpenAI GPT-5-nano, S4 = Anthropic Sonnet-4.0, QW3 = Qwen3:14b.
 \\end{{table}}
 """
 
@@ -288,9 +288,9 @@ def print_RQ1_data():
             "our-Anthropic-Sonnet-4.0": {
                 "path": "",
                 "display_name": "\\textbf{Blade-S4}"},
-            "our-Ollama-gpt-oss-20b": {
-                "path": "",
-                "display_name": "Blade-GOS"},
+            # "our-Ollama-gpt-oss-20b": {
+            #     "path": "",
+            #     "display_name": "Blade-GOS"},
             "our-Ollama-qwen3-14b": {
                 "path": "/Users/liuchengyue/Desktop/BinarySCA Platform/Code/sca_agents/bsca-expert-agent-api/tmp/evaluation_reports/Conan/ours/qwen3/evaluation_report_reanalyzed_simple.json",
                 "display_name": "Blade-QW3"},

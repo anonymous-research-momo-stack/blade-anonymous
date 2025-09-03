@@ -25,7 +25,7 @@ def preview_failed_cases(simple_report):
         if check.binary_name in failed_case_name_set:
             continue
         failed_case_name_set.add(check.binary_name)
-        if not check.hs_fp and check.hs_fn and 50 < check.binary_size_kb < 100:
+        if check.hs_fn:
             failed_count += 1
             print(f"""
 --------------------------------------------------------------
@@ -96,7 +96,6 @@ def save_failed_cases_to_csv(simple_report, report_path):
 def main():
     """主函数"""
     report_path = "/Users/liuchengyue/Desktop/BinarySCA Platform/Code/sca_agents/bsca-expert-agent-api/tmp/evaluation_reports/Conan/ours/gpt_5_mini/evaluation_report_reanalyzed_simple.json"
-    report_path = "/Users/liuchengyue/Desktop/BinarySCA Platform/Code/sca_agents/bsca-expert-agent-api/tmp/evaluation_reports/Conan/binary_ai/evaluation_report_2025-07-30-12-54-29_converted_reanalyzed_simple.json"
 
     try:
         # 加载报告
@@ -119,6 +118,43 @@ def main():
     except Exception as e:
         print(f"Error occurred: {str(e)}")
 
+def analyze_model_difference():
+    mini_report_path = "/Users/liuchengyue/Desktop/BinarySCA Platform/Code/sca_agents/bsca-expert-agent-api/tmp/evaluation_reports/Conan/ours/gpt_5_mini/evaluation_report_reanalyzed_simple.json"
+    nano_report_path = "/Users/liuchengyue/Desktop/BinarySCA Platform/Code/sca_agents/bsca-expert-agent-api/tmp/evaluation_reports/Conan/ours/gpt_5_nano/evaluation_report_reanalyzed.json"
 
+    mini_report = load_report(mini_report_path)
+    nano_report = load_report(nano_report_path)
+
+    # 找出来nano漏报但是mini不漏报的例子
+    nano_fn_set = set()
+    for check in nano_report.evaluation_results_check:
+        if check.hs_fn:
+            nano_fn_set.add(check.binary_hash)
+
+    print(f"Nano FN count: {len(nano_fn_set)}")
+    improved_count = 0
+    for check in mini_report.evaluation_results_check:
+        if check.binary_hash in nano_fn_set and not check.hs_fn:
+            improved_count += 1
+            print(f"""--------------------------------------------------------------
+index: {improved_count}
+binary hash: {check.binary_hash}
+    binary path:  {check.binary_path}
+    binary name:  {check.binary_name}
+    file size:    {round(check.binary_size_kb, 2)} KB
+    ground truth: {check.ground_truth_lib_names}
+    result libs:  {check.detected_lib_names}
+    has_fp:      {check.hs_fp}
+    has_fn:      {check.hs_fn}
+    TP libs:      {check.tp_lib_names}
+    FP libs:      {check.fp_lib_names}
+    FN libs:      {check.fn_lib_names}
+--------------------------------------------------------------
+""")
+    print(f"Total improved cases (nano FN -> mini not FN): {improved_count}")
+
+
+    pass
 if __name__ == "__main__":
     main()
+    # analyze_model_difference()

@@ -6631,7 +6631,7 @@
                     "vendor": null,
                     "repository": "https://github.com/aclements/libelfin",
                     "other_names": [
-                        "libelf++"
+                        "libelf++","libelfinplusplus"
                     ],
                     "version": "0.3",
                     "description": "C++11 library for reading ELF binaries and DWARFv4 debug information",
@@ -6677,7 +6677,7 @@
                     "vendor": null,
                     "repository": "https://github.com/aclements/libelfin",
                     "other_names": [
-                        "libelf++"
+                        "libelf++","libelfinplusplus"
                     ],
                     "version": "0.3",
                     "description": "C++11 library for reading ELF binaries and DWARFv4 debug information",
@@ -6701,7 +6701,7 @@
                     "vendor": null,
                     "repository": "https://github.com/aclements/libelfin",
                     "other_names": [
-                        "libelf++"
+                        "libelf++","libelfinplusplus"
                     ],
                     "version": "0.3",
                     "description": "C++11 library for reading ELF binaries and DWARFv4 debug information",
@@ -7493,7 +7493,7 @@
                     "vendor": null,
                     "repository": "https://github.com/mm2/Little-CMS",
                     "other_names": [
-                        "lcms2"
+                        "lcms2", "LittleCMS"
                     ],
                     "version": "2.16",
                     "description": "A free, open source, CMM engine.",
@@ -7629,7 +7629,7 @@
                     "vendor": null,
                     "repository": "https://github.com/mm2/Little-CMS",
                     "other_names": [
-                        "lcms2"
+                        "lcms2", "LittleCMS"
                     ],
                     "version": "2.16",
                     "description": "A free, open source, CMM engine.",
@@ -8563,7 +8563,7 @@
                     "vendor": null,
                     "repository": "https://github.com/mm2/Little-CMS",
                     "other_names": [
-                        "lcms2"
+                        "lcms2", "LittleCMS"
                     ],
                     "version": "2.16",
                     "description": "A free, open source, CMM engine.",
@@ -15927,7 +15927,7 @@
                     "name": "ls-qpack",
                     "vendor": null,
                     "repository": "https://github.com/litespeedtech/ls-qpack/",
-                    "other_names": [],
+                    "other_names": ["lsqpack"],
                     "version": "2.5.4",
                     "description": "QPACK compression library for use with HTTP/3",
                     "type": "compression, quic, http3, qpack",
@@ -15971,7 +15971,7 @@
                     "name": "ls-qpack",
                     "vendor": null,
                     "repository": "https://github.com/litespeedtech/ls-qpack/",
-                    "other_names": [],
+                    "other_names": ["lsqpack"],
                     "version": "2.5.4",
                     "description": "QPACK compression library for use with HTTP/3",
                     "type": "compression, quic, http3, qpack",
@@ -16015,7 +16015,7 @@
                     "name": "ls-qpack",
                     "vendor": null,
                     "repository": "https://github.com/litespeedtech/ls-qpack/",
-                    "other_names": [],
+                    "other_names": ["lsqpack"],
                     "version": "2.5.4",
                     "description": "QPACK compression library for use with HTTP/3",
                     "type": "compression, quic, http3, qpack",
@@ -17637,7 +17637,7 @@
                     "vendor": null,
                     "repository": "https://github.com/eProsima/Fast-CDR",
                     "other_names": [
-                        "Fast CDR"
+                        "Fast CDR", "fastcdr"
                     ],
                     "version": "2.2.5",
                     "description": "eProsima FastCDR library for serialization",
@@ -17661,7 +17661,7 @@
                     "vendor": null,
                     "repository": "https://github.com/eProsima/Fast-CDR",
                     "other_names": [
-                        "Fast CDR"
+                        "Fast CDR", "fastcdr"
                     ],
                     "version": "2.2.5",
                     "description": "eProsima FastCDR library for serialization",
@@ -17685,7 +17685,7 @@
                     "vendor": null,
                     "repository": "https://github.com/eProsima/Fast-CDR",
                     "other_names": [
-                        "Fast CDR"
+                        "Fast CDR", "fastcdr"
                     ],
                     "version": "2.2.5",
                     "description": "eProsima FastCDR library for serialization",
@@ -24847,7 +24847,7 @@
                     "vendor": null,
                     "repository": "https://github.com/NIFTI-Imaging/nifti_clib",
                     "other_names": [
-                        "niftilib"
+                        "niftilib","nifti"
                     ],
                     "version": "3.0.0",
                     "description": "C libraries for NIFTI support",
@@ -24871,7 +24871,7 @@
                     "vendor": null,
                     "repository": "https://github.com/NIFTI-Imaging/nifti_clib",
                     "other_names": [
-                        "niftilib"
+                        "niftilib","nifti"
                     ],
                     "version": "3.0.0",
                     "description": "C libraries for NIFTI support",
@@ -49914,7 +49914,7 @@
                     "vendor": null,
                     "repository": "https://github.com/DLR-SC/tixi",
                     "other_names": [
-                        "libtixi"
+                        "libtixi","tixi"
                     ],
                     "version": "3.3.0",
                     "description": "A simple xml interface based on libxml2 and libxslt",
@@ -49938,7 +49938,7 @@
                     "vendor": null,
                     "repository": "https://github.com/DLR-SC/tixi",
                     "other_names": [
-                        "libtixi"
+                        "libtixi","tixi"
                     ],
                     "version": "3.3.0",
                     "description": "A simple xml interface based on libxml2 and libxslt",
@@ -49962,7 +49962,7 @@
                     "vendor": null,
                     "repository": "https://github.com/DLR-SC/tixi",
                     "other_names": [
-                        "libtixi"
+                        "libtixi","tixi"
                     ],
                     "version": "3.3.0",
                     "description": "A simple xml interface based on libxml2 and libxslt",
@@ -78047,7 +78047,7 @@
                     "vendor": null,
                     "repository": "https://github.com/eProsima/Fast-CDR",
                     "other_names": [
-                        "Fast CDR"
+                        "Fast CDR", "fastcdr"
                     ],
                     "version": "2.2.5",
                     "description": "eProsima FastCDR library for serialization",
@@ -78096,7 +78096,7 @@
                     "vendor": null,
                     "repository": "https://github.com/eProsima/Fast-CDR",
                     "other_names": [
-                        "Fast CDR"
+                        "Fast CDR", "fastcdr"
                     ],
                     "version": "2.2.5",
                     "description": "eProsima FastCDR library for serialization",
@@ -78145,7 +78145,7 @@
                     "vendor": null,
                     "repository": "https://github.com/eProsima/Fast-CDR",
                     "other_names": [
-                        "Fast CDR"
+                        "Fast CDR", "fastcdr"
                     ],
                     "version": "2.2.5",
                     "description": "eProsima FastCDR library for serialization",

@@ -83,19 +83,21 @@ def demo():
     libtcl8 = "/Users/liuchengyue/Desktop/BinarySCA Platform/Data/Test_Cases/TPL_Test_Cases/conan_test_cases/tcl/8.6.13/tcl_8.6.13_x86_64-gcc-release-shared/full_deploy/host/tcl/8.6.13/Release/x86_64/lib/libtcl8.6.so"
     libboost_system = "/Users/liuchengyue/Desktop/BinarySCA Platform/Data/Test_Cases/TPL_Test_Cases/conan_test_cases/svgpp/cci.20221030/svgpp_cci.20221030_arm_64-gcc-release-shared/full_deploy/host/boost/1.82.0/Release/armv8/lib/libboost_system.so.1.82.0"
     libhuffman_so = "/Users/liuchengyue/Desktop/BinarySCA Platform/Data/Test_Cases/TPL_Test_Cases/conan_test_cases/huffman/1.2.7/huffman_1.2.7_x86_64-clang-release-shared/full_deploy/host/huffman/1.2.7/Release/x86_64/lib/libhuffman.so"
+    secverify = "/Users/liuchengyue/Desktop/BinarySCA Platform/Data/Test_Cases/TPL_Test_Cases/BYD/update/mdm9607-boot.img.xx_/ramdisk.xx_/usr/bin/secverify"
+
 
     # 分析工作流
     workflow = DetectionWorkflow(
         enable_bin_info_analysis_web_search=False,
         feature_matching_return_top_n=5,
-        debug_mode=True,
+        debug_mode=False,
         use_agent=True,
         # enable_tpl_analysis_web_search=True
     )
 
 
     # 分析
-    result = workflow.run(libboost_system)
+    result = workflow.run(secverify)
 
     # 结合上下文分析
     # context = workflow.analyze_context(root_path)

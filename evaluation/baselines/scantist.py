@@ -38,6 +38,8 @@ def convert_csv_result():
     with open(raw_csv_report_path, "r", encoding='utf-8') as f:
         csv_reader = csv.DictReader(f)
 
+        result_dict = {}
+        all_paths = set()
         for row in csv_reader:
             # 获取组件信息
             component_name = row.get('组件名', '')
@@ -45,12 +47,12 @@ def convert_csv_result():
             file_paths = row.get('文件路径', '')
 
             # 解析文件路径（多个路径用逗号分隔）
-            libraries = []
             if file_paths:
                 # 分割路径并清理空白字符
                 paths = [path.strip() for path in file_paths.split(',') if path.strip()]
 
                 # 为每个路径创建一个AnalysisResult
+                all_paths.update(paths)
                 for file_path in paths:
                     # 从路径中提取二进制文件名
                     binary_name = Path(file_path).name if file_path else ''
@@ -62,24 +64,37 @@ def convert_csv_result():
                         name=component_name,
                         version=version
                     )
-                    libraries.append(library)
+                    if relative_path not in result_dict:
+                        result_dict[relative_path] = {
+                            "binary_name": binary_name,
+                            "binary_path": file_path,
+                            "relative_path": relative_path,
+                            "sha256": sha256,
+                            "libraries": []
+                        }
+                    else:
+                        # 如果已经存在该文件路径，避免重复添加相同的库
+                        if any(lib.name == component_name and lib.version == version for lib in result_dict[relative_path]["libraries"]):
+                            continue
+                        else:
+                            result_dict[relative_path]["libraries"].append(library)
 
-            # 创建AnalysisResult对象
+        print(len(all_paths))
+        for file_path, info in result_dict.items():
             analysis_result = AnalysisResult(
-                binary_name=binary_name,
-                binary_sha256=sha256,  # CSV中没有，填空字符串
-                binary_path=file_path,
-                detected_libraries=libraries,
+                binary_name=info["binary_name"],
+                binary_sha256=info["sha256"],
+                binary_path=info["binary_path"],
+                detected_libraries=info["libraries"],
                 analysis_data=AnalysisData(
                     target_binary=TargetBinary(
-                        binary_name=binary_name,
-                        relative_path=relative_path,
-                        hash_sha256=sha256,  # CSV中没有，填空字符串
+                        binary_name=info["binary_name"],
+                        relative_path=info["relative_path"],
+                        hash_sha256=info["sha256"],
                         file_size_kb=0,  # CSV中没有，填0
                     )
                 ),
             )
-
             converted_results.append(analysis_result)
 
     print(f"总共转换了 {len(converted_results)} 个分析结果")
