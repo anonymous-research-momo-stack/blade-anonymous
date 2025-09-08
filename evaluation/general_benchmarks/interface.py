@@ -417,6 +417,7 @@ class AblationData(Serializable):
     wo_agent_analysis_top_2:EffectivenessData = None # Effectiveness data without agent analysis, only keep the top 2 results
     wo_agent_analysis_top_3:EffectivenessData = None # Effectiveness data without agent analysis, only keep the top 3 results
     wo_agent_analysis_top_4:EffectivenessData = None # Effectiveness data without agent analysis, only keep the top 3 results
+    only_agent_analysis_wt_validation:EffectivenessData = None
     wo_agent_tpl_analysis: EffectivenessData = None  # Effectiveness data without agent analysis
     wo_validation_step_1: EffectivenessData = None  # Effectiveness data without validation step 1
     wo_validation_step_2: EffectivenessData = None  # Effectiveness data without validation step 2

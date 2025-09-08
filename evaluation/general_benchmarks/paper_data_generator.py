@@ -817,7 +817,7 @@ def print_RQ3_data():
 
 def main():
     print_RQ1_data()
-    # print_RQ2_data()
+    print_RQ2_data()
     # print_RQ3_data()
 
 

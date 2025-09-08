@@ -514,12 +514,22 @@ class Evaluator:
         results_check_lst = self.check_result(evaluation_results_wo_validation_step_1_and_2)
         effectiveness_wo_validation_step_1_and_2 = self._cal_effectiveness(results_check_lst)
 
+        # 单纯语义推理的结果
+        evaluation_results_wo_agent_analysis = copy.deepcopy(evaluation_results)
+        for evaluation_result in evaluation_results_wo_agent_analysis:
+            # 只保留检测到的库
+            evaluation_result.detected_libraries = [tpl for tpl in evaluation_result.analysis_data.tpl_analysis_results]
+
+        results_check_lst = self.check_result(evaluation_results_wo_agent_analysis)
+        only_agent_analysis_wt_validation = self._cal_effectiveness(results_check_lst)
+
         return AblationData(
             wo_agent_analysis=effectiveness_wo_agent_analysis,
             wo_agent_analysis_top_1=effectiveness_wo_agent_analysis_top_1,
             wo_agent_analysis_top_2=effectiveness_wo_agent_analysis_top_2,
             wo_agent_analysis_top_3=effectiveness_wo_agent_analysis_top_3,
             wo_agent_analysis_top_4=effectiveness_wo_agent_analysis_top_4,
+            only_agent_analysis_wt_validation=only_agent_analysis_wt_validation,
             wo_agent_tpl_analysis=effectiveness_wo_agent_tpl_analysis,
             wo_validation_step_1=effectiveness_wo_validation_step_1,
             wo_validation_step_2=effectiveness_wo_validation_step_2,
