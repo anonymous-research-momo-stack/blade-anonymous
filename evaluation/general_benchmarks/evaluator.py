@@ -269,12 +269,16 @@ class Evaluator:
         existing_sha256s = set()
 
         for result in evaluation_results:
+            if result.binary_sha256 =='d3626b4036f93dc0efb61dd0c4d9df87c78a076a599cd8fd83d8bdbd45d52820':
+                print()
             if result.binary_sha256 in benchmark_dict:
                 corrected_results.append(result)
                 existing_sha256s.add(result.binary_sha256)
 
         # 3. 补充：为benchmark中存在但evaluation_results中缺失的测试用例创建失败结果
         for sha256, test_case in benchmark_dict.items():
+            if sha256 =='d3626b4036f93dc0efb61dd0c4d9df87c78a076a599cd8fd83d8bdbd45d52820':
+                print()
             if sha256 not in existing_sha256s:
                 # 创建一个失败的AnalysisResult
                 failed_result = AnalysisResult(
@@ -301,6 +305,7 @@ class Evaluator:
                          ignore_failed_cases:bool=False):
         if not new_report_save_path:
             new_report_save_path = evaluation_report_save_path[:-5] + '_reanalyzed.json'
+
         # load
         report = EvaluationReport.load_from_file(evaluation_report_save_path)
 
@@ -503,6 +508,9 @@ class Evaluator:
         results_check_lst = self.check_result(evaluation_results_wo_validation_step_2)
 
         effectiveness_wo_validation_step_2 = self._cal_effectiveness(results_check_lst)
+
+        # 消融特征匹配
+
 
 
         # 消融Agent 全部验证步骤

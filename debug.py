@@ -98,7 +98,7 @@ def demo():
 
 
     # 分析
-    result = workflow.run(openssl)
+    result = workflow.run(libuuid)
 
     # 结合上下文分析
     # context = workflow.analyze_context(root_path)

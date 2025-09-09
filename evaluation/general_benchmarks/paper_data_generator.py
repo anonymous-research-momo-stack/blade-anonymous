@@ -485,14 +485,15 @@ def generate_ablation_table(baseline_name,
 
     # 映射消融实验键名到表格显示名称
     row_mapping = {
-        "wo_agent_analysis": "w/o r/v \\& n = 5",
-        "wo_agent_analysis_top_1": "w/o r/v \\& n = 1",
-        "wo_agent_analysis_top_2": "w/o r/v \\& n = 2",
-        "wo_agent_analysis_top_3": "w/o r/v \\& n = 3",
         "wo_agent_tpl_analysis": "w/o r",
-        "wo_validation_step_1": "w/o v step 1",
-        "wo_validation_step_2": "w/o v step 2",
-        "wo_validation_step_1_and_2": "w/o v step 1\\&2"
+        "wo_validation_step_1": "w/o v",
+        "wo_validation_step_2": "w/o f",
+        "wo_validation_step_1_and_2": "w/o v\\&f",
+        "only_agent_analysis_wt_validation": 'only r',
+        "wo_agent_analysis_top_1": "only m \\& n = 1",
+        "wo_agent_analysis_top_2": "only m \\& n = 2",
+        "wo_agent_analysis_top_3": "only m \\& n = 3",
+        "wo_agent_analysis": "w/o r/v \\& n = 5",
     }
 
     # 定义分组，用于添加 \midrule
@@ -551,7 +552,8 @@ def generate_ablation_table(baseline_name,
             return f"\\textcolor{{red}}{{{diff_str}}}"
 
     # 开始构建LaTeX表格 - 关键修改：移除group-separator参数
-    latex_code = f"""\\begin{{table*}}[htbp]
+    latex_code = f"""
+   \\begin{{table*}}[htbp]
    \\centering
    \\captionsetup{{skip=0pt, belowskip=5pt}}
    \\caption{{{table_title}}}
@@ -607,7 +609,8 @@ def generate_ablation_table(baseline_name,
    \\end{tabular*}
    \\vspace{1mm}
    \\footnotesize
-   r = Reasoning Agent, v = Validation Agent, n = feature matching method set to take top n results, step 1 = rationality validation, step 2 = redundancy elimination and conflict resolution. Changes relative to full model are shown in parentheses: \\textcolor{OliveGreen}{OliveGreen} indicates better performance, \\textcolor{red}{red} indicates worse performance.
+   r = Semantic Reasoning, v = Semantic Validation, f: Fusion Module, m: basic string matching tool. 
+   Changes relative to baseline are shown in parentheses: \\textcolor{OliveGreen}{OliveGreen} indicates better performance, \\textcolor{red}{red} indicates worse performance.
 \\end{table*}"""
 
     return latex_code
@@ -615,8 +618,8 @@ def generate_ablation_table(baseline_name,
 
 
 def print_RQ2_data():
-    baseline_name = "Blade-G4.1m"
-    result_path = "/Users/liuchengyue/Desktop/BinarySCA Platform/Code/sca_agents/bsca-expert-agent-api/tmp/evaluation_reports/Conan/ours/gpt_4_1_mini/ours_105_0806/evaluation_report_reanalyzed_simple.json"
+    baseline_name = "Blade-G5m"
+    result_path = "/Users/liuchengyue/Desktop/BinarySCA Platform/Code/sca_agents/bsca-expert-agent-api/tmp/evaluation_reports/Conan/ours/gpt_5_mini/evaluation_report_reanalyzed_simple.json"
     with open(result_path, 'r') as f:
         data = json.load(f)
     baseline_data = data['research_question_data']['effectiveness']
@@ -816,9 +819,9 @@ def print_RQ3_data():
 
 
 def main():
-    print_RQ1_data()
-    print_RQ2_data()
-    # print_RQ3_data()
+    # print_RQ1_data()
+    # print_RQ2_data()
+    print_RQ3_data()
 
 
 

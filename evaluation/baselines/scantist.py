@@ -72,12 +72,12 @@ def convert_csv_result():
                             "sha256": sha256,
                             "libraries": []
                         }
+
+                    # 如果已经存在该文件路径，避免重复添加相同的库
+                    if any(lib.name == component_name and lib.version == version for lib in result_dict[relative_path]["libraries"]):
+                        continue
                     else:
-                        # 如果已经存在该文件路径，避免重复添加相同的库
-                        if any(lib.name == component_name and lib.version == version for lib in result_dict[relative_path]["libraries"]):
-                            continue
-                        else:
-                            result_dict[relative_path]["libraries"].append(library)
+                        result_dict[relative_path]["libraries"].append(library)
 
         print(len(all_paths))
         for file_path, info in result_dict.items():
