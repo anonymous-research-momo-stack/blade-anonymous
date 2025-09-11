@@ -85,6 +85,8 @@ def demo():
     libhuffman_so = "/Users/liuchengyue/Desktop/BinarySCA Platform/Data/Test_Cases/TPL_Test_Cases/conan_test_cases/huffman/1.2.7/huffman_1.2.7_x86_64-clang-release-shared/full_deploy/host/huffman/1.2.7/Release/x86_64/lib/libhuffman.so"
     secverify = "/Users/liuchengyue/Desktop/BinarySCA Platform/Data/Test_Cases/TPL_Test_Cases/BYD/update/mdm9607-boot.img.xx_/ramdisk.xx_/usr/bin/secverify"
     openssl = "/Users/liuchengyue/Desktop/BinarySCA Platform/Data/Test_Cases/TPL_Test_Cases/conan_test_cases/azure-sdk-for-cpp/1.11.3/azure-sdk-for-cpp_1.11.3_x86_64-clang-release-shared/full_deploy/host/openssl/3.1.1/Release/x86_64/bin/openssl"
+    libschrift = "/Users/liuchengyue/Desktop/BinarySCA Platform/Data/Test_Cases/TPL_Test_Cases/conan_test_cases/libschrift/0.10.2/libschrift_0.10.2_x86_64-clang-release-shared/full_deploy/host/libschrift/0.10.2/Release/x86_64/lib/libschrift.so"
+    libssl = "/Users/liuchengyue/Desktop/BinarySCA Platform/Data/Test_Cases/TPL_Test_Cases/conan_test_cases/libressl/3.9.1/libressl_3.9.1_x86_64-clang-release-shared/full_deploy/host/libressl/3.9.1/Release/x86_64/lib/libssl.so.56.0.0"
     # "nsimd/3.0.1/nsimd_3.0.1_arm_64-gcc-release-shared/full_deploy/host/nsimd/3.0.1/Release/armv8/lib/libnsimd_cpu.so"
 
     # 分析工作流

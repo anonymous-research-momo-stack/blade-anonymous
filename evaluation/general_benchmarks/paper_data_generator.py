@@ -484,16 +484,26 @@ def generate_ablation_table(baseline_name,
     """
 
     # 映射消融实验键名到表格显示名称
+    # w/o i_e 没有内部证据
+    # w/o e_e 没有外部证据
+    # w/o cot 没有整个推理思维链
+    # w/o r   完全没有推理，只用特征匹配
     row_mapping = {
-        "wo_agent_tpl_analysis": "w/o r",
-        "wo_validation_step_1": "w/o v",
-        "wo_validation_step_2": "w/o f",
-        "wo_validation_step_1_and_2": "w/o v\\&f",
-        "only_agent_analysis_wt_validation": 'only r',
-        "wo_agent_analysis_top_1": "only m \\& n = 1",
-        "wo_agent_analysis_top_2": "only m \\& n = 2",
-        "wo_agent_analysis_top_3": "only m \\& n = 3",
-        "wo_agent_analysis": "w/o r/v \\& n = 5",
+        "wo_agent_tpl_analysis": "w/o i_e",  # 只用工具给的数据 + 推理
+        "only_agent_analysis_wt_validation": 'w/o e_e',  # 只用自己的数据 + 推理
+        "no_cot": "w/o cot", # 工具给的数据 + 自己的数据 + 基本prompt
+
+        "wo_validation_step_1_and_2": "w/o cot_v",  # 消融验证COT
+        "wo_agent_analysis_top_1": "w/o cot \\& n = 1", # 仅特征匹配 取 1
+        "wo_agent_analysis": "w/o cot \\& n = 5", # 仅特征匹配 取 5
+        # "wo_validation_step_1": "w/o v",
+        # "wo_validation_step_2": "w/o f",
+
+        # "only_agent_analysis_wt_validation": 'only r',
+        # "wo_agent_analysis_top_1": "only m \\& n = 1",
+        # "wo_agent_analysis_top_2": "only m \\& n = 2",
+        # "wo_agent_analysis_top_3": "only m \\& n = 3",
+        # "wo_agent_analysis": "w/o r/v \\& n = 5",
     }
 
     # 定义分组，用于添加 \midrule
@@ -622,8 +632,13 @@ def print_RQ2_data():
     result_path = "/Users/liuchengyue/Desktop/BinarySCA Platform/Code/sca_agents/bsca-expert-agent-api/tmp/evaluation_reports/Conan/ours/gpt_5_mini/evaluation_report_reanalyzed_simple.json"
     with open(result_path, 'r') as f:
         data = json.load(f)
+    no_cot_result = "/Users/liuchengyue/Desktop/BinarySCA Platform/Code/sca_agents/bsca-expert-agent-api/tmp/evaluation_reports/Conan/ours/gpt_5_mini_no_COT/evaluation_report_simple.json"
+    with open(no_cot_result, 'r') as f:
+        no_cot_data = json.load(f)
+    no_cot_data = no_cot_data['research_question_data']['effectiveness']
     baseline_data = data['research_question_data']['effectiveness']
     ablation_data = data['research_question_data']['effectiveness_ablation_study']
+    ablation_data.update({"no_cot": no_cot_data})
     table_latex = generate_ablation_table(baseline_name,baseline_data, ablation_data)
     print(table_latex)
     pass
@@ -820,8 +835,8 @@ def print_RQ3_data():
 
 def main():
     # print_RQ1_data()
-    # print_RQ2_data()
-    print_RQ3_data()
+    print_RQ2_data()
+    # print_RQ3_data()
 
 
 

@@ -5,6 +5,7 @@ import traceback
 from typing import List
 from loguru import logger
 
+from .agent_analysis.no_cot_agent import NoCOTTPLAnalyzer
 from ...config import settings
 from ...interface import TargetBinary, Library, AnalysisData, AnalysisResult, AnalysisConfig
 from .agent_analysis.bin_info_finder import BinaryInformationFinder
@@ -108,6 +109,8 @@ class DetectionWorkflow:
                 enable_knowledge_base=enable_library_validation_knowledge_base,
                 enable_db_verification=enable_library_validation_db_verification
             )
+        else:
+            self.no_cot_tpl_analyzer = NoCOTTPLAnalyzer()
 
         self.analysis_data = AnalysisData(config=self.analysis_config)  # 分析数据对象，用于存储分析结果
 
@@ -149,7 +152,10 @@ class DetectionWorkflow:
                 self.analysis_data.all_candidate_libraries= validated_libraries
                 detected_libraries = [lib for lib in validated_libraries if lib.validation_passed]
             else:
-                detected_libraries = feature_matching_libraries
+                # detected_libraries = feature_matching_libraries
+                detected_libraries, response =self.no_cot_tpl_analyzer.analyze(
+                    target_binary=target_binary,
+                    candidate_libraries_from_feature_matching=feature_matching_libraries)
 
             # 4. Return Results
             result = AnalysisResult(

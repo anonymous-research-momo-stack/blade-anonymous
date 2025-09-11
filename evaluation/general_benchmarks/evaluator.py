@@ -531,17 +531,25 @@ class Evaluator:
         results_check_lst = self.check_result(evaluation_results_wo_agent_analysis)
         only_agent_analysis_wt_validation = self._cal_effectiveness(results_check_lst)
 
+        # 汇总
+        # 1. 消融语义信息：匹配信息 + COT
+        # 2. 消融匹配信息：语义信息 + COT
+        # 3. 消融COT: 语义信息 + 匹配信息 + 基本Prompt, 单独实验
+
+        # 4. 消融推理COT: 语义信息 + 匹配信息 + 验证COT
+        # 5. 消融验证COT: 语义信息 + 匹配信息 + 推理COT
+
         return AblationData(
             wo_agent_analysis=effectiveness_wo_agent_analysis,
             wo_agent_analysis_top_1=effectiveness_wo_agent_analysis_top_1,
             wo_agent_analysis_top_2=effectiveness_wo_agent_analysis_top_2,
             wo_agent_analysis_top_3=effectiveness_wo_agent_analysis_top_3,
-            wo_agent_analysis_top_4=effectiveness_wo_agent_analysis_top_4,
-            only_agent_analysis_wt_validation=only_agent_analysis_wt_validation,
-            wo_agent_tpl_analysis=effectiveness_wo_agent_tpl_analysis,
+            wo_agent_analysis_top_4=effectiveness_wo_agent_analysis_top_4, # 消融匹配信息：语义信息 + 推理COT
+            only_agent_analysis_wt_validation=only_agent_analysis_wt_validation, # 语义推理，没有匹配
+            wo_agent_tpl_analysis=effectiveness_wo_agent_tpl_analysis, # 4. 消融推理COT: 语义信息 + 匹配信息 + 验证COT
             wo_validation_step_1=effectiveness_wo_validation_step_1,
             wo_validation_step_2=effectiveness_wo_validation_step_2,
-            wo_validation_step_1_and_2=effectiveness_wo_validation_step_1_and_2,
+            wo_validation_step_1_and_2=effectiveness_wo_validation_step_1_and_2, # 5. 消融验证COT: 语义信息 + 匹配信息 + 推理COT
         )
 
     def _cal_efficiency(self,

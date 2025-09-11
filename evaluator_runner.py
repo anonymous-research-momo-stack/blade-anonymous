@@ -34,45 +34,45 @@ def reanalyze_all_result():
     # 初始化评估器
     evaluator = Evaluator(config)
     # =============== 重新对比结果与groundtruth ==============
-    # print(f"our gpt 5 mini")
-    # result_path = "/Users/liuchengyue/Desktop/BinarySCA Platform/Code/sca_agents/bsca-expert-agent-api/tmp/evaluation_reports/Conan/ours/gpt_5_mini/evaluation_report.json"
-    # report = evaluator.reanalyze_report(result_path, ignore_failed_cases=False)
-    #
-    # print(f"our gpt 5 nano")
-    # result_path = "/Users/liuchengyue/Desktop/BinarySCA Platform/Code/sca_agents/bsca-expert-agent-api/tmp/evaluation_reports/Conan/ours/gpt_5_nano/evaluation_report.json"
-    # report = evaluator.reanalyze_report(result_path, ignore_failed_cases=False)
-    #
-    # print(f"our gpt 4.1 mini")
-    # result_path = "/Users/liuchengyue/Desktop/BinarySCA Platform/Code/sca_agents/bsca-expert-agent-api/tmp/evaluation_reports/Conan/ours/gpt_4_1_mini/ours_105_0806/evaluation_report.json"
-    # report = evaluator.reanalyze_report(result_path, ignore_failed_cases=False)
-    #
-    # print(f"our qwen 3")
-    # result_path = "/Users/liuchengyue/Desktop/BinarySCA Platform/Code/sca_agents/bsca-expert-agent-api/tmp/evaluation_reports/Conan/ours/qwen3/evaluation_report.json"
-    # report = evaluator.reanalyze_report(result_path, ignore_failed_cases=False)
-    #
-    # print(f"Blackduck")
-    # result_path = "/Users/liuchengyue/Desktop/BinarySCA Platform/Code/sca_agents/bsca-expert-agent-api/tmp/evaluation_reports/Conan/blackduck/result_converted.json"
-    # report = evaluator.reanalyze_report(result_path, ignore_failed_cases=False)
+    print(f"our gpt 5 mini")
+    result_path = "/Users/liuchengyue/Desktop/BinarySCA Platform/Code/sca_agents/bsca-expert-agent-api/tmp/evaluation_reports/Conan/ours/gpt_5_mini/evaluation_report.json"
+    report = evaluator.reanalyze_report(result_path, ignore_failed_cases=False)
+
+    print(f"our gpt 5 nano")
+    result_path = "/Users/liuchengyue/Desktop/BinarySCA Platform/Code/sca_agents/bsca-expert-agent-api/tmp/evaluation_reports/Conan/ours/gpt_5_nano/evaluation_report.json"
+    report = evaluator.reanalyze_report(result_path, ignore_failed_cases=False)
+
+    print(f"our gpt 4.1 mini")
+    result_path = "/Users/liuchengyue/Desktop/BinarySCA Platform/Code/sca_agents/bsca-expert-agent-api/tmp/evaluation_reports/Conan/ours/gpt_4_1_mini/ours_105_0806/evaluation_report.json"
+    report = evaluator.reanalyze_report(result_path, ignore_failed_cases=False)
+
+    print(f"our qwen 3")
+    result_path = "/Users/liuchengyue/Desktop/BinarySCA Platform/Code/sca_agents/bsca-expert-agent-api/tmp/evaluation_reports/Conan/ours/qwen3/evaluation_report.json"
+    report = evaluator.reanalyze_report(result_path, ignore_failed_cases=False)
+
+    print(f"Blackduck")
+    result_path = "/Users/liuchengyue/Desktop/BinarySCA Platform/Code/sca_agents/bsca-expert-agent-api/tmp/evaluation_reports/Conan/blackduck/result_converted.json"
+    report = evaluator.reanalyze_report(result_path, ignore_failed_cases=False)
 
     print(f"Scantist")
     result_path = "/Users/liuchengyue/Desktop/BinarySCA Platform/Code/sca_agents/bsca-expert-agent-api/tmp/evaluation_reports/Conan/scantist/291-75403-xd70-无agent-扫描报告-2025-08-06T09_36_22+08_00/result_converted.json"
     report = evaluator.reanalyze_report(result_path, ignore_failed_cases=False)
 
-    # print(f"BAT")
-    # result_path = "/Users/liuchengyue/Desktop/BinarySCA Platform/Code/sca_agents/bsca-expert-agent-api/tmp/evaluation_reports/Conan/bat/raw_result_converted.json"
-    # report = evaluator.reanalyze_report(result_path, ignore_failed_cases=False)
-    #
-    # print(f"OssPolice")
-    # result_path = "/Users/liuchengyue/Desktop/BinarySCA Platform/Code/sca_agents/bsca-expert-agent-api/tmp/evaluation_reports/Conan/osspolice/raw_result_converted.json"
-    # report = evaluator.reanalyze_report(result_path, ignore_failed_cases=False)
-    #
-    # print(f"Binary AI")
-    # result_path = "/Users/liuchengyue/Desktop/BinarySCA Platform/Code/sca_agents/bsca-expert-agent-api/tmp/evaluation_reports/Conan/binary_ai/evaluation_report_2025-07-30-12-54-29_converted.json"
-    # report = evaluator.reanalyze_report(result_path, ignore_failed_cases=False)
-    #
-    # print(f"B2SFinder")
-    # result_path = "/Users/liuchengyue/Desktop/BinarySCA Platform/Code/sca_agents/bsca-expert-agent-api/tmp/evaluation_reports/Conan/b2sfinder/result_converted.json"
-    # report = evaluator.reanalyze_report(result_path, ignore_failed_cases=False)
+    print(f"BAT")
+    result_path = "/Users/liuchengyue/Desktop/BinarySCA Platform/Code/sca_agents/bsca-expert-agent-api/tmp/evaluation_reports/Conan/bat/raw_result_converted.json"
+    report = evaluator.reanalyze_report(result_path, ignore_failed_cases=False)
+
+    print(f"OssPolice")
+    result_path = "/Users/liuchengyue/Desktop/BinarySCA Platform/Code/sca_agents/bsca-expert-agent-api/tmp/evaluation_reports/Conan/osspolice/raw_result_converted.json"
+    report = evaluator.reanalyze_report(result_path, ignore_failed_cases=False)
+
+    print(f"Binary AI")
+    result_path = "/Users/liuchengyue/Desktop/BinarySCA Platform/Code/sca_agents/bsca-expert-agent-api/tmp/evaluation_reports/Conan/binary_ai/evaluation_report_2025-07-30-12-54-29_converted.json"
+    report = evaluator.reanalyze_report(result_path, ignore_failed_cases=False)
+
+    print(f"B2SFinder")
+    result_path = "/Users/liuchengyue/Desktop/BinarySCA Platform/Code/sca_agents/bsca-expert-agent-api/tmp/evaluation_reports/Conan/b2sfinder/result_converted.json"
+    report = evaluator.reanalyze_report(result_path, ignore_failed_cases=False)
 
 
 
@@ -243,7 +243,7 @@ def main():
 
     conan_benchmark_meta_file = f"{evaluation_dir}/general_benchmarks/benchmark_meta/conan_library_benchmark_20250831_2032.json"
 
-    evaluation_result_file = f"{evaluation_output_dir}/Conan/ours/claude/evaluation_report.json"
+    evaluation_result_file = f"{evaluation_output_dir}/Conan/ours/gpt_5_mini_no_COT/evaluation_report.json"
 
     # car_150_benchmark_meta_file = f"{evaluation_dir}/general_benchmarks/benchmark_meta/CAR150.json"
     # car_150_test_case_dir = "/Users/liuchengyue/Desktop/BinarySCA Platform/Data/Test_Cases/TPL_Test_Cases/BYD"
@@ -254,10 +254,10 @@ def main():
         benchmark_file=conan_benchmark_meta_file,
         test_case_dir=conan_test_case_dir,
         feature_matching_top_n=5,
-        # use_agent=False,
-        concurrency=20,
+        use_agent=False,
+        concurrency=30,
         slice_start=0,
-        slice_end=3,
+        # slice_end=10,
         input_token_price_per_1M=0,
         output_token_price_per_1M=0,
         # input_token_price_per_1M=0.4,
