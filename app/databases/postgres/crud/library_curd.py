@@ -12,30 +12,30 @@ def list_libraries(
         page_size: int = 10
 ) -> Tuple[List[LibraryEntity], int]:
     """
-    获取库列表，支持分页和排序
+    Get library list with pagination
 
     Args:
-        page: 当前页码，从1开始
-        page_size: 每页数量
-        sort_by: 排序字段，默认按创建时间
-        sort_desc: 是否降序排序，默认True
+        page: current page index, starting from 1
+        page_size: page size
+        sort_by: sort field, default by created time
+        sort_desc: sort descending, default True
 
     Returns:
-        Tuple[List[LibraryEntity], int]: 返回库列表和总数
+        Tuple[List[LibraryEntity], int]: list of libraries and total count
 
     Raises:
-        SQLAlchemyError: 数据库操作错误
+        SQLAlchemyError: database operation error
     """
     with session_generator() as session:
-        # 构建基础查询
+        # Build base query
         query = session.query(LibraryEntity).where(
             LibraryEntity.is_feature_inserted == True
         ).order_by(LibraryEntity.id)
 
-        # 获取总数
+        # Get total count
         total_count = query.count()
 
-        # 分页
+        # Pagination
         if page < 1:
             page = 1
         if page_size < 1 or page_size > 100:
@@ -44,7 +44,7 @@ def list_libraries(
         offset = (page - 1) * page_size
         query = query.offset(offset).limit(page_size)
 
-        # 执行查询
+        # Execute query
         libraries = query.all()
 
         return libraries, total_count
@@ -52,12 +52,12 @@ def list_libraries(
 
 def count_libraries() -> int:
     with session_generator() as session:
-        # 构建基础查询
+        # Build base query
         query = session.query(func.count(LibraryEntity.id)).where(
             LibraryEntity.is_feature_inserted == True
         )
 
-        # 执行查询
+        # Execute query
         total_count = query.scalar()
 
         return total_count
@@ -108,7 +108,7 @@ def query_largest_library_id() -> int:
 
 def delete_library_by_id(library_id: int) -> bool:
     """
-    删除library以及它所有关联的特征（但不删除字符串）
+    Delete library and all its associated features (but not strings)
 
     :param library_id:
     :return:
@@ -117,7 +117,7 @@ def delete_library_by_id(library_id: int) -> bool:
     with session_generator() as session:
         logger.info(f"Starting to delete library with id {library_id}")
 
-        # 检查 library 是否存在
+        # Check if library exists
         library = session.get(LibraryEntity, library_id)
         if not library:
             logger.info(f"Library with id {library_id} not found")
@@ -125,7 +125,7 @@ def delete_library_by_id(library_id: int) -> bool:
         logger.info(f"library with id {library_id} is refer to {library.name}: {library.repository}")
 
         project_id = library_id
-        # 一次性删除所有字符串关联关系
+        # Delete all string relationships in one go
         logger.info("Starting to delete all relationships")
         session.execute(text(f"""
             DELETE FROM association_project_string WHERE project_id ={project_id};
@@ -142,28 +142,28 @@ def delete_library_by_id(library_id: int) -> bool:
         """), {"library_id": library_id})
         logger.info("Finished deleting all relationships")
 
-        # 2. 直接批量删除 functions
+        # 2. Directly bulk delete functions
         logger.info("Starting to delete functions")
         session.execute(text(f"""
             DELETE FROM feature_functions 
             WHERE project_id = {project_id};
         """))
 
-        # 3. 直接批量删除 files
+        # 3. Directly bulk delete files
         logger.info("Starting to delete files")
         session.execute(text(f"""
             DELETE FROM feature_files 
             WHERE project_id = {project_id};
         """))
 
-        # 4. 直接批量删除 project
+        # 4. Directly bulk delete project
         logger.info("Starting to delete project")
         session.execute(text(f"""
             DELETE FROM feature_projects 
             WHERE id = {project_id};
         """))
 
-        # 5. 最后删除 library
+        # 5. Finally delete library
         logger.info("Starting to delete library")
         session.execute(text(f"""
             DELETE FROM meta_libraries 

@@ -9,7 +9,7 @@ from ..postgres import session_generator
 
 def list_strings_by_project_id(project_id: int) -> List[StringLiteralFeatureEntity]:
     """
-    根据库 ID 获取所有关联的字符串
+    Get all related strings by project ID
     """
     with session_generator() as session:
         stmt = select(StringLiteralFeatureEntity).join(
@@ -25,13 +25,13 @@ def add_multiple_string_literals_on_conflict_do_nothing(
         strings: List[str],
 ) -> List[StringLiteralFeatureEntity]:
     """
-    批量插入字符串，基于 content 的唯一约束处理重复
+    Bulk insert strings, handle duplicates based on unique constraint on content
     """
     if not strings:
         return []
 
     with session_generator() as session:
-        # 先插入所有字符串，忽略冲突
+        # Insert all strings first, ignore conflicts
         stmt = insert(StringLiteralFeatureEntity).values([
             {"content": s}
             for s in strings
@@ -39,7 +39,7 @@ def add_multiple_string_literals_on_conflict_do_nothing(
         stmt = stmt.on_conflict_do_nothing(index_elements=['content'])
         session.execute(stmt)
 
-        # 查询所有字符串对象，包括已存在的
+        # Query all string objects, including existing ones
         all_literals = session.query(StringLiteralFeatureEntity).filter(
             StringLiteralFeatureEntity.content.in_(strings)
         ).all()
@@ -49,9 +49,9 @@ def add_multiple_string_literals_on_conflict_do_nothing(
 
 def delete_orphaned_strings() -> int:
     """
-    暂时还没用到
-    删除没有任何关联的字符串
-    返回删除的字符串数量
+    Currently unused.
+    Delete strings that have no associations.
+    Return the number of deleted strings.
     """
     with session_generator() as session:
         orphaned_strings = session.query(StringLiteralFeatureEntity).filter(

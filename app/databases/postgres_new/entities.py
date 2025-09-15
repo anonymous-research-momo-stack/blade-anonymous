@@ -1,13 +1,13 @@
 from environs import Env
 from sqlalchemy import Column, BigInteger, String, Text, DateTime, ForeignKey, Float, create_engine, ARRAY, \
-    Boolean, UniqueConstraint, Index, JSON  # 添加JSON类型
+    Boolean, UniqueConstraint, Index, JSON  # JSON type
 from sqlalchemy.orm import declarative_base, relationship, declared_attr
 from sqlalchemy.sql import func
 
 Base = declarative_base()
 
 
-# 创建时间戳 Mixin
+# Timestamp Mixin
 class TimestampMixin:
     @declared_attr
     def created_at(cls):
@@ -18,7 +18,7 @@ class TimestampMixin:
         return Column(DateTime, default=func.now(), onupdate=func.now(), nullable=False, server_default=func.now())
 
 
-# 2.1 库与源代码模块（4个表）
+# 2.1 Libraries and Source Code module (4 tables)
 class Library(TimestampMixin, Base):
     __tablename__ = 'meta_libraries'
     id = Column(BigInteger, primary_key=True, nullable=False, autoincrement=True)
@@ -51,7 +51,7 @@ class Library(TimestampMixin, Base):
     function_name_relations = relationship("FunctionNameToLibrary", back_populates="library")
     function_names = relationship("FunctionNameFeature", secondary="r_library_function_name", viewonly=True)
 
-    # 添加复合唯一索引和其他索引
+    # Composite unique index and additional indexes
     __table_args__ = (
         UniqueConstraint('name', 'github_repo', name='uix_library_name_repo'),
         Index('idx_library_name', 'name'),
@@ -168,7 +168,7 @@ class FileFeature(TimestampMixin, Base):
     file_size_kb = Column(Float)
     function_num = Column(BigInteger)
     distinct_string_num = Column(BigInteger)
-    global_strings = Column(JSON)  # 改为JSON类型
+    global_strings = Column(JSON)  # Use JSON type
     extraction_succeed = Column(Boolean, default=True)
     extraction_log = Column(Text)
 
@@ -188,7 +188,7 @@ class FileFeature(TimestampMixin, Base):
     function_names = relationship("FunctionNameFeature", secondary="r_file_function_name", viewonly=True)
 
     __table_args__ = (
-        Index('idx_file_feature_sha256', 'file_sha256'),  # 已有unique，但再加个普通索引用于查询
+        Index('idx_file_feature_sha256', 'file_sha256'),  # Unique exists; add normal index for queries
     )
 
 
@@ -361,7 +361,7 @@ class StringToLibrary(TimestampMixin, Base):
     __table_args__ = (UniqueConstraint('string_id', 'library_id', name='uix_string_library'),)
 
 
-# 2.3 二进制文件模块（3个表）
+# 2.3 Binary module (3 tables)
 class Binary(TimestampMixin, Base):
     __tablename__ = 'meta_binaries'
     id = Column(BigInteger, primary_key=True, nullable=False, autoincrement=True)
@@ -427,7 +427,7 @@ class BinaryToSourceCode(TimestampMixin, Base):
     __table_args__ = (UniqueConstraint('binary_id', 'source_code_id', name='uix_binary_source_code'),)
 
 
-# 2.4 漏洞模块（4个表）
+# 2.4 Vulnerability module (4 tables)
 class Vulnerability(TimestampMixin, Base):
     __tablename__ = 'meta_vulnerabilities'
     id = Column(BigInteger, primary_key=True, nullable=False, autoincrement=True)
@@ -517,13 +517,13 @@ class VulnerabilityToBinary(TimestampMixin, Base):
 
 def create_all_tables():
     """
-    创建所有表
+    Create all tables
     """
 
     env = Env()
     env.read_env()
 
-    # 创建数据库引擎
+    # Create database engine
     POSTGRES_HOST = env.str("TPL_DATA_POSTGRES_HOST", "localhost")
     POSTGRES_PORT = env.int("TPL_DATA_POSTGRES_PORT", 5433)
     POSTGRES_USERNAME = env.str("TPL_DATA_POSTGRES_USERNAME", "tpl_data")
@@ -541,10 +541,10 @@ def create_all_tables():
         pool_recycle=3600,
     )
 
-    # 删除所有
+    # Drop all tables
     Base.metadata.drop_all(engine)
 
-    # 创建所有定义的表
+    # Create all defined tables
     Base.metadata.create_all(engine)
 
 

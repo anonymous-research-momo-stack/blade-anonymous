@@ -11,7 +11,7 @@ from ...config import settings
 Base = declarative_base()
 
 
-# 创建时间戳 Mixin
+# Timestamp Mixin
 class TimestampMixin:
     @declared_attr
     def created_at(cls):
@@ -22,7 +22,7 @@ class TimestampMixin:
         return Column(DateTime, default=func.now(), onupdate=func.now(), nullable=False)
 
 
-# 创建关联表
+# Association tables
 association_function_string = Table(
     'association_function_string',
     Base.metadata,
@@ -54,17 +54,17 @@ class StringLiteralFeatureEntity(TimestampMixin, Base):
     id = Column(BigInteger, Sequence('feature_string_literals_id_seq'), primary_key=True, nullable=False)
     content = Column(Text, unique=True)
 
-    # 包含该字符串的函数
+    # Functions that contain this string
     functions = relationship("FunctionFeatureEntity",
                              secondary=association_function_string,
                              back_populates="string_literals")
 
-    # 包含该字符串的文件
+    # Files that contain this string
     files = relationship("FileFeatureEntity",
                          secondary=association_file_string,
                          back_populates="string_literals")
 
-    # 包含该字符串的library
+    # Projects that contain this string
     projects = relationship("ProjectFeatureEntity",
                             secondary=association_project_string,
                             back_populates="string_literals")
@@ -81,7 +81,7 @@ class FunctionFeatureEntity(TimestampMixin, Base):
     distinct_string_num = Column(BigInteger)
     source_codes = Column(ARRAY(Text))
 
-    # 所属 file, project, library
+    # Belongs to file and project
     file_id = Column(BigInteger, ForeignKey('feature_files.id'), index=True)
     file = relationship("FileFeatureEntity", back_populates="functions")
 
@@ -106,11 +106,11 @@ class FileFeatureEntity(TimestampMixin, Base):
     extraction_succeed = Column(Boolean, default=True)
     extraction_log = Column(Text)
 
-    # 所属project, library
+    # Belongs to project
     project_id = Column(BigInteger, ForeignKey('feature_projects.id'), index=True)
     project = relationship("ProjectFeatureEntity", back_populates="files")
 
-    # features
+    # Features
     functions = relationship("FunctionFeatureEntity", back_populates="file")
     string_literals = relationship("StringLiteralFeatureEntity", secondary=association_file_string,
                                    back_populates="files")
@@ -131,17 +131,17 @@ class ProjectFeatureEntity(TimestampMixin, Base):
     extraction_succeed = Column(Boolean, default=True)
     extraction_log = Column(Text)
 
-    # library
+    # Library
     library_id = Column(BigInteger, ForeignKey('meta_libraries.id'), unique=True, index=True)
     library = relationship("LibraryEntity", back_populates="project", uselist=False)
 
-    # file
+    # Files
     files = relationship("FileFeatureEntity", back_populates="project")
 
-    # functions
+    # Functions
     functions = relationship("FunctionFeatureEntity", back_populates="project")
 
-    # strings
+    # Strings
     string_literals = relationship("StringLiteralFeatureEntity",
                                    secondary=association_project_string,
                                    back_populates="projects")
@@ -155,7 +155,7 @@ class LibraryEntity(TimestampMixin, Base):
     )
     id = Column(BigInteger, Sequence('meta_libraries_id_seq'), primary_key=True, nullable=False)
 
-    # basic info
+    # Basic info
     name = Column(String(255), nullable=False, index=True)
     vendor = Column(String(255), nullable=False, index=True)
     repository = Column(String(255), nullable=False, index=True)
@@ -163,23 +163,23 @@ class LibraryEntity(TimestampMixin, Base):
     description = Column(Text)  # Description Generated from GPT4o
     repo_description = Column(Text)  # Github Repo Description
 
-    # status
+    # Status
     is_source_code_downloaded = Column(Boolean, default=True, index=True)
     is_feature_extracted = Column(Boolean, default=True, index=True)
     is_feature_inserted = Column(Boolean, default=True, index=True)
 
-    # note
+    # Notes
     note = Column(Text)
 
-    # features
+    # Features
     project = relationship("ProjectFeatureEntity", back_populates="library", uselist=False)
 
 
 def create_all_tables():
     """
-    创建所有表
+    Create all tables
     """
-    # 创建数据库引擎
+    # Create database engine
 
     engine = create_engine(
         url=settings.MAIN_DATABASE_URL,
@@ -190,10 +190,10 @@ def create_all_tables():
         pool_recycle=3600,
     )
 
-    # 删除所有
+    # Drop all tables
     Base.metadata.drop_all(engine)
 
-    # 创建所有定义的表
+    # Create all defined tables
     Base.metadata.create_all(engine)
 
     logger.debug("Tables created successfully.")

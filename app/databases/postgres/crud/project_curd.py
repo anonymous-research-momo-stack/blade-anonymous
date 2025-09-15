@@ -9,49 +9,50 @@ def cascade_add_project_feature(
         project_feature: ProjectFeatureEntity,
 ):
     """
-    级联添加 project feature
-    1. 先验证是否存在，存在则不添加
-    2. 添加 project
-    3. 添加 file
-    4. 添加 file-string associations
-    5. 添加 function
-    6. 添加 function-string associations
+    Cascade add project feature
+    1. Validate existence first; skip if exists
+    2. Add project
+    3. Add files
+    4. Add file-string associations
+    5. Add functions
+    6. Add function-string associations
 
     :param project_feature:
     :return:
     """
     with session_generator() as session:
-        # 先查询是否存在，存在则不添加
+        # Check existence first; skip if exists
         result = session.get(ProjectFeatureEntity, project_feature.id)
         if result is not None:
             logger.debug(result)
             logger.info(f"project {project_feature.id}: {project_feature.name} already exists. skip insert.")
             return False
 
-        # 添加 project
+        # Insert project
         logger.info(f"insert project {project_feature.id}: {project_feature.name}")
         session.add(project_feature)
         session.flush()
 
-        # 以下部分会自动级联添加，不需要手动添加
+        # The following parts will be automatically cascaded; manual insert is not needed
         #
-        # # 添加 file
+        # # Insert files
         # logger.info(f"insert project {project_feature.id}: {project_feature.name} files")
         # for file_feature in project_feature.files:
-        #     # 更新id
+        #     # Update ids
         #     file_feature.library_id = project_feature.library_id
         #     file_feature.project_id = project_feature.id
         #     session.add(file_feature)
         # session.flush()
         #
-        # # 文件与字符串的关联关系
+        # # File-string associations
         # logger.info(f"insert project {project_feature.id}: {project_feature.name} file-string associations")
-        # # 去重
+        # # Deduplicate
         # file_string_mapping_set = set()
         # for file_feature in project_feature.files:
         #     for string_literal in file_feature.string_literals:
         #         file_string_mapping_set.add((file_feature.id, string_literal.id))
-        # # 转换为dict列表
+        # # Transform to list of dicts
+        # # Transform to list of dicts
         # file_string_mapping = [{
         #     'file_id': file_feature_id,
         #     'string_id': string_literal_id
@@ -59,7 +60,7 @@ def cascade_add_project_feature(
         #
         # session.execute(association_file_string.insert(), file_string_mapping)
         #
-        # # 添加函数
+        # # Insert functions
         # logger.info(f"insert project {project_feature.id}: {project_feature.name} functions")
         # for file_feature in project_feature.files:
         #     for function_feature in file_feature.functions:
@@ -69,15 +70,15 @@ def cascade_add_project_feature(
         #         session.add(function_feature)
         # session.flush()
         #
-        # # 函数与字符串的关联关系
+        # # Function-string associations
         # logger.info(f"insert project {project_feature.id}: {project_feature.name} function-string associations")
-        # # 去重
+        # # Deduplicate
         # function_string_mapping_set = set()
         # for file_feature in project_feature.files:
         #     for function_feature in file_feature.functions:
         #         for string_literal in function_feature.string_literals:
         #             function_string_mapping_set.add((function_feature.id, string_literal.id))
-        # # 转换为dict列表
+        # # Transform to list of dicts
         # function_string_mapping = [{
         #     'function_id': function_feature_id,
         #     'string_id': string_literal_id
@@ -96,16 +97,16 @@ from sqlalchemy import func
 
 def list_projects_by_strings(strings: List[str], min_match_num: int = 5):
     """
-    查询与给定字符串列表至少有5个交集的库
+    Query projects having at least N intersections with given strings
 
     Args:
-        strings: 要查询的字符串列表
+        strings: strings to query
 
     Returns:
-        匹配的库列表，每个库对象包含匹配的字符串列表
+        matched project list, each project contains matched string list
     """
     with session_generator() as session:
-        # 1. 首先查询匹配的字符串ID
+        # 1. Query matched string ids first
         string_ids = (
             session.query(StringLiteralFeatureEntity.id, StringLiteralFeatureEntity.content)
             .filter(StringLiteralFeatureEntity.content.in_(strings))
@@ -115,7 +116,7 @@ def list_projects_by_strings(strings: List[str], min_match_num: int = 5):
         if not string_ids:
             return []
 
-        # 2. 查询字符串-库关联关系，并找到满足条件的库ID
+        # 2. Query string-project associations and find qualified project ids
         project_ids = (
             session.query(
                 association_project_string.c.project_id,
@@ -134,7 +135,7 @@ def list_projects_by_strings(strings: List[str], min_match_num: int = 5):
         if not project_ids:
             return []
 
-        # 3. 查询匹配的库信息
+        # 3. Query matched projects
         matched_projects = (
             session.query(ProjectFeatureEntity)
             .filter(ProjectFeatureEntity.id.in_([pid for pid, _ in project_ids]))
@@ -142,12 +143,12 @@ def list_projects_by_strings(strings: List[str], min_match_num: int = 5):
             .all()
         )
 
-        # 4. 构建结果，添加匹配的字符串信息
-        # 创建library_id到matched_strings的映射
+        # 4. Build result and add matched strings
+        # Create project_id to matched_strings mapping
         project_strings_map = {pid: sorted(set(matched_strings), key=lambda x: len(x), reverse=True)
                                for pid, matched_strings in project_ids}
 
-        # 为每个库添加matched_strings属性
+        # Add matched_strings attribute for each project
         for project in matched_projects:
             project.matched_strings = project_strings_map[project.id]
 

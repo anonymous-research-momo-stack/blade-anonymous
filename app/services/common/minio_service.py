@@ -6,10 +6,10 @@ from minio.error import S3Error
 
 from ...config import settings
 
-# 导入配置
+# Import configuration
 
 
-# 初始化MinIO客户端
+# Initialize MinIO client
 minio_client = Minio(
     settings.MINIO_ENDPOINT,
     access_key=settings.MINIO_ACCESS_KEY,
@@ -17,7 +17,7 @@ minio_client = Minio(
     secure=settings.MINIO_SECURE
 )
 
-# 导出常量供其他模块使用
+# Export constants for other modules
 LOCAL_TEMP_DIR = settings.LOCAL_TEMP_DIR
 
 
@@ -25,62 +25,62 @@ LOCAL_TEMP_DIR = settings.LOCAL_TEMP_DIR
 
 def download_from_minio(minio_file_path: str, download_dir: str = None) -> str:
     """
-    从MinIO下载文件到本地临时目录
+    Download a file from MinIO to a local temporary directory.
 
     Args:
-        minio_file_path: MinIO中的文件路径（对象key）
-        task_id: 任务ID，如果提供则下载到任务专用目录
+        minio_file_path: Object key (file path) in MinIO.
+        task_id: Task ID; if provided, download to a task-specific directory.
 
     Returns:
-        str: 本地文件的完整路径
+        str: Full path to the local file.
     """
     try:
         file_name = os.path.basename(minio_file_path)
         local_file_path = os.path.join(download_dir, file_name)
 
-        # 从MinIO下载文件
+        # Download file from MinIO
         minio_client.fget_object(settings.MINIO_INPUT_BUCKET, minio_file_path, local_file_path)
 
-        print(f"文件已从MinIO下载到本地: {local_file_path}")
+        print(f"File downloaded from MinIO to local: {local_file_path}")
         return local_file_path
 
     except S3Error as e:
-        raise Exception(f"从MinIO下载文件失败: {e}")
+        raise Exception(f"Failed to download file from MinIO: {e}")
     except Exception as e:
-        raise Exception(f"下载文件时发生错误: {e}")
+        raise Exception(f"An error occurred while downloading the file: {e}")
 
 
 def upload_to_minio(local_file_path: str, minio_file_path: str = None) -> str:
     """
-    将本地文件上传到MinIO
+    Upload a local file to MinIO.
 
     Args:
-        local_file_path: 本地文件的完整路径
-        minio_file_path: MinIO中的目标路径（对象key）
-        cleanup_local: 是否清理本地文件
+        local_file_path: Full path to the local file.
+        minio_file_path: Target object key (path) in MinIO.
+        cleanup_local: Whether to clean up the local file after upload.
 
     Returns:
-        str: MinIO中的文件路径
+        str: File path (object key) in MinIO.
     """
     try:
-        # 检查本地文件是否存在
+        # Check whether the local file exists
         if not os.path.exists(local_file_path):
-            raise FileNotFoundError(f"本地文件不存在: {local_file_path}")
+            raise FileNotFoundError(f"Local file does not exist: {local_file_path}")
 
-        # 如果没有指定MinIO路径，使用本地文件名
+        # If no MinIO path is provided, use the local filename
         if minio_file_path is None:
             minio_file_path = os.path.basename(local_file_path)
 
-        # 上传文件到MinIO
+        # Upload file to MinIO
         minio_client.fput_object(settings.MINIO_OUTPUT_BUCKET, minio_file_path, local_file_path)
 
-        print(f"文件已上传到MinIO: {minio_file_path}")
+        print(f"File uploaded to MinIO: {minio_file_path}")
 
         return minio_file_path
 
     except S3Error as e:
-        raise Exception(f"上传文件到MinIO失败: {e}")
+        raise Exception(f"Failed to upload file to MinIO: {e}")
     except Exception as e:
-        raise Exception(f"上传文件时发生错误: {e}")
+        raise Exception(f"An error occurred while uploading the file: {e}")
 
 

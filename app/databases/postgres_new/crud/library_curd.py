@@ -9,17 +9,19 @@ from ..postgres import session_generator
 
 def list_libraries_by_strings(strings: List[str], min_match_num: int = 5):
     """
-    查询与给定字符串列表至少有指定数量交集的库
+    Query libraries that have at least the specified number of intersections
+    with the given list of strings.
 
     Args:
-        strings: 要查询的字符串列表
-        min_match_num: 最小匹配字符串数量，默认5
+        strings: The list of strings to query
+        min_match_num: Minimum number of matching strings, default 5
 
     Returns:
-        匹配的库列表，每个库对象包含匹配的字符串列表
+        A list of matched libraries. Each library object contains a list of
+        matched strings.
     """
     with session_generator() as session:
-        # 1. 首先查询匹配的字符串ID和内容
+        # 1. First, query the matched string IDs and values
         string_features = (
             session.query(StringFeature.id, StringFeature.string_value)
             .filter(StringFeature.string_value.in_(strings))
@@ -29,7 +31,7 @@ def list_libraries_by_strings(strings: List[str], min_match_num: int = 5):
         if not string_features:
             return []
 
-        # 2. 查询字符串-库关联关系，并找到满足条件的库ID
+        # 2. Query string-library relations and find library IDs that satisfy the condition
         library_matches = (
             session.query(
                 StringToLibrary.library_id,
@@ -48,25 +50,25 @@ def list_libraries_by_strings(strings: List[str], min_match_num: int = 5):
         if not library_matches:
             return []
 
-        # 3. 查询匹配的库信息
+        # 3. Query matched library information
         matched_libraries = (
             session.query(Library)
             .filter(Library.id.in_([lib_id for lib_id, _ in library_matches]))
             .all()
         )
 
-        # 4. 构建结果，添加匹配的字符串信息
-        # 创建library_id到matched_strings的映射
+        # 4. Build results and attach matched string info
+        # Create a mapping from library_id to matched_strings
         library_strings_map = {
             lib_id: sorted(set(matched_strings), key=lambda x: len(x), reverse=True)
             for lib_id, matched_strings in library_matches
         }
 
-        # 为每个库添加matched_strings属性
+        # Add matched_strings attribute to each library
         for library in matched_libraries:
             library.matched_strings = library_strings_map[library.id]
 
-        # 按匹配字符串数量排序
+        # Sort by the number of matched strings
         matched_libraries = sorted(
             matched_libraries, 
             key=lambda x: len(library_strings_map[x.id]), 
@@ -81,22 +83,23 @@ def list_libraries_by_strings(strings: List[str], min_match_num: int = 5):
 
 def get_library_string_count(library_name: str) -> Optional[int]:
     """
-    查询指定库名相关的字符串数量
+    Query the number of strings associated with the specified library name
 
     Args:
-        library_name: 库的名称
+        library_name: The name of the library
 
     Returns:
-        该库相关的字符串数量，如果库不存在则返回 None
+        The number of strings related to the library, or None if the library
+        does not exist
     """
     with session_generator() as session:
-        # 查询指定库名的字符串数量
+        # Query the number of strings for the specified library name
         result = session.query(func.count(StringToLibrary.string_id.distinct())) \
             .join(Library, StringToLibrary.library_id == Library.id) \
             .filter(Library.name == library_name) \
             .scalar()
 
-        # 如果查询结果为 0，需要确认库是否存在
+        # If the result is 0, confirm whether the library exists
         if result == 0:
             library_exists = session.query(Library) \
                 .filter(Library.name == library_name) \
