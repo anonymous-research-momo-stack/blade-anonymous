@@ -16,7 +16,7 @@ from .agent_analysis.validator import LibraryValidator
 from .feature_matching.feature_matching_detector import FeatureMatchingDetector
 from .file_preparation.file_preprocessor import FilePreprocessor, calculate_file_sha256
 
-# 设置logger级别为INFO，这样debug级别的日志不会显示
+# Set logger level to INFO so debug-level logs are hidden
 logger.remove()
 logger.add(sys.stdout, level="INFO", format="{time} {level} {message}", colorize=True)
 
@@ -43,11 +43,11 @@ class DetectionWorkflow:
                  enable_library_validation_db_verification: bool = False,
                  debug_mode: bool = False):
         """
-        初始化检测工作流
+        Initialize detection workflow
         """
         self.enable_bin_info_analysis = enable_bin_info_analysis
 
-        # 构建分析配置对象
+        # Build analysis configuration object
         self.analysis_config = AnalysisConfig(
             llm_provider=settings.LLM_PROVIDER,
             model_id=settings.LLM_MODEL_ID,
@@ -72,38 +72,38 @@ class DetectionWorkflow:
         if debug_mode:
             os.environ["AGNO_DEBUG"] = "true"
 
-        # 上下文环境分析器
+        # Context analyzer
         self.context_analyzer = SoftwareContextAnalyzer(
                 enable_web_search=True
             )
 
-        # 文件预处理器
-        self.file_preprocessor = FilePreprocessor()  # 预处理文件，解压，找到二进制文件等。
+        # File preprocessor
+        self.file_preprocessor = FilePreprocessor()  # Preprocess files: decompress, locate binaries, etc.
 
-        # 特征匹配检测器
+        # Feature matching detector
         self.feature_matching_detector = FeatureMatchingDetector(
-            top_n=feature_matching_return_top_n, # 返回前N个候选库
-            min_match_feature_num=feature_matching_min_string_length, # 至少匹配的数量
-            feature_min_length=feature_matching_min_string_length, # 有效字符串的最小长度
-            feature_max_length=feature_matching_max_string_length # 有效字符串的最大长度
+            top_n=feature_matching_return_top_n, # Return top N candidate libraries
+            min_match_feature_num=feature_matching_min_string_length, # Minimum number of matches
+            feature_min_length=feature_matching_min_string_length, # Minimum length of valid strings
+            feature_max_length=feature_matching_max_string_length # Maximum length of valid strings
         )
         if use_agent:
-            # 二进制信息查找器
+            # Binary information finder
             if self.enable_bin_info_analysis:
                 self.bin_info_finder = BinaryInformationFinder(
-                    enable_web_search=enable_bin_info_analysis_web_search, # 是否启用网络搜索
-                    enable_knowledge_base=enable_bin_info_analysis_knowledge_base, # 是否启用知识库
-                    knowledge_json_path=settings.KNOWLEDGE_FILE_PATH # 知识库文件路径
+                    enable_web_search=enable_bin_info_analysis_web_search, # Enable web search or not
+                    enable_knowledge_base=enable_bin_info_analysis_knowledge_base, # Enable knowledge base or not
+                    knowledge_json_path=settings.KNOWLEDGE_FILE_PATH # Knowledge base file path
                 )
 
-            # TPL分析器
+            # TPL analyzer
             self.tpl_analyzer = TPLAnalyzer(
                 enable_web_search=enable_tpl_analysis_web_search,
                 enable_knowledge_base=enable_tpl_analysis_knowledge_base,
                 knowledge_json_path=settings.KNOWLEDGE_FILE_PATH
             )
 
-            # 库验证器
+            # Library validator
             self.library_validator = LibraryValidator(
                 enable_web_search=enable_library_validation_web_search,
                 enable_knowledge_base=enable_library_validation_knowledge_base,
@@ -112,7 +112,7 @@ class DetectionWorkflow:
         else:
             self.no_cot_tpl_analyzer = NoCOTTPLAnalyzer()
 
-        self.analysis_data = AnalysisData(config=self.analysis_config)  # 分析数据对象，用于存储分析结果
+        self.analysis_data = AnalysisData(config=self.analysis_config)  # Analysis data object to store results
 
     def analyze_context(self, software_root_path: str)->SoftwareContext:
         software_context, context_data = self.context_analyzer.analyze_software_context(software_root_path)
@@ -137,14 +137,14 @@ class DetectionWorkflow:
             self.analysis_data.target_binary = target_binary
 
 
-            # 2. feature matching detection # TODO 这里直接默认返回了匹配数量最多的前三个，应该优化一下，按照匹配的字符串分组（匹配的基本都相似的每个组里，返回前三个）
+            # 2. Feature matching detection # TODO Currently returns top 3 by match count directly; should group by similar matched strings and return top 3 within each group.
             feature_matching_start_at = time.perf_counter()
             feature_matching_libraries = self._run_tpl_detection(target_binary)
             feature_matching_duration = time.perf_counter() - feature_matching_start_at
             self.analysis_data.durations["feature_matching"] = feature_matching_duration
             self.analysis_data.feature_matching_results = feature_matching_libraries
 
-            # 3. agent analysis
+            # 3. Agent analysis
             if self.analysis_config.use_agent:
                 validation_start_at = time.perf_counter()
                 validated_libraries = self._run_agent_analysis(target_binary, feature_matching_libraries, software_context)
@@ -169,19 +169,19 @@ class DetectionWorkflow:
             self.analysis_data.durations["total"] = total_duration
             return result
         except Exception as e:
-            # 打印异常的详细信息来调试
-            logger.error(f"捕获到异常类型: {type(e)}")
-            logger.error(f"异常类名: {e.__class__.__name__}")
-            logger.error(f"异常内容: {e}")
-            logger.error(f"异常模块: {e.__class__.__module__}")
+            # Print detailed exception information for debugging
+            logger.error(f"Caught exception type: {type(e)}")
+            logger.error(f"Exception class name: {e.__class__.__name__}")
+            logger.error(f"Exception content: {e}")
+            logger.error(f"Exception module: {e.__class__.__module__}")
             logger.error(traceback.format_exc())
-            # 检查是否是超时异常，如果是则重新抛出
+            # Check if it is a timeout exception; if so, re-raise
             from celery.exceptions import SoftTimeLimitExceeded
             if isinstance(e, SoftTimeLimitExceeded):
-                logger.warning(f"检测工作流超时: {e}")
-                raise  # 重新抛出，让Celery任务处理
+                logger.warning(f"Detection workflow timed out: {e}")
+                raise  # Re-raise to let Celery handle it
             logger.error(f"Error during detection workflow: {e}, file_path: {file_path}")
-            # 总时间
+            # Total time
             total_duration = time.perf_counter() - all_start_at
             self.analysis_data.durations["total"] = total_duration
             self.analysis_data.error_message = str(e)
@@ -201,12 +201,12 @@ class DetectionWorkflow:
         """
         Run the feature matching detection on the target binary.
         """
-        # 执行特征匹配检测
+        # Execute feature matching detection
         candidate_libraries = self.feature_matching_detector.detect(
             target_binary=target_binary
         )
 
-        # 为特征匹配结果添加检测方法标记
+        # Add detection method tag for feature matching results
         for lib in candidate_libraries:
             if "Feature Matching" not in lib.identify_methods:
                 lib.identify_methods.append("Feature Matching")
@@ -298,12 +298,12 @@ class DetectionWorkflow:
         validation_duration = time.perf_counter() - validation_start_at
         self.analysis_data.durations["_library_validation"] = validation_duration
 
-        # 输出验证结果统计
+        # Output validation result statistics
         passed_count = sum(1 for lib in validated_libraries if lib.validation_passed)
         failed_count = len(validated_libraries) - passed_count
         logger.debug(f"Validation completed: {passed_count} passed, {failed_count} failed")
 
-        # 输出详细验证结果
+        # Output detailed validation results
         logger.debug(f"\n=== Final Results for {target_binary.binary_name} ===")
         for lib in validated_libraries:
             status = "✅ PASS" if lib.validation_passed else "❌ FAIL"
@@ -320,7 +320,7 @@ class DetectionWorkflow:
 
     def _combine_candidate_libraries(self, libraries_1: List[Library], libraries_2: List[Library]) -> List[Library]:
         """
-        按照小写名称合并
+        Merge by lowercase names
         """
 
         combined_library_dict = {}

@@ -11,7 +11,8 @@ from tqdm import tqdm
 
 def _process_single_file(args):
     """
-    处理单个文件的函数，需要在模块级别定义以支持多进程序列化
+    Function to process a single file. Must be defined at module level to support
+    multiprocessing serialization.
     args: (idx, file_path, detection_kwargs, software_context)
     """
     idx, file_path, detection_kwargs, software_context = args
@@ -39,8 +40,8 @@ def _process_single_file(args):
 class BatchDetectionWorkflow:
     def __init__(self, concurrency: int = 4, **detection_kwargs):
         """
-        concurrency: 并发数量
-        detection_kwargs: 传递给 DetectionWorkflow 的参数
+        concurrency: number of concurrent workers
+        detection_kwargs: parameters passed to DetectionWorkflow
         """
         self.concurrency = concurrency
         self.detection_kwargs = detection_kwargs
@@ -48,13 +49,13 @@ class BatchDetectionWorkflow:
     def run_batch(self, file_paths: List[str], software_context: SoftwareContext = None) -> List[
         Optional[AnalysisResult]]:
         """
-        并发分析多个二进制文件（多进程版本）
-        file_paths: 待分析的二进制文件路径列表
-        返回: 每个文件的 AnalysisResult，失败则为 None
+        Concurrently analyze multiple binary files (multiprocessing version).
+        file_paths: list of binary file paths to analyze
+        Returns: AnalysisResult for each file; None if failed
         """
         results = [None] * len(file_paths)
 
-        # 准备参数列表
+        # Prepare argument list
         args_list = [
             (idx, file_path, self.detection_kwargs, software_context)
             for idx, file_path in enumerate(file_paths)
@@ -67,7 +68,7 @@ class BatchDetectionWorkflow:
             }
 
             for future in tqdm(concurrent.futures.as_completed(future_to_idx), total=len(file_paths),
-                               desc="批量分析进度"):
+                               desc="Batch analysis progress"):
                 idx, result = future.result()
                 results[idx] = result
 
