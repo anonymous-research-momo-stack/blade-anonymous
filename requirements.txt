@@ -1,49 +1,49 @@
-# Web框架和API相关
+# Web framework and API
 fastapi~=0.116.1
 uvicorn~=0.35.0
 pydantic~=2.11.7
 pydantic-settings~=2.10.1
 
-# 数据库相关
+# Database
 SQLAlchemy~=2.0.39
 psycopg2-binary==2.9.10
 pgvector
 lancedb
 minio
 
-# 任务队列和缓存
+# Task queue and cache
 celery~=5.5.3
 redis~=6.2.0
 schedule
 
-# AI和机器学习相关
+# AI and machine learning
 openai
 anthropic
 ollama
 tantivy
 agno
 
-# 数据处理和分析
+# Data processing and analysis
 networkx
 scipy
 matplotlib
 yfinance
 
-# 网络和HTTP请求
+# Network and HTTP requests
 requests
 duckduckgo-search
 ddgs
 
-# 版本控制和代码分析
+# Version control and code analysis
 GitPython
 pylance
 
-# 二进制分析和逆向工程
+# Binary analysis and reverse engineering
 lief~=0.16.6
 binaryai
 conan
 
-# 工具和实用程序
+# Tools and utilities
 tqdm~=4.67.1
 loguru~=0.7.2
 environs~=14.2.0

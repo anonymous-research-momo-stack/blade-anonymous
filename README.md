@@ -1,6 +1,6 @@
-# BinSCA-E
+# BLADE
 
-This is a Binary TPL Reuse Detection Tool for C/C++ Binaries. It use Agents to enhance the whole detection workflow.
+A multi-agent C/C++ binary TPL detection framework.
 
 ## Requirements
 - MacOS 13+/Ubuntu 20.04+
@@ -9,10 +9,6 @@ This is a Binary TPL Reuse Detection Tool for C/C++ Binaries. It use Agents to e
 
 ## Quick Start
 ### 1. Clone the Repository
-```shell    
-git clone git@github.com:OpenBinarySCA/bsca-expert-agent-api.git
-```
-
 ### 2. Install Python Dependencies
 
 ```shell    
