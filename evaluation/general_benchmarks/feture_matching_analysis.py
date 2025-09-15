@@ -13,90 +13,123 @@ from evaluation.general_benchmarks.database_checker import get_library_string_co
 from evaluation.general_benchmarks.interface import AnalysisResultCheck, Benchmark, TestCase
 
 
-def _plot_feature_matching_top_n_effectiveness_figure(effectiveness_dict):
-    """
-    绘制特征匹配效果分析图表
+import numpy as np
+import matplotlib.pyplot as plt
+from matplotlib import rcParams
+from mpl_toolkits.axes_grid1.inset_locator import inset_axes
 
-    Parameters:
-    effectiveness_dict: dict, 格式为 {top_n: {"precision": float, "recall": float, "f1_score": float}}
-    """
+import numpy as np
+import matplotlib.pyplot as plt
+from matplotlib import rcParams
+from matplotlib.ticker import PercentFormatter
 
-    # 设置学术论文风格
-    plt.style.use('seaborn-v0_8-whitegrid')  # 使用学术风格
-    rcParams['font.family'] = 'serif'
-    rcParams['font.size'] = 12
-    rcParams['axes.labelsize'] = 14
-    rcParams['axes.titlesize'] = 16
-    rcParams['xtick.labelsize'] = 12
-    rcParams['ytick.labelsize'] = 12
-    rcParams['legend.fontsize'] = 12
+import numpy as np
+import matplotlib.pyplot as plt
+from matplotlib import rcParams
+from matplotlib.ticker import PercentFormatter
 
-    # 提取数据并转换键为整数
-    top_n_values = sorted([int(k) for k in effectiveness_dict.keys()])
-    precision_values = [effectiveness_dict[str(top_n)]['precision'] for top_n in top_n_values]
-    recall_values = [effectiveness_dict[str(top_n)]['recall'] for top_n in top_n_values]
-    f1_values = [effectiveness_dict[str(top_n)]['f1_score'] for top_n in top_n_values]
+import numpy as np
+import matplotlib.pyplot as plt
+from matplotlib import rcParams
+from matplotlib.ticker import PercentFormatter
 
-    # 创建图表
-    fig, ax = plt.subplots(figsize=(10, 6), dpi=300)
+def _plot_feature_matching_top_n_effectiveness_figure(
+    effectiveness_dict,
+    *,
+    savepath=None,
+    dpi=300,
+    figsize=(7.5, 2.6)
+):
+    # 论文风基础样式
+    plt.style.use('default')
+    rcParams.update({
+        "font.family": "serif",
+        "font.size": 11,
+        "axes.titlesize": 12,
+        "axes.labelsize": 12,
+        "xtick.labelsize": 10,
+        "ytick.labelsize": 10,
+        "legend.fontsize": 10,
+        "axes.linewidth": 1.0,
+        "xtick.major.width": 0.9,
+        "ytick.major.width": 0.9,
+        "xtick.minor.width": 0.8,
+        "ytick.minor.width": 0.8,
+    })
 
-    # 绘制三条线，使用插值让线条更加流畅
-    from scipy.interpolate import make_interp_spline
+    # 数据
+    top_n_values = sorted(int(k) for k in effectiveness_dict.keys())
+    precision_values = [effectiveness_dict[str(k)]["precision"] for k in top_n_values]
+    recall_values    = [effectiveness_dict[str(k)]["recall"]    for k in top_n_values]
+    f1_values        = [effectiveness_dict[str(k)]["f1_score"]  for k in top_n_values]
 
-    # 为了让线条更流畅，创建更密集的x点进行插值
-    x_smooth = np.linspace(min(top_n_values), max(top_n_values), 300)
+    # 画布：用 constrained layout，自动为图外图例留白
+    fig, ax = plt.subplots(figsize=figsize, dpi=dpi, layout='constrained')
 
-    # 使用样条插值让线条更流畅
-    precision_smooth = make_interp_spline(top_n_values, precision_values, k=3)(x_smooth)
-    recall_smooth = make_interp_spline(top_n_values, recall_values, k=3)(x_smooth)
-    f1_smooth = make_interp_spline(top_n_values, f1_values, k=3)(x_smooth)
+    # 线与标记
+    series = [
+        ("Precision", precision_values, "-",  "o"),
+        ("Recall",    recall_values,    "--", "s"),
+        ("F1 score",  f1_values,        "-.", "^"),
+    ]
+    for label, y, ls, mk in series:
+        ax.plot(
+            top_n_values, y,
+            linewidth=2.0,
+            linestyle=ls,
+            marker=mk,
+            markersize=4.2,
+            markerfacecolor="white",
+            markeredgewidth=1.0,
+            label=label
+        )
 
-    # 绘制流畅的线条
-    ax.plot(x_smooth, precision_smooth, 'b-', linewidth=2.5, label='Precision', alpha=0.8)
-    ax.plot(x_smooth, recall_smooth, 'r-', linewidth=2.5, label='Recall', alpha=0.8)
-    ax.plot(x_smooth, f1_smooth, 'g-', linewidth=2.5, label='F1-Score', alpha=0.8)
-
-    # 在原始数据点上添加小标记点（可选，让数据点更明显）
-    ax.scatter(top_n_values, precision_values, color='blue', s=15, alpha=0.6, zorder=5)
-    ax.scatter(top_n_values, recall_values, color='red', s=15, alpha=0.6, zorder=5)
-    ax.scatter(top_n_values, f1_values, color='green', s=15, alpha=0.6, zorder=5)
-
-    # 设置坐标轴
-    ax.set_xlabel('Top-N Results', fontweight='bold')
-    ax.set_ylabel('Performance (%)', fontweight='bold')
-
-    # 设置坐标轴范围和刻度
-    ax.set_xlim(1, max(top_n_values))
+    # 坐标轴与刻度
+    ax.set_xlabel("Top N Results")
+    ax.set_ylabel("Performance (%)")
+    ax.set_xlim(min(top_n_values), max(top_n_values))
     ax.set_ylim(0, 100)
 
-    # 设置x轴刻度，确保显示关键点
-    x_ticks = list(range(1, max(top_n_values) + 1, 10))  # 每10个显示一个刻度
-    if max(top_n_values) not in x_ticks:
-        x_ticks.append(max(top_n_values))
-    ax.set_xticks(x_ticks)
+    xmax = max(top_n_values)
+    xticks = [1] + [t for t in range(5, xmax + 1, 5)]
+    if xmax not in xticks:
+        xticks.append(xmax)
+    ax.set_xticks(xticks)
 
-    # 设置y轴刻度
     ax.set_yticks(range(0, 101, 10))
+    ax.yaxis.set_major_formatter(PercentFormatter(100, decimals=0))
 
-    # 添加网格
-    ax.grid(True, alpha=0.3, linestyle='-', linewidth=0.5)
-    ax.set_axisbelow(True)  # 将网格放在数据线后面
+    ax.tick_params(direction="in", length=4.5, width=0.9)
+    ax.tick_params(axis="both", which="minor", direction="in", length=2.5)
+    ax.minorticks_on()
 
-    # 添加图例
-    ax.legend(loc='best', frameon=True, fancybox=True, shadow=True)
+    ax.spines["top"].set_visible(False)
+    ax.spines["right"].set_visible(False)
 
-    # 优化布局
-    plt.tight_layout()
+    # 只保留水平网格
+    ax.grid(axis="y", which="major", linestyle="-", linewidth=0.6, alpha=0.22)
+    ax.grid(axis="y", which="minor", linestyle=":", linewidth=0.5, alpha=0.15)
 
-    # 显示图表
-    plt.show()
+    # 图例放在图外右侧（不会遮数据）
+    ax.legend(
+        loc='center left',
+        bbox_to_anchor=(1.02, 0.5),
+        frameon=False
+    )
 
-    # 如果需要保存图表，可以取消注释以下行
-    # plt.savefig('effectiveness_analysis.pdf', dpi=300, bbox_inches='tight')
-    # plt.savefig('effectiveness_analysis.png', dpi=300, bbox_inches='tight')
+    # 在 x=6 处画竖线并简短标注
+    ax.axvline(x=6, color='gray', linestyle=':', linewidth=1.2)
+    ax.text(6, 96, '', rotation=90, va='top', ha='right', fontsize=9, color='gray')
 
-    print("建议的图表标题：Performance Metrics vs Top-N Results in Binary Third-party Component Detection")
-    print("图表已生成，如需保存请取消注释相应代码行")
+    # 保存或展示
+    if savepath:
+        fig.savefig(f"{savepath}.pdf", bbox_inches='tight')
+        fig.savefig(f"{savepath}.png", bbox_inches='tight')
+    else:
+        plt.show()
+
+    print("建议图题：Performance of the basic string matching tool with different Top N parameters")
+
 
 
 def plot_feature_matching_top_n_effectiveness_figure(effectiveness_analysis_result_path):

@@ -832,12 +832,118 @@ def print_RQ3_data():
     for key, value in cost.items():
         print(f"{key}: {value}")
 
+def generate_raw_results_csv():
+    """
+    binary_hash, binary_name, ground_truth_tpl_names, blade_gpt_5_mini, blade_gpt_5_nano, blade_qwen_3, binary_ai, b2sfinder, osspolice, bat, CT1, CT2
+
+    :return:
+    """
+
+    def load_result(file_path):
+        report = EvaluationReport.load_from_file(file_path)
+
+        result_dict = {}
+        for check in report.evaluation_results_check:
+            result_dict[check.binary_hash] = check.detected_lib_names
+
+        return result_dict
+
+    # =============== 重新对比结果与groundtruth ==============
+    print(f"our gpt 5 mini")
+    result_path = "/Users/liuchengyue/Desktop/BinarySCA Platform/Code/sca_agents/bsca-expert-agent-api/tmp/evaluation_reports/Conan/ours/gpt_5_mini/evaluation_report_reanalyzed.json"
+    blade_gpt_5_mini_result_dict = load_result(result_path)
+
+    print(f"our gpt 5 nano")
+    result_path = "/Users/liuchengyue/Desktop/BinarySCA Platform/Code/sca_agents/bsca-expert-agent-api/tmp/evaluation_reports/Conan/ours/gpt_5_nano/evaluation_report_reanalyzed.json"
+    blade_gpt_5_nano_result_dict = load_result(result_path)
+
+    print(f"our qwen 3")
+    result_path = "/Users/liuchengyue/Desktop/BinarySCA Platform/Code/sca_agents/bsca-expert-agent-api/tmp/evaluation_reports/Conan/ours/qwen3/evaluation_report_reanalyzed.json"
+    blade_qwen_3_result_dict = load_result(result_path)
+
+    print(f"Scantist")
+    result_path = "/Users/liuchengyue/Desktop/BinarySCA Platform/Code/sca_agents/bsca-expert-agent-api/tmp/evaluation_reports/Conan/scantist/291-75403-xd70-无agent-扫描报告-2025-08-06T09_36_22+08_00/result_converted_reanalyzed.json"
+    CT1_result_dict = load_result(result_path)
+
+    print(f"Blackduck")
+    result_path = "/Users/liuchengyue/Desktop/BinarySCA Platform/Code/sca_agents/bsca-expert-agent-api/tmp/evaluation_reports/Conan/blackduck/result_converted_reanalyzed.json"
+    CT2_result_dict = load_result(result_path)
+
+    print(f"BAT")
+    result_path = "/Users/liuchengyue/Desktop/BinarySCA Platform/Code/sca_agents/bsca-expert-agent-api/tmp/evaluation_reports/Conan/bat/raw_result_converted_reanalyzed.json"
+    bat_result_dict = load_result(result_path)
+
+    print(f"OssPolice")
+    result_path = "/Users/liuchengyue/Desktop/BinarySCA Platform/Code/sca_agents/bsca-expert-agent-api/tmp/evaluation_reports/Conan/osspolice/raw_result_converted_reanalyzed.json"
+    osspolice_result_dict = load_result(result_path)
+
+    print(f"Binary AI")
+    result_path = "/Users/liuchengyue/Desktop/BinarySCA Platform/Code/sca_agents/bsca-expert-agent-api/tmp/evaluation_reports/Conan/binary_ai/evaluation_report_2025-07-30-12-54-29_converted_reanalyzed.json"
+    binary_ai_result_dict = load_result(result_path)
+
+    print(f"B2SFinder")
+    result_path = "/Users/liuchengyue/Desktop/BinarySCA Platform/Code/sca_agents/bsca-expert-agent-api/tmp/evaluation_reports/Conan/b2sfinder/result_converted_reanalyzed.json"
+    b2sfinder_result_dict = load_result(result_path)
+
+    # =============== 读取groundtruth ==============
+    benchmark_meta="/Users/liuchengyue/Desktop/BinarySCA Platform/Code/sca_agents/bsca-expert-agent-api/evaluation/general_benchmarks/benchmark_meta/conan_library_benchmark_20250831_2032.json"
+    benchmark = Benchmark.load_from_json_file(benchmark_meta)
+    csv_lines = []
+    for index, case in enumerate(sorted(benchmark.test_cases, key=lambda tc: tc.test_binary.sha256), 1):
+        binary_hash = case.test_binary.sha256
+        binary_name = case.test_binary.original_name
+        binary_size_kb = round(case.test_binary.file_size_kb, 2)
+        compile_config = case.test_binary.relative_path.split('/')[2]
+        architecture = "arm_64" if "arm64" in compile_config else "x86_64"
+        compiler = "clang" if "clang" in compile_config else "gcc"
+        ground_truth_tpl_names = ";".join([f"{lib.name} ({', '.join(lib.other_names)})" if lib.other_names else lib.name for lib in case.reused_libraries])
+        our_gpt_5_mini = "; ".join(blade_gpt_5_mini_result_dict.get(binary_hash, []))
+        our_gpt_5_nano = "; ".join(blade_gpt_5_nano_result_dict.get(binary_hash, []))
+        our_qwen_3 = "; ".join(blade_qwen_3_result_dict.get(binary_hash, []))
+        ct1 = "; ".join(CT1_result_dict.get(binary_hash, []))
+        ct2 = "; ".join(CT2_result_dict.get(binary_hash, []))
+        bat = "; ".join(bat_result_dict.get(binary_hash, []))
+        osspolice = "; ".join(osspolice_result_dict.get(binary_hash, []))
+        binary_ai = "; ".join(binary_ai_result_dict.get(binary_hash, []))
+        b2sfinder = "; ".join(b2sfinder_result_dict.get(binary_hash, []))
+        csv_line_dict = {
+            "index": index,
+            "binary_hash": binary_hash,
+            "binary_name": binary_name,
+            "binary_size_kb": binary_size_kb,
+            "architecture": architecture,
+            "compiler": compiler,
+            "ground_truth_tpl_names": ground_truth_tpl_names,
+            "blade_gpt_5_mini": our_gpt_5_mini,
+            "blade_gpt_5_nano": our_gpt_5_nano,
+            "blade_qwen_3": our_qwen_3,
+            "BinaryAI": binary_ai,
+            "BAT": bat,
+            "OssPolice": osspolice,
+            "B2SFinder": b2sfinder,
+            "CT1": ct1,
+            "CT2": ct2,
+        }
+        csv_lines.append(csv_line_dict)
+
+    # 写入CSV文件
+    csv_path = "/Users/liuchengyue/Desktop/BinarySCA Platform/Code/sca_agents/bsca-expert-agent-api/tmp/evaluation_reports/Conan/raw_results_comparison.csv"
+    headers = ["binary_hash", "binary_name", "binary_size_kb", "architecture", "compiler",
+               "ground_truth_tpl_names",
+               "blade_gpt_5_mini", "blade_gpt_5_nano", "blade_qwen_3", "BinaryAI", "B2SFinder", "BAT", "OssPolice","CT1", "CT2"]
+
+    # 把 dict 写如
+    with open(csv_path, 'w', encoding='utf-8') as f:
+        f.write(",".join(headers) + "\n")
+        for line in csv_lines:
+            row = [str(line.get(header, "")) for header in headers]
+            f.write(",".join(row) + "\n")
 
 def main():
     # print_RQ1_data()
-    print_RQ2_data()
+    # print_RQ2_data()
     # print_RQ3_data()
-
+    generate_raw_results_csv()
 
 
 if __name__ == '__main__':

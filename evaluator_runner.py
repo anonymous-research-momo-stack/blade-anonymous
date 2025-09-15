@@ -286,8 +286,8 @@ if __name__ == '__main__':
     # stable_test()
     # print_stable_test()
     # run_failed_case_only()
-    reanalyze_all_result()
-    # run_feature_matching_only()
+    # reanalyze_all_result()
+    run_feature_matching_only()
 
 
     """
