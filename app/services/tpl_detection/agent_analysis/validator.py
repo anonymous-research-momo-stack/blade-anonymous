@@ -856,7 +856,7 @@ Binary: {target_binary.binary_name} ({target_binary.file_size_kb} KB)
             return result_map[library_name]
 
         # Case-insensitive match
-        for key in sorted(result_map.keys()):  # 🔧 添加sorted()
+        for key in sorted(result_map.keys()): 
             if key.lower() == library_name.lower():
                 return result_map[key]
 
