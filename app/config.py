@@ -29,7 +29,7 @@ class Settings(BaseSettings):
     REDIS_PASSWORD: str = env.str("REDIS_PASSWORD", "")
     REDIS_DB_BROKER: int = env.int("REDIS_DB_BROKER", 0)  # Celery broker
     REDIS_DB_RESULT: int = env.int("REDIS_DB_RESULT", 0)  # Celery result backend
-    REDIS_DB_METADATA: int = env.int("REDIS_DB_METADATA", 2)  # 任务元数据存储
+    REDIS_DB_METADATA: int = env.int("REDIS_DB_METADATA", 2)
 
     # --------- MinIO Configuration ----------
     MINIO_ENDPOINT: str = env.str("MINIO_ENDPOINT", "localhost:9000")
@@ -41,7 +41,7 @@ class Settings(BaseSettings):
     LOCAL_TEMP_DIR: str = env.str("LOCAL_TEMP_DIR", "/tmp/")
     
     # --------- Analysis Configuration ----------
-    CLEANUP_ANALYSIS_FILES: bool = env.bool("CLEANUP_ANALYSIS_FILES", True)  # 是否清理分析过程文件
+    CLEANUP_ANALYSIS_FILES: bool = env.bool("CLEANUP_ANALYSIS_FILES", True)
 
     # --------- LLM Configuration ----------
     # LLM Provider: "openai", "anthropic", "ollama"
