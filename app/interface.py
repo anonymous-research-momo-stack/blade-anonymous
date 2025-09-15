@@ -65,7 +65,7 @@ class TargetBinary(Serializable):
 
     # strings
     strings: List[str] = dataclasses.field(default_factory=list)
-    # 分类的字符串
+    # classified strings
     classified_strings:Dict[str, List[str]] = dataclasses.field(default_factory=dict)  # e.g., {"function": ["func1", "func2"], "variable": ["var1"]}
 
     # dynamic libraries
@@ -84,7 +84,7 @@ class TargetBinary(Serializable):
 
     def preview(self):
         print("\n" + "="*60)
-        print("📊 目标二进制文件预览")
+        print("📊 Target binary preview")
         print("="*60)
         print(f"\tname: {self.binary_name}")
         print(f"\tpath: {self.absolute_path}")
@@ -131,30 +131,30 @@ class Library(Serializable):
 
 @dataclass
 class AnalysisConfig(Serializable):
-    # LLM相关
+    # LLM related
     llm_provider: str = "openai"  # e.g., "openai", "anthropic", "ollama"
     model_id: str = "gpt-4.1"  # e.g., "gpt-4.1", "claude-2", "llama-3"
 
-    # 特征匹配参数
+    # Feature matching parameters
     feature_matching_min_string_length: int = 5
     feature_matching_max_string_length: int = 500
     feature_matching_min_match_feature_num: int = 5
     feature_matching_return_top_n: int = 3
 
-    # 是否使用agent
+    # Whether to use agent
     use_agent:bool = True
 
-    # 二进制信息分析
+    # Binary information analysis
     enable_bin_info_analysis: bool = True
     enable_bin_info_analysis_web_search: bool = False
     enable_bin_info_analysis_knowledge_base: bool = False
 
-    # TPL分析
+    # TPL analysis
     enable_tpl_analysis: bool = True
     enable_tpl_analysis_web_search: bool = False
     enable_tpl_analysis_knowledge_base: bool = False
 
-    # 库验证
+    # Library validation
     enable_library_validation_web_search: bool = False
     enable_library_validation_knowledge_base: bool = False
     enable_library_validation_db_verification: bool = False
@@ -166,10 +166,10 @@ class AnalysisConfig(Serializable):
 class AnalysisData(Serializable):
     analysis_datetime: str = dataclasses.field(default_factory=lambda: datetime.now().strftime("%Y-%m-%d %H:%M:%S"))
     config: AnalysisConfig = None
-    error_message: str = None  # 分析过程中可能出现的错误信息
+    error_message: str = None  # Possible error message during analysis
     context: SoftwareContext=None
     target_binary: TargetBinary = None
-    all_candidate_libraries: List[Library] = dataclasses.field(default_factory=list)  # 所有候选库列表
+    all_candidate_libraries: List[Library] = dataclasses.field(default_factory=list)  # All candidate libraries
     feature_matching_results: List[Library] = dataclasses.field(default_factory=list)
     tpl_analysis_results: List[Library] = dataclasses.field(default_factory=list)
     validation_step_1_results: List[LibraryValidationResult] = dataclasses.field(default_factory=list)  # e.g., {"libpng": True, "openssl": False}
@@ -178,77 +178,77 @@ class AnalysisData(Serializable):
     costs: Dict[str, Any] = dataclasses.field(default_factory=dict)  # e.g., {"tpl_detection": 0.01, "binary_analysis": 0.02}
 
     def preview(self):
-        """预览分析结果"""
+        """Preview analysis results"""
         print("\n" + "=" * 60)
-        print(f"错误日志：{self.error_message}" if self.error_message else "无错误日志")
+        print(f"Error log: {self.error_message}" if self.error_message else "No error logs")
         print("\n" + "="*60)
-        print("📊 分析结果预览 for {}".format(self.target_binary.binary_name))
+        print("📊 Analysis result preview for {}".format(self.target_binary.binary_name))
         print("="*60)
-        # 0. 二年制文件预览
+        # 0. Binary file preview
         self.target_binary.preview()
 
-        # 1. 预览特征匹配结果
-        print("\n🔍 特征匹配结果:")
-        print(f"   匹配到的TPL数量: {len(self.feature_matching_results)}")
+        # 1. Preview feature matching results
+        print("\n🔍 Feature matching results:")
+        print(f"   Number of matched TPLs: {len(self.feature_matching_results)}")
         if self.feature_matching_results:
             for i, lib in enumerate(self.feature_matching_results, 1):
-                print(f"   {i}. {lib.name} - 匹配特征数量: {len(lib.matched_strings)}")
+                print(f"   {i}. {lib.name} - Number of matched features: {len(lib.matched_strings)}")
         else:
-            print("   未找到匹配的TPL")
+            print("   No matched TPL found")
         
-        # 2. 预览TPL分析结果
-        print("\n🤖 TPL分析结果:")
-        print(f"   Agent识别的TPL数量: {len(self.tpl_analysis_results)}")
+        # 2. Preview TPL analysis results
+        print("\n🤖 TPL analysis results:")
+        print(f"   Number of TPLs identified by Agent: {len(self.tpl_analysis_results)}")
         if self.tpl_analysis_results:
             for i, lib in enumerate(self.tpl_analysis_results, 1):
                 print(f"   {i}. {lib.name}")
-                print(f"      描述: {lib.description}")
-                print(f"      推理过程: {lib.reasoning}")
-                print(f"      证据类型: {lib.evidence_type}")
-                print(f"      证据数量: {len(lib.evidences)}")
-                print(f"      证据例子: {lib.evidences[:5]}")
+                print(f"      Description: {lib.description}")
+                print(f"      Reasoning: {lib.reasoning}")
+                print(f"      Evidence type: {lib.evidence_type}")
+                print(f"      Number of evidences: {len(lib.evidences)}")
+                print(f"      Evidence examples: {lib.evidences[:5]}")
         else:
-            print("   Agent未识别到TPL")
+            print("   Agent did not identify any TPL")
         
-        # 3. 预览验证步骤1结果
-        print("\n✅ 验证步骤1: 验证识别结果的合理性")
-        print(f"   验证的TPL数量: {len(self.validation_step_1_results)}")
+        # 3. Preview validation step 1 results
+        print("\n✅ Validation Step 1: Reasonableness of identified results")
+        print(f"   Number of validated TPLs: {len(self.validation_step_1_results)}")
         if self.validation_step_1_results:
             passed_count = sum(1 for result in self.validation_step_1_results if result.is_reasonable)
-            print(f"   通过验证: {passed_count}/{len(self.validation_step_1_results)}")
+            print(f"   Passed: {passed_count}/{len(self.validation_step_1_results)}")
             for i, result in enumerate(self.validation_step_1_results, 1):
                 status = "✅" if result.is_reasonable else "❌"
                 print(f"   {i}. {status} {result.library_name}")
-                print(f"      置信度: {result.confidence}")
-                print(f"      分析: {result.reasoning}")
+                print(f"      Confidence: {result.confidence}")
+                print(f"      Analysis: {result.reasoning}")
         else:
-            print("   无验证步骤1数据")
+            print("   No validation step 1 data")
         
-        # 4. 预览验证步骤2结果
-        print("\n🔍 验证步骤2: 验证所有合理结果的冗余性")
-        print(f"   冗余分析的TPL数量: {len(self.validation_step_2_results)}")
+        # 4. Preview validation step 2 results
+        print("\n🔍 Validation Step 2: Redundancy of all reasonable results")
+        print(f"   Number of TPLs in redundancy analysis: {len(self.validation_step_2_results)}")
         if self.validation_step_2_results:
             kept_count = sum(1 for result in self.validation_step_2_results if result.should_keep)
-            print(f"   保留的TPL: {kept_count}/{len(self.validation_step_2_results)}")
+            print(f"   Kept TPLs: {kept_count}/{len(self.validation_step_2_results)}")
             for i, result in enumerate(self.validation_step_2_results, 1):
                 status = "✅" if result.should_keep else "❌"
                 print(f"   {i}. {status} {result.library_name}")
-                print(f"      分析: {result.reasoning}")
+                print(f"      Analysis: {result.reasoning}")
         else:
-            print("   无验证步骤2数据")
+            print("   No validation step 2 data")
         print("="*60)
-        print(f"效率与成本分析")
+        print(f"Efficiency and cost analysis")
         print("="*60)
-        # 5. 打印时间开销
-        print("\n⏱️  时间开销:")
+        # 5. Print time cost
+        print("\n⏱️  Time cost:")
         if self.durations:
             for step, duration in self.durations.items():
-                print(f"   {step}: {duration}秒")
+                print(f"   {step}: {duration} seconds")
         else:
-            print("   无时间开销数据")
+            print("   No time cost data")
         
-        # 6. 打印token成本
-        print("\n💰 Token成本:")
+        # 6. Print token cost
+        print("\n💰 Token cost:")
 
         if self.costs:
             total_input = 0
@@ -263,12 +263,12 @@ class AnalysisData(Serializable):
                         total_output += value[0] if key == "output_tokens" else 0
 
             total_tokens = total_input + total_output
-            print(f"   总输入Token: {total_input} tokens, 总输出Token: {total_output} tokens, 总Token: {total_tokens} tokens")
+            print(f"   Total input tokens: {total_input} tokens, Total output tokens: {total_output} tokens, Total tokens: {total_tokens} tokens")
 
             total_cost = total_input * 2/1_000_000 + total_output * 8/1_000_000
-            print(f"   总成本: ${total_cost:.6f} (假设单价为输入Token $2/百万, 输出Token $8/百万)")
+            print(f"   Total cost: ${total_cost:.6f} (assuming unit price: input tokens $2/million, output tokens $8/million)")
         else:
-            print("   无成本数据")
+            print("   No cost data")
         
         print("\n" + "="*60)
 
@@ -288,12 +288,12 @@ class AnalysisResult(Serializable):
     binary_path: str
     detected_libraries: List[Library] = dataclasses.field(default_factory=list)
     analysis_data: AnalysisData = None
-    succeed: bool = True  # 分析是否成功
+    succeed: bool = True  # Whether the analysis succeeded
     error_message: str = None
 
     def dump_to_file(self, file_path: str):
         """
-        将分析结果序列化并保存到文件
+        Serialize the analysis result and save it to a file
         """
         import json
         with open(file_path, 'w', encoding='utf-8') as f:
@@ -302,7 +302,7 @@ class AnalysisResult(Serializable):
     @classmethod
     def init_from_file(cls, file_path: str):
         """
-        从文件中加载分析结果
+        Load analysis result from a file
         """
         import json
         with open(file_path, 'r', encoding='utf-8') as f:
@@ -311,7 +311,7 @@ class AnalysisResult(Serializable):
 
     def get_simple_result(self) -> SimpleResult:
         """
-        获取简化的分析结果
+        Get a simplified analysis result
         """
         return SimpleResult(
             target_binary_name=self.binary_name,
@@ -324,35 +324,35 @@ class AnalysisResult(Serializable):
 @dataclass
 class BinaryContext(Serializable):
     """
-    Binary file context information (预留接口)
+    Binary file context information (reserved interface)
     """
-    # 项目基本信息
+    # Project basic information
     project_root_path: str = ""
-    project_type: str = ""  # web应用、桌面软件、库等
-    project_description: str = ""  # 从README等提取的项目描述
+    project_type: str = ""  # web application, desktop software, library, etc.
+    project_description: str = ""  # Project description extracted from README, etc.
 
-    # 文件位置信息
-    file_relative_path: str = ""  # 相对于项目根目录的路径
-    directory_context: str = ""  # 所在目录的文件类型和用途
+    # File location information
+    file_relative_path: str = ""  # Path relative to the project root directory
+    directory_context: str = ""  # File types and purposes in the directory
 
-    # 项目结构信息
-    key_files: List[str] = dataclasses.field(default_factory=list)  # 关键文件列表
-    build_system: str = ""  # CMake, Makefile, npm等
+    # Project structure information
+    key_files: List[str] = dataclasses.field(default_factory=list)  # Key file list
+    build_system: str = ""  # CMake, Makefile, npm, etc.
 
-    # 功能推断
-    likely_purpose: str = ""  # 这个二进制文件可能的用途
-    related_binaries: List[str] = dataclasses.field(default_factory=list)  # 相关的其他二进制文件
+    # Function inference
+    likely_purpose: str = ""  # The possible purpose of this binary file
+    related_binaries: List[str] = dataclasses.field(default_factory=list)  # Other related binary files
 
 
 class TPLDetectionTaskStatus(Enum):
     """
-    任务状态
+    Task status
     """
-    PENDING = "pending"  # 任务正在等待执行
-    FILE_DOWNLOADING = "file_downloading"  # 文件下载中
-    ANALYZING = "analyzing"  # 任务正在分析中
-    RESULT_UPLOADING = "result_uploading"  # 结果上传中
-    SUCCESS = "success"  # 任务执行成功
+    PENDING = "pending"  # Task is pending
+    FILE_DOWNLOADING = "file_downloading"  # File is downloading
+    ANALYZING = "analyzing"  # Task is analyzing
+    RESULT_UPLOADING = "result_uploading"  # Result is uploading
+    SUCCESS = "success"  # Task succeeded
     FAILED = "failed"
 
     def customer_serialize(self) -> str:
@@ -365,14 +365,14 @@ class TPLDetectionTaskStatus(Enum):
 @dataclass
 class TPLDetectionTask(Serializable):
     task_id: str
-    file_minio_path: str # minio 路径
-    file_local_path: str = None  # 本地临时路径
-    workspace_dir: str = None  # 任务专用工作目录路径
+    file_minio_path: str # minio path
+    file_local_path: str = None  # Local temporary path
+    workspace_dir: str = None  # Dedicated working directory for the task
 
     start_at: str = dataclasses.field(default_factory=lambda: datetime.now().strftime("%Y-%m-%d %H:%M:%S"))
     end_at: str = None
     
-    # 各个步骤的时间
+    # Timestamps for each step
     file_download_start_at: str = None
     file_download_end_at: str = None
     analysis_start_at: str = None

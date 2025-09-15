@@ -26,7 +26,7 @@ class Serializable:
             elif isinstance(value, list) and value and hasattr(value[0], 'customer_serialize'):
                 serialized_data[field.name] = [item.customer_serialize() for item in value]
             elif isinstance(value, dict):
-                # 处理字典类型的序列化
+                # Handle serialization for dictionary type
                 serialized_dict = {}
                 for key, val in value.items():
                     if hasattr(val, 'customer_serialize'):
@@ -45,21 +45,21 @@ class Serializable:
             try:
                 field_value = data.get(field.name)
 
-                # 如果字段值为None，直接使用默认值
+                # If the field value is None, use the default value directly
                 if field_value is None:
                     init_args[field.name] = field_value
                     continue
 
-                # 获取类型信息
+                # Get type information
                 field_type = field.type
                 origin_type = get_origin(field_type)
                 type_args = get_args(field_type)
 
-                # 处理直接的自定义类
+                # Handle direct custom classes
                 if hasattr(field_type, 'init_from_dict') and isinstance(field_value, dict):
                     init_args[field.name] = field_type.init_from_dict(field_value)
 
-                # 处理 List[CustomClass] 类型
+                # Handle List[CustomClass] type
                 elif (origin_type is list and
                       isinstance(field_value, list) and
                       type_args and
@@ -68,16 +68,16 @@ class Serializable:
                     init_args[field.name] = [type_args[0].init_from_dict(item) for item in field_value if
                                              item is not None]
 
-                # 处理 Dict[str, List[CustomClass]] 类型
+                # Handle Dict[str, List[CustomClass]] type
                 elif (origin_type is dict and
                       isinstance(field_value, dict) and
                       len(type_args) >= 2):
 
-                    value_type = type_args[1]  # 获取字典值的类型
+                    value_type = type_args[1]  # Get the type of the dictionary value
                     value_origin = get_origin(value_type)
                     value_args = get_args(value_type)
 
-                    # 如果字典值是 List[CustomClass] 类型
+                    # If the dictionary value is of type List[CustomClass]
                     if (value_origin is list and
                             value_args and
                             hasattr(value_args[0], 'init_from_dict')):
@@ -91,7 +91,7 @@ class Serializable:
                                 processed_dict[key] = value_list
                         init_args[field.name] = processed_dict
 
-                    # 如果字典值是直接的自定义类 Dict[str, CustomClass]
+                    # If the dictionary value is a direct custom class Dict[str, CustomClass]
                     elif hasattr(value_type, 'init_from_dict'):
                         processed_dict = {}
                         for key, value_item in field_value.items():
@@ -102,15 +102,15 @@ class Serializable:
                         init_args[field.name] = processed_dict
 
                     else:
-                        # 普通字典，直接赋值
+                        # Regular dictionary, assign directly
                         init_args[field.name] = field_value
 
-                # 处理 Union 类型（包括 Optional）
+                # Handle Union types (including Optional)
                 elif origin_type is Union:
-                    # 尝试按照Union中的每个类型进行初始化
+                    # Try initializing according to each type in the Union
                     initialized = False
                     for union_type in type_args:
-                        if union_type is type(None):  # 跳过 None 类型
+                        if union_type is type(None):  # Skip None type
                             continue
                         try:
                             if hasattr(union_type, 'init_from_dict') and isinstance(field_value, dict):
@@ -124,7 +124,7 @@ class Serializable:
                         init_args[field.name] = field_value
 
                 else:
-                    # 其他情况，直接赋值
+                    # Other cases, assign directly
                     init_args[field.name] = field_value
 
             except Exception as e:
@@ -233,17 +233,18 @@ class Benchmark(Serializable):
 
     def stat(self):
         """
-        统计测试用例的数量，一共重用了多少个库，多少条重用关系
+        Count the number of test cases, the number of reused libraries,
+        and the number of reuse relations.
 
-        按照架构分成三组，然后再统计一次。
+        Group into three categories by architecture, then count again.
         :return:
         """
-        # 总体统计
+        # Overall statistics
         total_test_cases = len(self.test_cases)
         total_reuse_relations = 0
         all_library_names = set()
 
-        # 按架构分组
+        # Group by architecture
         gcc_x86_cases = []
         gcc_arm_cases = []
         clang_x86_64_cases = []
@@ -252,7 +253,7 @@ class Benchmark(Serializable):
         for test_case in self.test_cases:
             binary_path = test_case.test_binary.relative_path
 
-            # 分组
+            # Grouping
             if "x86_64-gcc" in binary_path:
                 gcc_x86_cases.append(test_case)
             elif "arm_64-gcc" in binary_path:
@@ -262,27 +263,27 @@ class Benchmark(Serializable):
             else:
                 other_cases.append(test_case)
 
-            # 统计重用关系和库名
+            # Count reuse relations and library names
             for reused_lib in test_case.reused_libraries:
                 total_reuse_relations += 1
                 all_library_names.add(reused_lib.name)
 
         total_unique_libraries = len(all_library_names)
 
-        # 打印总体统计
+        # Print overall statistics
         print("=" * 60)
-        print("Benchmark 统计报告")
+        print("Benchmark Statistics Report")
         print("=" * 60)
-        print(f"基准测试名称: {self.name}")
-        print(f"版本: {self.version}")
+        print(f"Benchmark name: {self.name}")
+        print(f"Version: {self.version}")
         print()
-        print("总体统计:")
-        print(f"  测试用例数量: {total_test_cases}")
-        print(f"  重用库数量: {total_unique_libraries}")
-        print(f"  重用关系数量: {total_reuse_relations}")
+        print("Overall statistics:")
+        print(f"  Test case count: {total_test_cases}")
+        print(f"  Reused library count: {total_unique_libraries}")
+        print(f"  Reuse relation count: {total_reuse_relations}")
         print()
 
-        # 定义统计函数
+        # Define statistics function
         def get_arch_stats(cases, arch_name):
             if not cases:
                 return 0, 0, 0
@@ -297,54 +298,54 @@ class Benchmark(Serializable):
 
             return len(cases), len(arch_library_names), arch_reuse_relations
 
-        # 按架构统计并打印
-        print("按架构分组统计:")
+        # Statistics by architecture and print
+        print("Statistics by architecture:")
         print("-" * 60)
 
-        # GCC x86_64 统计
+        # GCC x86_64 statistics
         gcc_x86_test_cases, gcc_x86_libs, gcc_x86_relations = get_arch_stats(gcc_x86_cases, "GCC x86_64")
         print(f"GCC x86_64:")
-        print(f"  测试用例数量: {gcc_x86_test_cases}")
-        print(f"  重用库数量: {gcc_x86_libs}")
-        print(f"  重用关系数量: {gcc_x86_relations}")
+        print(f"  Test case count: {gcc_x86_test_cases}")
+        print(f"  Reused library count: {gcc_x86_libs}")
+        print(f"  Reuse relation count: {gcc_x86_relations}")
         print()
 
-        # GCC ARM 统计
+        # GCC ARM statistics
         gcc_arm_test_cases, gcc_arm_libs, gcc_arm_relations = get_arch_stats(gcc_arm_cases, "GCC ARM")
         print(f"GCC ARM:")
-        print(f"  测试用例数量: {gcc_arm_test_cases}")
-        print(f"  重用库数量: {gcc_arm_libs}")
-        print(f"  重用关系数量: {gcc_arm_relations}")
+        print(f"  Test case count: {gcc_arm_test_cases}")
+        print(f"  Reused library count: {gcc_arm_libs}")
+        print(f"  Reuse relation count: {gcc_arm_relations}")
         print()
 
-        # Clang x86_64 统计
+        # Clang x86_64 statistics
         clang_x86_64_test_cases, clang_x86_64_libs, clang_x86_64_relations = get_arch_stats(clang_x86_64_cases,
                                                                                             "Clang x86_64")
         print(f"Clang x86_64:")
-        print(f"  测试用例数量: {clang_x86_64_test_cases}")
-        print(f"  重用库数量: {clang_x86_64_libs}")
-        print(f"  重用关系数量: {clang_x86_64_relations}")
+        print(f"  Test case count: {clang_x86_64_test_cases}")
+        print(f"  Reused library count: {clang_x86_64_libs}")
+        print(f"  Reuse relation count: {clang_x86_64_relations}")
         print()
 
-        # 其他架构统计（如果有的话）
+        # Other architectures statistics (if any)
         if other_cases:
-            other_test_cases, other_libs, other_relations = get_arch_stats(other_cases, "其他")
-            print(f"其他架构:")
-            print(f"  测试用例数量: {other_test_cases}")
-            print(f"  重用库数量: {other_libs}")
-            print(f"  重用关系数量: {other_relations}")
+            other_test_cases, other_libs, other_relations = get_arch_stats(other_cases, "Others")
+            print(f"Other architectures:")
+            print(f"  Test case count: {other_test_cases}")
+            print(f"  Reused library count: {other_libs}")
+            print(f"  Reuse relation count: {other_relations}")
             print()
 
-        # 验证总数
+        # Validate totals
         arch_total_cases = gcc_x86_test_cases + gcc_arm_test_cases + clang_x86_64_test_cases + len(other_cases)
         arch_total_relations = gcc_x86_relations + gcc_arm_relations + clang_x86_64_relations
         if other_cases:
             arch_total_relations += other_relations
 
         print("-" * 60)
-        print("验证:")
-        print(f"  架构分组测试用例总数: {arch_total_cases} (应等于总测试用例数: {total_test_cases})")
-        print(f"  架构分组重用关系总数: {arch_total_relations} (应等于总重用关系数: {total_reuse_relations})")
+        print("Validation:")
+        print(f"  Total test cases across architecture groups: {arch_total_cases} (should equal total test cases: {total_test_cases})")
+        print(f"  Total reuse relations across architecture groups: {arch_total_relations} (should equal total reuse relations: {total_reuse_relations})")
         print("=" * 60)
 
     def __repr__(self):
@@ -354,8 +355,8 @@ class Benchmark(Serializable):
 class AnalysisResultCheck(Serializable):
 
     """
-    1. 结果的验证
-    2. 记录TP, FP, FN
+    1. Result verification
+    2. Record TP, FP, FN
     """
     binary_name: str = None  # Name of the binary file
     binary_path: str = None  # Path of the binary file, relative to the test case directory
@@ -369,7 +370,7 @@ class AnalysisResultCheck(Serializable):
     no_results:bool = False  # No results detected, if True, means no libraries are detected in this binary
     hs_fn: bool = False  # Has False Negative, if True, means there are libraries in ground truth that are not detected
     hs_fp: bool = False  # Has False Positive, if True, means there are libraries detected that are not in ground truth
-    hs_rd_tp: bool = False  # 是否有重复的结果
+    hs_rd_tp: bool = False  # Whether there are duplicate results
     result_count:int = 0  # Number of results in this check
     tp_count:int = 0  # True Positive count
     redundant_tp_count:int = 0  # True Positive count
@@ -402,26 +403,26 @@ class EffectivenessData(Serializable):
 @dataclass
 class AblationData(Serializable):
     """
-    分析几个主要环节的贡献
+    Analyze the contributions of key stages
 
-    1. 消融整个Agent分析 (仅保留特征匹配结果）
-    2. 消融 Agent 识别
-    3. 消融 Agent 验证
-        3.1 消融 合理性 验证
-        3.2 消融 冗余性 验证
-        3.3 消融全部验证
+    1. Ablate the entire Agent analysis (retain only feature matching results)
+    2. Ablate Agent identification
+    3. Ablate Agent validation
+        3.1 Ablate rationality validation
+        3.2 Ablate redundancy validation
+        3.3 Ablate all validations
     """
 
     wo_agent_analysis: EffectivenessData = None  # Effectiveness data without agent analysis
     wo_agent_analysis_top_1:EffectivenessData = None # Effectiveness data without agent analysis, only keep the top 1 results
     wo_agent_analysis_top_2:EffectivenessData = None # Effectiveness data without agent analysis, only keep the top 2 results
     wo_agent_analysis_top_3:EffectivenessData = None # Effectiveness data without agent analysis, only keep the top 3 results
-    wo_agent_analysis_top_4:EffectivenessData = None # Effectiveness data without agent analysis, only keep the top 3 results
+    wo_agent_analysis_top_4:EffectivenessData = None # Effectiveness data without agent analysis, only keep the top 4 results
     only_agent_analysis_wt_validation:EffectivenessData = None
-    wo_agent_tpl_analysis: EffectivenessData = None  # Effectiveness data without agent analysis
+    wo_agent_tpl_analysis: EffectivenessData = None  # Effectiveness data without TPL analysis
     wo_validation_step_1: EffectivenessData = None  # Effectiveness data without validation step 1
     wo_validation_step_2: EffectivenessData = None  # Effectiveness data without validation step 2
-    wo_validation_step_1_and_2: EffectivenessData = None  # Effectiveness data without validation step 1 and 2
+    wo_validation_step_1_and_2: EffectivenessData = None  # Effectiveness data without validation steps 1 and 2
 
 
 @dataclass
@@ -472,24 +473,24 @@ class ResearchQuestionData(Serializable):
     """
     Data structure for research question data
     """
-    # rq 1 效果
+    # rq 1 Effectiveness
     effectiveness: EffectivenessData = None  # Data for research question 1
     gcc_x86_effectiveness: EffectivenessData = None  # GCC x86 effectiveness data
     gcc_arm_effectiveness: EffectivenessData = None  # GCC ARM effectiveness data
     clang_x86_64_effectiveness: EffectivenessData = None  # Clang x86_64 effectiveness data
 
-    size_lt_1000kb_effectiveness: EffectivenessData = None  # Effectiveness data for files smaller than 1000KB
-    size_lt_500kb_effectiveness: EffectivenessData = None  # Effectiveness data for files smaller than 500KB
-    size_lt_100kb_effectiveness: EffectivenessData = None  # Effectiveness data for files between 100KB and 1MB
+    size_lt_1000kb_effectiveness: EffectivenessData = None  # Effectiveness for files smaller than 1000KB
+    size_lt_500kb_effectiveness: EffectivenessData = None  # Effectiveness for files smaller than 500KB
+    size_lt_100kb_effectiveness: EffectivenessData = None  # Effectiveness for files between 100KB and 1MB
 
 
-    # rq 2 消融实验
+    # rq 2 Ablation study
     effectiveness_ablation_study: AblationData = None  # Data for research question 2
 
-    # rq 3 效率
+    # rq 3 Efficiency
     efficiency: EfficiencyData = dataclasses.field(default_factory=EfficiencyData)  # Data for research question 3
 
-    # rq 4 成本
+    # rq 4 Cost
     cost: CostData = None
 
 @dataclass
