@@ -14,56 +14,56 @@ from ..agent_analysis.string_filter import StringFilter
 
 def calculate_file_sha256(file_path):
     """
-    计算指定文件的SHA256哈希值
+    Calculate SHA256 hash value of the specified file
 
     Args:
-        file_path (str): 文件路径
+        file_path (str): File path
 
     Returns:
-        str: 文件的SHA256哈希值（十六进制字符串）
+        str: SHA256 hash value of the file (hexadecimal string)
 
     Raises:
-        FileNotFoundError: 如果文件不存在
-        PermissionError: 如果没有读取文件的权限
-        OSError: 其他文件操作错误
+        FileNotFoundError: If file does not exist
+        PermissionError: If no permission to read the file
+        OSError: Other file operation errors
     """
-    # 检查文件是否存在
+    # Check if file exists
     if not os.path.exists(file_path):
-        raise FileNotFoundError(f"文件不存在: {file_path}")
+        raise FileNotFoundError(f"File does not exist: {file_path}")
 
-    # 检查是否为文件（而不是目录）
+    # Check if it is a file (not a directory)
     if not os.path.isfile(file_path):
-        raise ValueError(f"路径不是文件: {file_path}")
+        raise ValueError(f"Path is not a file: {file_path}")
 
-    # 创建SHA256哈希对象
+    # Create SHA256 hash object
     sha256_hash = hashlib.sha256()
 
     try:
-        # 以二进制模式打开文件
+        # Open file in binary mode
         with open(file_path, 'rb') as file:
-            # 分块读取文件内容，避免大文件占用过多内存
+            # Read file content in chunks to avoid excessive memory usage for large files
             for chunk in iter(lambda: file.read(4096), b""):
                 sha256_hash.update(chunk)
     except PermissionError:
-        raise PermissionError(f"没有读取文件的权限: {file_path}")
+        raise PermissionError(f"No permission to read file: {file_path}")
     except OSError as e:
-        raise OSError(f"读取文件时发生错误: {e}")
+        raise OSError(f"Error occurred while reading file: {e}")
 
-    # 返回十六进制格式的哈希值
+    # Return hash value in hexadecimal format
     return sha256_hash.hexdigest()
 
 class FilePreprocessor:
 
     def __init__(self,
-                 # StringFilter相关参数
-                 max_copyright: int = 15,  # 版权信息最大显示数量
-                 max_paths: int = 20,  # 路径URL最大显示数量
-                 max_function_prefixes: int = 15,  # 函数前缀最大显示数量
-                 max_logs: int = 10,  # 日志消息最大显示数量
-                 max_versions: int = 8,  # 版本信息最大显示数量
-                 max_string_length: int = 200,  # 单个字符串最大长度
+                 # StringFilter related parameters
+                 max_copyright: int = 15,  # Maximum number of copyright information to display
+                 max_paths: int = 20,  # Maximum number of path URLs to display
+                 max_function_prefixes: int = 15,  # Maximum number of function prefixes to display
+                 max_logs: int = 10,  # Maximum number of log messages to display
+                 max_versions: int = 8,  # Maximum number of version information to display
+                 max_string_length: int = 200,  # Maximum length of a single string
                  ):
-        # StringFilter配置
+        # StringFilter configuration
         self.string_filter = StringFilter(
             max_copyright=max_copyright,
             max_paths=max_paths,
@@ -79,23 +79,23 @@ class FilePreprocessor:
 
                       ) -> TargetBinary:
         """
-        对二进制文件进行基础分析，提取字符串信息和动态链接信息
+        Perform basic analysis on binary files, extract string information and dynamic linking information
 
         Args:
-            file_path: 二进制文件路径
-            root_path: 根目录路径，用于计算相对路径。如果为None，则使用file_path作为根目录
+            file_path: Binary file path
+            root_path: Root directory path, used to calculate relative path. If None, use file_path as root directory
 
         Returns:
-            TargetBinary: 包含分析结果的对象
+            TargetBinary: Object containing analysis results
         """
         if not os.path.exists(file_path):
-            raise FileNotFoundError(f"文件不存在: {file_path}")
+            raise FileNotFoundError(f"File does not exist: {file_path}")
 
-        # 获取文件基本信息
+        # Get basic file information
         file_path_obj = Path(file_path)
-        file_size_kb = file_path_obj.stat().st_size // 1024  # 转换为KB
+        file_size_kb = file_path_obj.stat().st_size // 1024  # Convert to KB
 
-        # 计算相对路径
+        # Calculate relative path
         if root_path is None:
             root_path = file_path
 
@@ -103,27 +103,27 @@ class FilePreprocessor:
         file_path_absolute = file_path_obj.absolute()
         root_path_absolute = root_path_obj.absolute()
 
-        # 如果根目录和文件路径一致，使用根目录
+        # If root directory and file path are the same, use root directory
         if file_path_absolute == root_path_absolute:
             relative_path = root_path_obj.name
         else:
-            # 计算相对于根目录的路径
+            # Calculate path relative to root directory
             try:
                 relative_path = str(file_path_absolute.relative_to(root_path_absolute))
             except ValueError:
-                # 如果文件不在根目录下，使用文件名
+                # If file is not under root directory, use file name
                 relative_path = file_path_obj.name
 
-        # 提取动态链接库, 导入，到处符号表
+        # Extract dynamic libraries, imports, and export symbol table
         dynamic_linked_libraries, imported_symbols, exported_symbols = self._lief_parse(file_path)
 
-        # 使用strings命令提取字符串
+        # Extract strings using strings command
         strings_list = self._extract_strings(file_path)
 
         # Filter and categorize strings
         filtered_strings = self.string_filter.filter_strings(strings_list)
 
-        # 创建TargetBinary对象
+        # Create TargetBinary object
         target_binary = TargetBinary(
             binary_name=file_path_obj.name,
             hash_sha256= calculate_file_sha256(file_path),
@@ -143,59 +143,59 @@ class FilePreprocessor:
 
     def _extract_strings(self, file_path: str) -> List[str]:
         """
-        使用strings命令提取二进制文件中的字符串
+        Extract strings from binary file using strings command
 
         Args:
-            file_path: 二进制文件路径
+            file_path: Binary file path
 
         Returns:
-            List[str]: 提取的字符串列表
+            List[str]: List of extracted strings
         """
         try:
-            # 使用strings命令，设置最小长度为4的字符串
+            # Use strings command, set minimum length to 5 for strings
             result = subprocess.run(
                 ['strings', '-n', '5', file_path],
                 capture_output=True,
                 text=True,
-                timeout=30  # 设置超时时间
+                timeout=30  # Set timeout
             )
 
             if result.returncode == 0:
-                # 分割输出并过滤空字符串
-                # 在strings提取后进行排序
+                # Split output and filter empty strings
+                # Sort after strings extraction
                 strings = sorted([line.strip() for line in result.stdout.split('\n') if line.strip()])
                 return strings
             else:
-                logger.debug(f"strings命令执行失败: {result.stderr}")
+                logger.debug(f"strings command execution failed: {result.stderr}")
                 return []
 
         except subprocess.TimeoutExpired:
-            logger.debug(f"strings命令执行超时: {file_path}")
+            logger.debug(f"strings command execution timeout: {file_path}")
             return []
         except FileNotFoundError:
-            logger.debug("strings命令未找到，请确保系统已安装strings工具")
+            logger.debug("strings command not found, please ensure the system has strings tool installed")
             return []
         except Exception as e:
-            logger.error(f"提取字符串时发生错误: {e}")
+            logger.error(f"Error occurred while extracting strings: {e}")
             logger.error(f"Traceback: {traceback.format_exc()}")
             return []
 
 
     def _lief_parse(self, file_path):
         """
-        获取二进制文件的动态链接库
+        Get dynamic libraries of binary file
 
         Args:
-            file_path (str): 二进制文件路径
+            file_path (str): Binary file path
 
         Returns:
-            list: 动态链接库名称列表
+            list: Dynamic library name list
         """
         try:
             binary = lief.parse(file_path)
             if binary is None:
                 return [],[],[]
-            # 在 _lief_parse 方法中
+            # In _lief_parse method
             dynamic_linked_libraries = sorted(list(binary.libraries))
             imported_symbols = sorted([symbol.name for symbol in binary.imported_symbols if symbol.name])
             exported_symbols = sorted([symbol.name for symbol in binary.exported_symbols if symbol.name])
@@ -203,72 +203,72 @@ class FilePreprocessor:
         except:
             return [],[],[]
 
-    # TODO tpl_analyzer 里面也实现了一份，改成一样的。
+    # TODO tpl_analyzer also has an implementation, make them the same.
     def _analyze_exported_symbols(self, exported_symbols: list) -> Dict[str, Any]:
-        """按函数前缀分类分析导出符号"""
+        """Analyze exported symbols by function prefix classification"""
         if not exported_symbols:
             return {}
 
         prefix_categories = {}
 
         for symbol in exported_symbols:
-            # 提取前缀（到第一个下划线）
+            # Extract prefix (to first underscore)
             if '_' in symbol:
                 prefix = symbol.split('_')[0]
             else:
-                # 如果没有下划线，取前几个字符作为前缀
+                # If no underscore, take first few characters as prefix
                 import re
                 match = re.match(r'^[a-zA-Z]+', symbol)
                 prefix = match.group()[:4] if match else 'other'
 
-            # 只统计有意义的前缀（长度>=2）
+            # Only count meaningful prefixes (length >= 2)
             if len(prefix) >= 2:
                 if prefix not in prefix_categories:
                     prefix_categories[prefix] = []
                 prefix_categories[prefix].append(symbol)
 
-        # 整理结果：每个前缀类别给几个例子
+        # Organize results: give a few examples for each prefix category
         result = {
             'total_exported': len(exported_symbols),
             'prefix_categories': {}
         }
 
-        # 在 _analyze_exported_symbols 和 _analyze_imported_symbols 中
-        # 对 prefix_categories 的键进行排序遍历
+        # In _analyze_exported_symbols and _analyze_imported_symbols
+        # Sort and iterate through prefix_categories keys
         for prefix in sorted(prefix_categories.keys()):
             symbols = prefix_categories[prefix]
             if len(symbols) >= 1:
                 result['prefix_categories'][prefix] = {
                     'count': len(symbols),
-                    'examples': sorted(symbols)[:3]  # 对examples也进行排序
+                    'examples': sorted(symbols)[:3]  # Sort examples as well
                 }
 
         return result
 
     def _analyze_imported_symbols(self, imported_symbols: list) -> Dict[str, Any]:
-        """分析导入符号的前缀模式"""
+        """Analyze prefix patterns of imported symbols"""
         if not imported_symbols:
             return {}
 
         prefix_categories = {}
 
         for symbol in imported_symbols:
-            # 提取前缀（到第一个下划线）
+            # Extract prefix (to first underscore)
             if '_' in symbol:
                 prefix = symbol.split('_')[0]
             else:
-                # 如果没有下划线，取前几个字符作为前缀
+                # If no underscore, take first few characters as prefix
                 import re
                 match = re.match(r'^[a-zA-Z]+', symbol)
                 prefix = match.group()[:4] if match else 'other'
 
-            # 只统计有意义的前缀（长度>=2）
+            # Only count meaningful prefixes (length >= 2)
             if len(prefix) >= 2:
                 if prefix not in prefix_categories:
                     prefix_categories[prefix] = []
                 prefix_categories[prefix].append(symbol)
 
-        # 只保留有多个符号的前缀
+        # Only keep prefixes with multiple symbols
         significant_prefixes = {k: v for k, v in prefix_categories.items() if len(v) >= 2}
 
         result = {
@@ -276,14 +276,14 @@ class FilePreprocessor:
             'significant_prefixes': {}
         }
 
-        # 在 _analyze_exported_symbols 和 _analyze_imported_symbols 中
-        # 对 prefix_categories 的键进行排序遍历
+        # In _analyze_exported_symbols and _analyze_imported_symbols
+        # Sort and iterate through prefix_categories keys
         for prefix in sorted(prefix_categories.keys()):
             symbols = prefix_categories[prefix]
             if len(symbols) >= 1:
                 result['significant_prefixes'][prefix] = {
                     'count': len(symbols),
-                    'examples': sorted(symbols)[:3]  # 对examples也进行排序
+                    'examples': sorted(symbols)[:3]  # Sort examples as well
                 }
 
         return result

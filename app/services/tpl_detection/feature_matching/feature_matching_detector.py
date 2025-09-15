@@ -12,38 +12,38 @@ from ....config import settings
 
 def _is_cpp_function_name(string: str) -> bool:
     """
-    判断字符串是否符合C/C++函数名规则
+    Check if string conforms to C/C++ function name rules
 
     Args:
-        string: 待检查的字符串
+        string: String to check
 
     Returns:
-        bool: 是否为C/C++函数名
+        bool: Whether it is a C/C++ function name
     """
     import re
 
-    # 去除首尾空白
+    # Remove leading and trailing whitespace
     s = string.strip()
 
-    # 空字符串或太短的字符串不是函数名
+    # Empty string or too short string is not a function name
     if len(s) < 2:
         return False
 
-    # C/C++函数名规则：
-    # 1. 只能包含字母、数字、下划线
-    # 2. 不能以数字开头
-    # 3. 不能是C++关键字
-    # 4. 通常包含字母（纯数字不是函数名）
+    # C/C++ function name rules:
+    # 1. Can only contain letters, numbers, underscores
+    # 2. Cannot start with a number
+    # 3. Cannot be a C++ keyword
+    # 4. Usually contains letters (pure numbers are not function names)
 
-    # 检查是否只包含合法字符
+    # Check if it only contains legal characters
     if not re.match(r'^[a-zA-Z_][a-zA-Z0-9_]*$', s):
         return False
 
-    # 检查是否包含字母（纯数字不是函数名）
+    # Check if it contains letters (pure numbers are not function names)
     if not re.search(r'[a-zA-Z]', s):
         return False
 
-    # 检查是否为C++关键字
+    # Check if it is a C++ keyword
     cpp_keywords = {
         'auto', 'break', 'case', 'char', 'const', 'continue', 'default', 'do',
         'double', 'else', 'enum', 'extern', 'float', 'for', 'goto', 'if',
@@ -59,8 +59,8 @@ def _is_cpp_function_name(string: str) -> bool:
     if s.lower() in cpp_keywords:
         return False
 
-    # 检查是否为常见的函数名模式
-    # 1. 包含常见的前缀/后缀
+    # Check for common function name patterns
+    # 1. Contains common prefixes/suffixes
     common_prefixes = ['get', 'set', 'is', 'has', 'can', 'should', 'will', 'do', 'make', 'create', 'init',
                        'destroy', 'free', 'alloc', 'dealloc']
     common_suffixes = ['_t', '_ptr', '_ref', '_impl', '_base', '_derived']
@@ -74,20 +74,20 @@ def _is_cpp_function_name(string: str) -> bool:
         if s_lower.endswith(suffix):
             return True
 
-    # 2. 检查是否为驼峰命名法或下划线命名法
-    # 驼峰命名法：getValue, setValue, isEnabled
+    # 2. Check if it is camelCase or snake_case naming
+    # CamelCase: getValue, setValue, isEnabled
     if re.match(r'^[a-z][a-zA-Z0-9]*$', s) or re.match(r'^[A-Z][a-zA-Z0-9]*$', s):
         return True
 
-    # 下划线命名法：get_value, set_value, is_enabled
+    # Snake_case: get_value, set_value, is_enabled
     if re.match(r'^[a-z][a-z0-9_]*$', s) and '_' in s:
         return True
 
-    # 3. 检查是否包含常见的函数名模式
+    # 3. Check if it contains common function name patterns
     function_patterns = [
-        r'^[a-zA-Z_][a-zA-Z0-9_]*$',  # 基本函数名模式
-        r'.*[A-Z].*',  # 包含大写字母（可能是驼峰命名）
-        r'.*_.*',  # 包含下划线
+        r'^[a-zA-Z_][a-zA-Z0-9_]*$',  # Basic function name pattern
+        r'.*[A-Z].*',  # Contains uppercase letters (possibly camelCase)
+        r'.*_.*',  # Contains underscores
     ]
 
     for pattern in function_patterns:
@@ -99,8 +99,8 @@ def _is_cpp_function_name(string: str) -> bool:
 
 class FeatureMatchingDetector:
     """
-    特征匹配检测器
-    用于检测二进制文件与已知库的匹配度
+    Feature matching detector
+    Used to detect the matching degree between binary files and known libraries
     """
 
     def __init__(self,
@@ -108,16 +108,16 @@ class FeatureMatchingDetector:
                  feature_min_length=5,
                  feature_max_length=500,
                  min_match_feature_num: int = 5,
-                 containment_threshold: float = 0.9,  # 包含度阈值
-                 size_ratio_threshold: float = 0.3):  # 大小比例阈值
+                 containment_threshold: float = 0.9,  # Containment threshold
+                 size_ratio_threshold: float = 0.3):  # Size ratio threshold
         """
-        初始化特征匹配检测器
+        Initialize feature matching detector
 
         Args:
-            top_n: 返回前N个候选库
-            min_match_feature_num: 最少匹配字符串数量
-            containment_threshold: 包含度阈值，用于判断是否为子集关系
-            size_ratio_threshold: 大小比例阈值，用于判断是否为通用特征匹配
+            top_n: Return top N candidate libraries
+            min_match_feature_num: Minimum number of matching strings
+            containment_threshold: Containment threshold for judging subset relationships
+            size_ratio_threshold: Size ratio threshold for judging common feature matching
         """
         self.top_n = top_n
         self.min_match_num = min_match_feature_num
@@ -133,13 +133,13 @@ class FeatureMatchingDetector:
 
     def detect(self, target_binary: TargetBinary) -> List[Library]:
         """
-        运行特征匹配检测
+        Run feature matching detection
 
         Args:
-            target_binary: 目标二进制文件对象
+            target_binary: Target binary file object
 
         Returns:
-            List[Library]: 匹配的候选库列表（Library接口类型）
+            List[Library]: List of matched candidate libraries (Library interface type)
         """
         if not target_binary.strings:
             logger.warning(f"No strings provided for binary: {target_binary.binary_name}")
@@ -148,33 +148,33 @@ class FeatureMatchingDetector:
         logger.debug(
             f"Starting feature matching detection for binary: {target_binary.binary_name} with {len(target_binary.strings)} strings")
 
-        # 筛选特征
+        # Filter features
         strings = self.filter_strings_to_match(target_binary)
-        # 调用匹配逻辑
+        # Call matching logic
         return self.match_candidate_libraries(target_binary.binary_name, strings)
 
     def filter_and_rank_candidates(self, candidate_project_entities: List[ProjectFeatureEntity]) -> List[
         ProjectFeatureEntity]:
         """
-        对候选库进行排序和筛选，去除通用特征匹配的垃圾结果
+        Sort and filter candidate libraries, removing garbage results from common feature matching
 
-        核心策略：去除同时满足以下两个条件的库：
-        1. 该库90%以上的特征都在前面某个库中（高包含度）
-        2. 该库的总特征数量不超过前面那个库的30%（低占比）
+        Core strategy: Remove libraries that meet both of the following conditions:
+        1. More than 90% of this library's features are in a previous library (high containment)
+        2. The total number of features of this library does not exceed 30% of the previous library (low proportion)
 
-        这种库大概率是通过一些通用特征巧合匹配出来的垃圾结果。
+        Such libraries are most likely garbage results that were coincidentally matched through some common features.
 
         Args:
-            candidate_project_entities: 原始候选库列表
+            candidate_project_entities: Original candidate library list
 
         Returns:
-            筛选后的候选库列表
+            Filtered candidate library list
         """
         if not candidate_project_entities:
             return []
 
         def cal_effective_string_num(project_entity: ProjectFeatureEntity) -> int:
-            """计算有效字符串数量"""
+            """Calculate the number of effective strings"""
             effective_num = 0
             for s in project_entity.matched_strings:
                 if " " not in s and len(s) < self.min_effective_string_length:
@@ -182,7 +182,7 @@ class FeatureMatchingDetector:
                 effective_num += 1
             return effective_num
 
-        # 1. 先按照字符串数量排序，再按照有效字符串数量排序
+        # 1. Sort first by string count, then by effective string count
         sorted_candidates = sorted(candidate_project_entities,
                                    key=lambda x: len(x.matched_strings),
                                    reverse=True)
@@ -191,26 +191,26 @@ class FeatureMatchingDetector:
                                    key=cal_effective_string_num,
                                    reverse=True)
 
-        # 2. 取前top_n个作为初始结果
+        # 2. Take the first top_n as initial results
         initial_candidates = sorted_candidates[:self.top_n]
 
-        # 3. 应用筛选策略：去除垃圾匹配
+        # 3. Apply filtering strategy: remove garbage matches
         filtered_candidates = []
 
         for current_candidate in initial_candidates:
             current_features = set(current_candidate.matched_strings)
             is_garbage = False
 
-            # 检查当前候选库是否为已经通过筛选的库的垃圾匹配
+            # Check if current candidate library is a garbage match for libraries that have passed filtering
             for previous_candidate in filtered_candidates:
                 previous_features = set(previous_candidate.matched_strings)
 
-                # 计算包含关系
+                # Calculate containment relationship
                 intersection = current_features & previous_features
                 containment_ratio = len(intersection) / len(current_features) if current_features else 0
                 size_ratio = len(current_features) / len(previous_features) if previous_features else 0
 
-                # 判断是否为垃圾匹配
+                # Determine if it is a garbage match
                 if (containment_ratio >= self.containment_threshold and
                         size_ratio <= self.size_ratio_threshold):
                     logger.debug(f"Filtering out garbage match: {current_candidate.name} "
@@ -222,7 +222,7 @@ class FeatureMatchingDetector:
             if not is_garbage:
                 filtered_candidates.append(current_candidate)
 
-        # 4. 记录筛选效果
+        # 4. Record filtering effect
         removed_count = len(initial_candidates) - len(filtered_candidates)
         if removed_count > 0:
             logger.debug(f"Filtered out {removed_count} garbage matches from {len(initial_candidates)} initial candidates")
@@ -241,7 +241,7 @@ class FeatureMatchingDetector:
             if not (self.feature_min_length < len(s) < self.feature_max_length):
                 continue
 
-            # 排除掉符合函数名规则的字符串，不匹配函数名
+            # Exclude strings that conform to function name rules, do not match function names
             if _is_cpp_function_name(s):
                 continue
 
@@ -251,18 +251,18 @@ class FeatureMatchingDetector:
 
     def match_candidate_libraries(self, file_name: str, strings: List[str]) -> List[Library]:
         """
-        匹配候选库
-        至少匹配 min_match_num 个字符串
-        字符串必须：长度大于min_effective_string_length 或 包含空格，或者是名称相似的库
+        Match candidate libraries
+        Must match at least min_match_num strings
+        Strings must: have length greater than min_effective_string_length or contain spaces, or be libraries with similar names
 
         Args:
-            file_name: 文件名
-            strings: 字符串列表
+            file_name: File name
+            strings: String list
 
         Returns:
-            List[Library]: 匹配的候选库列表（Library接口类型）
+            List[Library]: List of matched candidate libraries (Library interface type)
         """
-        # 1. 数据库匹配 - 先按照字符串查询数据库, 至少匹配min_match_num个字符串
+        # 1. Database matching - query database by strings first, must match at least min_match_num strings
         if self.use_new_data_base:
             candidate_project_entities = library_curd.list_libraries_by_strings(strings, min_match_num=self.min_match_num)
         else:
@@ -271,10 +271,10 @@ class FeatureMatchingDetector:
             logger.info(f"No candidate libraries found for file: {file_name}")
             return []
 
-        # 2. 应用新的排序和筛选策略
+        # 2. Apply new sorting and filtering strategy
         filter_candidate_project_entities = self.filter_and_rank_candidates(candidate_project_entities)
 
-        # 3. 名称相似的也作为候选库（保留原有逻辑）
+        # 3. Libraries with similar names are also considered as candidates (preserve original logic)
         file_name_for_check = self._prepare_filename_for_check(file_name)
 
         for project_entity in candidate_project_entities:
@@ -284,7 +284,7 @@ class FeatureMatchingDetector:
                         filter_candidate_project_entities.append(project_entity)
                         logger.debug(f"Added similar name library: {project_entity.name} for file: {file_name}")
 
-        # 4. 转换为Library接口类型
+        # 4. Convert to Library interface type
         candidate_libraries = self._convert_to_library_interface(filter_candidate_project_entities)
 
         logger.debug(f"Found {len(candidate_libraries)} candidate libraries for file: {file_name}")
@@ -293,13 +293,13 @@ class FeatureMatchingDetector:
 
     def _prepare_filename_for_check(self, file_name: str) -> str:
         """
-        准备用于检查的文件名
+        Prepare filename for checking
 
         Args:
-            file_name: 原始文件名
+            file_name: Original filename
 
         Returns:
-            处理后的文件名
+            Processed filename
         """
         file_name_for_check = file_name.lower().split(".")[0]
         if "lib" in file_name_for_check and len(file_name_for_check) >= 7:
@@ -308,50 +308,50 @@ class FeatureMatchingDetector:
 
     def _is_similar_name(self, file_name: str, library_name: str) -> bool:
         """
-        检查文件名与库名称是否相似
+        Check if filename and library name are similar
 
-        要求匹配的部分必须是独立的词，前后用特殊符号分隔
+        The matching part must be an independent word, separated by special characters before and after
 
         Args:
-            file_name: 处理后的文件名
-            library_name: 库名称
+            file_name: Processed filename
+            library_name: Library name
 
         Returns:
-            是否相似
+            Whether they are similar
         """
-        # 定义词边界分隔符模式
+        # Define word boundary separator pattern
         word_boundary = r'[\s_\-/\.\|\\\+\*\(\)\[\]\{\}\,\;\:\!\?\@\#\$\%\^\&\=\~\`]'
 
-        # 转义特殊字符，避免正则表达式冲突
+        # Escape special characters to avoid regex conflicts
         escaped_file_name = re.escape(file_name.lower())
         escaped_library_name = re.escape(library_name.lower())
 
-        # 构建正则模式：(开头|分隔符) + 目标词 + (分隔符|结尾)
+        # Build regex pattern: (start|separator) + target word + (separator|end)
         file_pattern = f'(^|{word_boundary}){escaped_file_name}({word_boundary}|$)'
         library_pattern = f'(^|{word_boundary}){escaped_library_name}({word_boundary}|$)'
 
-        # 双向检查
+        # Bidirectional check
         return (re.search(file_pattern, library_name.lower()) is not None or
                 re.search(library_pattern, file_name.lower()) is not None)
 
     def _convert_to_library_interface(self, project_entities: List[ProjectFeatureEntity]) -> List[Library]:
         """
-        将数据库实体转换为Library接口类型
+        Convert database entities to Library interface type
 
         Args:
-            project_entities: 数据库项目实体列表
+            project_entities: Database project entity list
 
         Returns:
-            Library接口类型列表
+            Library interface type list
         """
         libraries = []
         for project_entity in project_entities:
-            # 获取库的描述信息
+            # Get library description information
             description = ""
             if hasattr(project_entity, 'library') and project_entity.library:
                 description = project_entity.library.description or ""
 
-            # 创建Library对象
+            # Create Library object
             library = Library(
                 name=project_entity.name,
                 id=project_entity.id,
