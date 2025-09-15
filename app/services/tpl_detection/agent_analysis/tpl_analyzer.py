@@ -22,26 +22,26 @@ class TPLAnalyzer:
 
 
 
-                 # Prompt显示限制参数
-                 max_display_copyright: int = 10,  # Prompt中显示的版权信息数量
-                 max_display_paths: int = 8,  # Prompt中显示的路径数量
-                 max_display_function_prefixes: int = 10,  # Prompt中显示的函数前缀数量
-                 max_display_logs: int = 8,  # Prompt中显示的日志消息数量
-                 max_display_versions: int = 5,  # Prompt中显示的版本信息数量
-                 max_display_components: int = 5,  # Prompt中显示的组件数量
-                 max_matches_per_component: int = 3,  # 每个组件显示的匹配示例数量
+                 # Prompt display limits
+                 max_display_copyright: int = 10,  # Number of copyright/license strings to show
+                 max_display_paths: int = 8,  # Number of paths/URLs to show
+                 max_display_function_prefixes: int = 10,  # Number of function prefixes to show
+                 max_display_logs: int = 8,  # Number of log messages to show
+                 max_display_versions: int = 5,  # Number of version strings to show
+                 max_display_components: int = 5,  # Number of components to display
+                 max_matches_per_component: int = 3,  # Number of match examples per component
                  ):
 
 
 
-        # Prompt显示参数配置
-        self.max_display_copyright = max_display_copyright  # 版权信息显示上限
-        self.max_display_paths = max_display_paths  # 路径信息显示上限
-        self.max_display_function_prefixes = max_display_function_prefixes  # 函数前缀显示上限
-        self.max_display_logs = max_display_logs  # 日志消息显示上限
-        self.max_display_versions = max_display_versions  # 版本信息显示上限
-        self.max_display_components = max_display_components  # 组件匹配显示上限
-        self.max_matches_per_component = max_matches_per_component  # 每个组件的匹配示例数量
+        # Prompt display parameter configuration
+        self.max_display_copyright = max_display_copyright  # Upper limit for copyright/license display
+        self.max_display_paths = max_display_paths  # Upper limit for path/URL display
+        self.max_display_function_prefixes = max_display_function_prefixes  # Upper limit for function prefixes display
+        self.max_display_logs = max_display_logs  # Upper limit for log messages display
+        self.max_display_versions = max_display_versions  # Upper limit for version info display
+        self.max_display_components = max_display_components  # Upper limit for component matches display
+        self.max_matches_per_component = max_matches_per_component  # Number of examples per component
 
         # Build tools list
         tools = []
@@ -63,7 +63,7 @@ class TPLAnalyzer:
                 ),
             )
 
-        # 核心指令系统 - 修改关键部分
+        # Core instruction system - key parts
         instructions = [
             "You are an expert binary composition analyst specializing in library source code identification.",
             "",
@@ -257,7 +257,7 @@ TARGET BINARY:
 - Size: {target_binary.file_size_kb} KB
 - Type: Binary file for source code composition analysis
 """
-        # 添加上下文信息
+        # Add context info
         if software_context:
             prompt += f"""
 SOFTWARE CONTEXT ANALYSIS (confidence: {software_context.confidence_level}):
@@ -273,7 +273,7 @@ CONTEXT-BASED LIBRARY EXPECTATIONS:
 Use this context to prioritize library identification and validate findings against typical patterns for this software type.
         """
 
-        # 修改主要源库信息部分 - 不再强制要求MUST be included
+        # Modify primary source library section - no longer requires MUST be included
         if target_binary.information and target_binary.information.source_library:
             prompt += f"""
 PRELIMINARY IDENTIFICATION (from Step 1 analysis):
@@ -292,7 +292,7 @@ BINARY IDENTITY (from Step 1 analysis):
 TASK: Identify what library projects have source code compiled into this binary.
 """
 
-        # 添加符号分析部分
+        # Add symbol analysis section
         if target_binary.exported_symbols:
             symbol_analysis = target_binary.exported_symbol_analysis
             prompt += f"""
@@ -323,7 +323,7 @@ IMPORTED SYMBOL PATTERNS (Dependency Analysis):
                     examples_str = ', '.join(info['examples'])
                     prompt += f"  • {prefix}_* family: {info['count']} symbols (e.g., {examples_str})\n"
 
-        # 动态库排除信息
+        # Dynamic library exclusion info
         if target_binary.dynamic_libraries:
             prompt += f"""
 DYNAMIC LIBRARIES (excluded from analysis):
@@ -334,7 +334,7 @@ you should NOT report 'OpenSSL' as a library in this binary, because 'libssl.so'
 compiled into this binary - it's just a runtime dependency.
 """
 
-        # 字符串过滤方法说明
+        # String filtering methodology
         total_filtered = sum(len(v) if isinstance(v, list) else len(v) for v in filtered_strings.values())
         prompt += f"""
 STRING ANALYSIS METHODOLOGY:
@@ -362,7 +362,7 @@ CRITICAL DISTINCTION:
 Your task is to distinguish between these cases using all available evidence.
 """
 
-        # 版权许可证据
+        # License/Copyright evidence
         if filtered_strings.get('license_copyright'):
             copyright_items = filtered_strings['license_copyright']
             prompt += f"\nLICENSE/COPYRIGHT EVIDENCE ({len(copyright_items)} items):\n"
@@ -372,7 +372,7 @@ Your task is to distinguish between these cases using all available evidence.
                 remaining = len(copyright_items) - self.max_display_copyright
                 prompt += f"... and {remaining} more copyright/license strings\n"
 
-        # 路径URL证据
+        # Path/URL evidence
         if filtered_strings.get('paths_urls'):
             path_items = filtered_strings['paths_urls']
             prompt += f"\nPATH/URL EVIDENCE ({len(path_items)} items):\n"
@@ -382,7 +382,7 @@ Your task is to distinguish between these cases using all available evidence.
                 remaining = len(path_items) - self.max_display_paths
                 prompt += f"... and {remaining} more path/URL strings\n"
 
-        # 函数前缀模式
+        # Function prefix patterns
         if filtered_strings.get('function_prefixes'):
             prefix_items = filtered_strings['function_prefixes']
             prompt += f"\nFUNCTION PREFIX PATTERNS ({len(prefix_items)} patterns):\n"
@@ -392,7 +392,7 @@ Your task is to distinguish between these cases using all available evidence.
                 remaining = len(prefix_items) - self.max_display_function_prefixes
                 prompt += f"... and {remaining} more function prefixes\n"
 
-        # 日志错误消息
+        # Log/error messages
         if filtered_strings.get('log_messages'):
             log_items = filtered_strings['log_messages']
             prompt += f"\nLOG/ERROR MESSAGES ({len(log_items)} items):\n"
@@ -402,7 +402,7 @@ Your task is to distinguish between these cases using all available evidence.
                 remaining = len(log_items) - self.max_display_logs
                 prompt += f"... and {remaining} more log messages\n"
 
-        # 版本信息
+        # Version information
         if filtered_strings.get('version_info'):
             version_items = filtered_strings['version_info']
             prompt += f"\nVERSION INFORMATION ({len(version_items)} items):\n"
@@ -412,17 +412,17 @@ Your task is to distinguish between these cases using all available evidence.
                 remaining = len(version_items) - self.max_display_versions
                 prompt += f"... and {remaining} more version strings\n"
 
-        # 组件名匹配结果
+        # Component name match results
         component_matches = filtered_strings.get('component_matches', {})
         if component_matches:
-            # 按证据强度排序（匹配数量）
+            # Sort by evidence strength (number of matches)
             sorted_components = sorted(component_matches.items(),
                                        key=lambda x: len(x[1]), reverse=True)
 
             prompt += f"\nCOMPONENT NAME MATCHES ({len(component_matches)} components detected):\n"
             prompt += "Format: [Component] → Evidence strings (showing top matches)\n\n"
 
-            # 显示顶部组件
+            # Display top components
             for component, matches in sorted_components[:self.max_display_components]:
                 match_count = len(matches)
                 display_matches = matches[:self.max_matches_per_component]
@@ -435,19 +435,19 @@ Your task is to distinguish between these cases using all available evidence.
                     prompt += f"  ... and {remaining_matches} more matches\n"
                 prompt += "\n"
 
-            # 如果还有更多组件未显示
+            # If there are more components not shown
             if len(sorted_components) > self.max_display_components:
                 remaining_components = len(sorted_components) - self.max_display_components
                 prompt += f"... and {remaining_components} more components with fewer matches\n\n"
 
-            # 组件匹配分析指导
+            # Component match analysis guidance
             prompt += "COMPONENT MATCH ANALYSIS GUIDANCE:\n"
             prompt += "• HIGH CONFIDENCE: Components with many matches, specific function patterns, version info\n"
             prompt += "• MEDIUM CONFIDENCE: Components with moderate matches, some specific patterns\n"
             prompt += "• LOW CONFIDENCE: Components with few matches, generic terms, or common words\n"
             prompt += "• FALSE POSITIVES: Generic terms (like 'file', 'server', 'check') that appear in many contexts\n\n"
 
-            # 主导模式分析
+            # Dominant pattern analysis
             if sorted_components:
                 top_component = sorted_components[0]
                 prompt += f"DOMINANT PATTERN: '{top_component[0]}' has the most matches ({len(top_component[1])})\n"

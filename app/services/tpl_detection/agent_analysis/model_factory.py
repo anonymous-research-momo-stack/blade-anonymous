@@ -1,6 +1,6 @@
 """
 Model Factory for LLM providers
-支持多种LLM提供商：OpenAI, Anthropic, Ollama
+Supports multiple LLM providers: OpenAI, Anthropic, Ollama
 """
 
 from typing import Optional
@@ -11,19 +11,19 @@ from app.config import settings
 
 def create_model(provider: Optional[str] = None, model_id: Optional[str] = None):
     """
-    根据配置创建对应的LLM模型
-    
+    Create the corresponding LLM model based on configuration
+
     Args:
-        provider: LLM提供商 ("openai", "anthropic", "ollama")
-        model_id: 模型ID
-        
+        provider: LLM provider ("openai", "anthropic", "ollama")
+        model_id: Model ID
+
     Returns:
-        LLM模型实例
-        
+        LLM model instance
+
     Raises:
-        ValueError: 当提供商不支持或配置错误时
+        ValueError: When provider is unsupported or configuration is invalid
     """
-    # 使用配置中的默认值
+    # Use defaults from configuration
     provider = provider or settings.LLM_PROVIDER
     model_id = model_id or settings.LLM_MODEL_ID
     
@@ -44,7 +44,7 @@ def create_model(provider: Optional[str] = None, model_id: Optional[str] = None)
 
 
 def _create_openai_model(model_id: str):
-    """创建OpenAI模型"""
+    """Create OpenAI model"""
     from agno.models.openai import OpenAIChat
 
     if not settings.OPENAI_API_KEY:
@@ -53,13 +53,13 @@ def _create_openai_model(model_id: str):
     return OpenAIChat(
         id=model_id,
         api_key=settings.OPENAI_API_KEY,
-        temperature=1,  # 添加temperature参数，设为0获得最大确定性
-        seed=42,        # 添加seed参数，确保可重现性
+        temperature=1,  # Add temperature parameter; set to 0 for maximum determinism if needed
+        seed=42,        # Add seed parameter to improve reproducibility
     )
 
 
 def _create_anthropic_model(model_id: str):
-    """创建Anthropic模型"""
+    """Create Anthropic model"""
     from agno.models.anthropic import Claude
 
     if not settings.ANTHROPIC_API_KEY:
@@ -68,13 +68,13 @@ def _create_anthropic_model(model_id: str):
     return Claude(
         id=model_id,
         api_key=settings.ANTHROPIC_API_KEY,
-        temperature=1,  # 添加temperature参数，虽然不能完全确定性，但能减少随机性
-        # 注意：Anthropic不支持seed参数
+        temperature=1,  # Add temperature parameter; Anthropic cannot be fully deterministic but this reduces randomness
+        # Note: Anthropic does not support a seed parameter
     )
 
 
 def _create_ollama_model(model_id: str):
-    """创建Ollama模型"""
+    """Create Ollama model"""
     from agno.models.ollama import Ollama
 
     kwargs = {
@@ -86,12 +86,12 @@ def _create_ollama_model(model_id: str):
 
     return Ollama(**kwargs)
 def get_supported_providers():
-    """获取支持的LLM提供商列表"""
+    """Get list of supported LLM providers"""
     return ["openai", "anthropic", "ollama"]
 
 
 def get_default_model_config():
-    """获取默认模型配置"""
+    """Get default model configuration"""
     return {
         "provider": settings.LLM_PROVIDER,
         "model_id": settings.LLM_MODEL_ID

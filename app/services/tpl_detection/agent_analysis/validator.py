@@ -21,7 +21,7 @@ from agno.tools.duckduckgo import DuckDuckGoTools
 class LibraryValidator:
     """
     Expert Library Validator - STEP 3: Binary Composition Analysis
-    专业库验证器：智能二进制组成分析的最终验证环节
+    Final validation phase for intelligent binary composition analysis
     """
 
     def __init__(self,
@@ -50,7 +50,7 @@ class LibraryValidator:
                 ),
             )
 
-        # 专家级验证指令系统 - 完全重构
+        # Expert-level validation instruction set
         expert_instructions = [
             "You are a senior binary composition analysis expert conducting the final validation phase.",
             "",
@@ -200,32 +200,32 @@ class LibraryValidator:
         logger.debug(f"\n=== EXPERT VALIDATION WORKFLOW - {target_binary.binary_name} ===")
         logger.debug(f"Validating {len(libraries)} candidate libraries through two-step expert analysis")
 
-        # TODO 记录这三个小步骤的时间
-        # 预处理和特征分析
+        # TODO: record time for these three sub-steps
+        # Preprocessing and feature analysis
         start_at = time.perf_counter()
         enhanced_libraries = self._enhance_libraries_with_analysis(libraries, target_binary)
         validate_enhance_duration = time.perf_counter() - start_at
 
         try:
             step_1_start_at = time.perf_counter()
-            # 第一步：源代码包含合理性验证
+            # STEP 1: Source code inclusion validation
             logger.debug(f"\n--- STEP 1: SOURCE CODE INCLUSION VALIDATION ---")
             individual_results, step_1_response = self._step1_source_code_inclusion_validation(enhanced_libraries,
                                                                                                target_binary,
                                                                                                context)
-            # 更新 library 属性
+            # Update library attributes
             reasonable_libs = []
             for lib in enhanced_libraries:
                 if lib.name in ['gcc']:
                     continue
                 for result in individual_results.results:
-                    # 找到对应的分析结果
+                    # Find corresponding analysis result
                     if result.library_name.lower() == lib.name.lower():
-                        # 标记是否合理
+                        # Mark as reasonable or not
                         lib.is_reasonable = result.is_reasonable
                         lib.reasonable_reasoning = result.reasoning
                         if result.is_reasonable:
-                            lib.validation_passed = True # 默认通过
+                            lib.validation_passed = True # default to pass
                             reasonable_libs.append(lib)
 
             logger.debug(
@@ -233,10 +233,10 @@ class LibraryValidator:
             step_1_duration = time.perf_counter() - step_1_start_at
 
             step_2_start_at = time.perf_counter()
-            # 第二步：冲突解决和冗余消除
+            # STEP 2: Conflict resolution and redundancy elimination
             logger.debug(f"\n--- STEP 2: CONFLICT RESOLUTION AND REDUNDANCY ELIMINATION ---")
             if len(reasonable_libs) <= 1:
-                # 只有一个或没有合理库，跳过冲突解决
+                # Only one or no reasonable libraries; skip conflict resolution
                 redundancy_results = RedundancyAnalysisResults(results=[
                     RedundancyAnalysisResult(
                         library_name=lib.name,
@@ -248,7 +248,7 @@ class LibraryValidator:
             else:
                 redundancy_results, step_2_response = self._step2_conflict_resolution(reasonable_libs, target_binary,context)
 
-            # 应用最终验证结果
+            # Apply final validation results
             validated_libraries = self._apply_expert_validation_results(individual_results, redundancy_results,
                                                                         enhanced_libraries)
 
@@ -270,7 +270,7 @@ class LibraryValidator:
         except Exception as e:
             logger.error(f"Expert validation failed with error: {e}")
             logger.error(f"Traceback: {traceback.format_exc()}")
-            # 返回原始库列表，标记为未验证
+            # Return original library list, mark as not validated
             for lib in libraries:
                 lib.validation_passed = False
                 lib.validation_reasoning = f"Validation failed due to error: {str(e)}"
@@ -279,11 +279,11 @@ class LibraryValidator:
     def _enhance_libraries_with_analysis(self,
                                          libraries: List[Library],
                                          target_binary: TargetBinary) -> List[Library]:
-        """增强库信息：特征分析和数据库补充"""
-        # 基础增强
+        """Enhance library info: feature analysis and DB supplementation"""
+        # Basic enhancement
         enhanced_libraries = self._enhance_libraries_with_db_features(libraries, target_binary)
 
-        # 特征独特性分析
+        # Feature uniqueness analysis
         enhanced_libraries = self._analyze_feature_uniqueness(enhanced_libraries)
 
         return enhanced_libraries
@@ -291,7 +291,7 @@ class LibraryValidator:
     def _enhance_libraries_with_db_features(self,
                                             libraries: List[Library],
                                             target_binary: TargetBinary) -> List[Library]:
-        """为Agent分析结果补充数据库特征匹配信息"""
+        """Supplement agent results with database feature matching info"""
         if not self.enable_db_verification:
             return libraries
 
@@ -308,7 +308,7 @@ class LibraryValidator:
                 reasoning=library.reasoning
             )
 
-            # 简化的数据库查询
+            # Simplified database query
             if ("Agent" in library.identify_methods and
                     len(library.matched_strings) == 0):
                 try:
@@ -326,20 +326,20 @@ class LibraryValidator:
         return enhanced_libraries
 
     def _analyze_feature_uniqueness(self, libraries: List[Library]) -> List[Library]:
-        """分析每个库的特征独特性"""
-        # 统计每个字符串被多少个库匹配
+        """Analyze feature uniqueness for each library"""
+        # Count how many libraries matched each string
         string_counts = Counter()
         for lib in libraries:
             for string in lib.matched_strings:
                 string_counts[string] += 1
 
-        # 为每个库计算独特性信息
+        # Compute uniqueness info for each library
         for lib in libraries:
             if lib.matched_strings:
                 unique_strings = [s for s in lib.matched_strings if string_counts[s] == 1]
                 shared_strings = [s for s in lib.matched_strings if string_counts[s] > 1]
 
-                # 添加独特性分析属性
+                # Add uniqueness analysis attributes
                 lib.unique_features = unique_strings
                 lib.shared_features = shared_strings
                 lib.uniqueness_score = len(unique_strings) / len(lib.matched_strings)
@@ -355,18 +355,18 @@ class LibraryValidator:
         return libraries
 
     def _query_db_feature_match(self, library_name: str, binary_strings: List[str]) -> int:
-        """查询数据库计算特征匹配数量"""
+        """Query database to count feature matches"""
         if not self.enable_db_verification:
             return 0
-        # TODO: 实现具体的数据库查询逻辑
+        # TODO: implement concrete database query
         return 0
 
     def _step1_source_code_inclusion_validation(self, libraries: List[Library],
                                                 target_binary: TargetBinary, software_context:SoftwareContext) -> (
     IndividualValidationResults, RunResponse):
-        """第一步：源代码包含合理性验证"""
+        """STEP 1: Source code inclusion validation"""
 
-        # 设置响应模型
+        # Set response model
         self.agent.response_model = IndividualValidationResults
 
         prompt = self._build_step1_expert_prompt(libraries, target_binary,software_context)
@@ -375,7 +375,7 @@ class LibraryValidator:
         return response.content, response
 
     def _build_step1_expert_prompt(self, libraries, target_binary, software_context:SoftwareContext):
-        # 构建专家级验证prompt
+        # Build expert validation prompt
         binary_context = self._build_comprehensive_binary_context(target_binary)
         validation_framework = self._get_detailed_validation_framework()
 
@@ -397,26 +397,26 @@ CANDIDATE LIBRARIES FOR EXPERT VALIDATION ({len(libraries)}):
 
             prompt += f"\n   Detection Methods: {', '.join(lib.identify_methods)}"
 
-            # 特殊标记主体库
+            # Mark primary source library specially
             is_primary_source = self._is_primary_source_library(lib, target_binary)
             if is_primary_source:
                 prompt += f"\n   ⭐ PRIMARY SOURCE LIBRARY STATUS: This library was identified as the primary source in Step 1"
 
-            # 包含特征独特性分析
+            # Include feature uniqueness analysis
             if hasattr(lib, 'unique_feature_count'):
                 total_features = len(lib.matched_strings) if lib.matched_strings else 0
                 prompt += f"\n   Evidence Profile: {total_features} total features"
                 if total_features > 0:
                     prompt += f" ({lib.unique_feature_count} unique, {lib.shared_feature_count} shared)"
 
-                    # 展示独特特征样例
+                    # Show unique evidence samples
                     if lib.unique_features:
                         unique_examples = lib.unique_features[:2]
                         prompt += f"\n   Key Unique Evidence: {', '.join(unique_examples)}"
                         if len(lib.unique_features) > 2:
                             prompt += f"... (+{len(lib.unique_features) - 2} more unique)"
 
-                    # 展示一些证据类型
+                    # Show some evidence types
                     if hasattr(lib, 'evidences') and lib.evidences:
                         evidence_examples = lib.evidences[:2]
                         prompt += f"\n   Agent Evidence: {', '.join(evidence_examples)}"
@@ -435,7 +435,7 @@ CANDIDATE LIBRARIES FOR EXPERT VALIDATION ({len(libraries)}):
 
             prompt += "\n"
 
-        # 上下文
+        # Context
         if software_context:
             prompt += f"""
         SOFTWARE CONTEXT FOR INCLUSION VALIDATION:
@@ -498,9 +498,9 @@ PROFESSIONAL STANDARDS: Provide authoritative, well-reasoned assessments suitabl
 
     def _step2_conflict_resolution(self, reasonable_libraries: List[Library],
                                    target_binary: TargetBinary, software_context:SoftwareContext) -> (RedundancyAnalysisResults, RunResponse):
-        """第二步：冲突解决和冗余消除"""
+        """STEP 2: Conflict resolution and redundancy elimination"""
 
-        # 设置结构化响应模型
+        # Set structured response model
         self.agent.response_model = RedundancyAnalysisResults
 
         prompt = self._build_step2_expert_prompt(reasonable_libraries, target_binary,software_context)
@@ -519,10 +519,10 @@ PROFESSIONAL STANDARDS: Provide authoritative, well-reasoned assessments suitabl
 
 VALIDATED LIBRARIES FROM STEP 1 ({len(reasonable_libraries)}):
 """
-        # 识别主体库
+        # Identify primary source libraries
         primary_libs = []
         other_libs = []
-        # 🔧 先对输入列表排序
+        # Sort input list first
         sorted_libraries = sorted(reasonable_libraries, key=lambda lib: lib.name)
 
         for lib in sorted_libraries:
@@ -649,7 +649,7 @@ Ensure final result is conflict-free and architecturally sound.
         return prompt
 
     def _build_comprehensive_binary_context(self, target_binary: TargetBinary) -> str:
-        """构建全面的二进制上下文信息"""
+        """Build comprehensive binary context information"""
         context = f"""BINARY ANALYSIS CONTEXT:
 - Target: {target_binary.binary_name}
 - Size: {target_binary.file_size_kb} KB
@@ -668,7 +668,7 @@ Ensure final result is conflict-free and architecturally sound.
         return context
 
     def _get_detailed_validation_framework(self) -> str:
-        """获取详细的验证框架说明"""
+        """Get detailed validation framework description"""
         return """
 EXPERT VALIDATION FRAMEWORK:
 
@@ -702,7 +702,7 @@ ARCHITECTURAL REASONABLENESS ASSESSMENT:
 """
 
     def _get_conflict_resolution_framework(self) -> str:
-        """获取冲突解决框架"""
+        """Get conflict resolution framework"""
         return """
 CONFLICT RESOLUTION FRAMEWORK:
 
@@ -741,7 +741,7 @@ E. NAMING VARIANTS (Same Project, Different Names):
 """
 
     def _get_comprehensive_binary_context(self, target_binary: TargetBinary) -> str:
-        """获取全面的二进制上下文"""
+        """Get comprehensive binary context"""
         context = f"""CONFLICT RESOLUTION CONTEXT:
 Binary: {target_binary.binary_name} ({target_binary.file_size_kb} KB)
 """
@@ -753,18 +753,18 @@ Binary: {target_binary.binary_name} ({target_binary.file_size_kb} KB)
         return context
 
     def _is_primary_source_library(self, lib: Library, target_binary: TargetBinary) -> bool:
-        """检查是否为主体源库"""
+        """Check if library is a primary source library"""
         if not target_binary.information or not target_binary.information.source_library:
             return False
 
         primary_name = target_binary.information.source_library.name.lower()
         lib_name = lib.name.lower()
 
-        # 精确匹配或包含关系
+        # Exact match or containment relationship
         return lib_name == primary_name or primary_name in lib_name or lib_name in primary_name
 
     def _is_library_reasonable(self, library_name: str, individual_results: IndividualValidationResults) -> bool:
-        """检查库是否通过个体合理性检查"""
+        """Check whether library passed individual reasonableness check"""
         for result in individual_results.results:
             if result.library_name.lower() == library_name.lower():
                 return result.is_reasonable
@@ -774,32 +774,32 @@ Binary: {target_binary.binary_name} ({target_binary.file_size_kb} KB)
                                          individual_results: IndividualValidationResults,
                                          redundancy_results: RedundancyAnalysisResults,
                                          libraries: List[Library]) -> List[Library]:
-        """应用专家验证结果到库对象"""
+        """Apply expert validation results to library objects"""
 
         logger.debug(f"\n=== APPLYING EXPERT VALIDATION RESULTS ===")
 
-        # 创建结果映射
+        # Create result maps
         individual_map = {result.library_name: result for result in individual_results.results}
         redundancy_map = {result.library_name: result for result in redundancy_results.results}
 
         logger.debug(f"Individual validation results: {len(individual_map)} libraries")
         logger.debug(f"Conflict resolution results: {len(redundancy_map)} libraries")
 
-        # 应用验证结果
+        # Apply validation results
         for lib in libraries:
             logger.debug(f"\nProcessing library: {lib.name}")
 
-            # 查找个体验证结果（大小写不敏感）
+            # Find individual validation result (case-insensitive)
             individual_result = self._find_result_case_insensitive(lib.name, individual_map)
 
             if individual_result:
                 if not individual_result.is_reasonable:
-                    # 个体验证失败
+                    # Individual validation failed
                     lib.validation_passed = False
                     lib.validation_reasoning = f"EXPERT REJECTION: {individual_result.reasoning}"
                     logger.debug(f"❌ {lib.name}: FAILED source code inclusion validation")
                 else:
-                    # 个体验证通过，检查冲突解决结果
+                    # Individual validation passed, check conflict resolution result
                     redundancy_result = self._find_result_case_insensitive(lib.name, redundancy_map)
 
                     if redundancy_result:
@@ -814,22 +814,22 @@ Binary: {target_binary.binary_name} ({target_binary.file_size_kb} KB)
                             lib.redundancy_reasoning = f"CONFLICT RESOLUTION: {redundancy_result.reasoning}"
                             logger.debug(f"❌ {lib.name}: REMOVED in conflict resolution")
                     else:
-                        # 个体通过但没有冲突检查（单一库情况）, 默认通过
+                        # Individual passed but no conflict check (single-library case), default pass
                         lib.is_redundant = False
                         lib.validation_passed = True
                         lib.redundancy_reasoning = f"EXPERT VALIDATION PASSED: {individual_result.reasoning}"
                         logger.debug(f"✅ {lib.name}: VALIDATED (no conflicts to resolve)")
             else:
-                # 没有验证结果，默认失败
+                # No validation result, default to fail
                 lib.is_redundant = True
                 lib.validation_passed = False
                 lib.redundancy_reasoning = "VALIDATION ERROR: No expert assessment available"
                 logger.debug(f"❌ {lib.name}: Missing validation data")
 
-        # 验证主体库保护
+        # Verify primary source protection
         self._verify_primary_source_protection(libraries)
 
-        # 最终统计
+        # Final stats
         passed = sum(1 for lib in libraries if lib.validation_passed)
         failed = len(libraries) - passed
         logger.debug(f"\nEXPERT VALIDATION COMPLETE: {passed} LIBRARIES VALIDATED, {failed} REJECTED")
@@ -837,7 +837,7 @@ Binary: {target_binary.binary_name} ({target_binary.file_size_kb} KB)
         return libraries
 
     def _verify_primary_source_protection(self, libraries: List[Library]):
-        """验证主体库是否得到适当保护"""
+        """Verify if primary source library is appropriately protected"""
         primary_libs = [lib for lib in libraries if hasattr(lib, 'is_primary_source') and lib.is_primary_source]
         if primary_libs:
             for lib in primary_libs:
@@ -850,12 +850,12 @@ Binary: {target_binary.binary_name} ({target_binary.file_size_kb} KB)
             logger.debug("ℹ️  No primary source libraries identified for protection")
 
     def _find_result_case_insensitive(self, library_name: str, result_map: Dict) -> any:
-        """大小写不敏感地查找验证结果"""
-        # 先尝试精确匹配
+        """Case-insensitive lookup for validation result"""
+        # Try exact match first
         if library_name in result_map:
             return result_map[library_name]
 
-        # 大小写不敏感匹配
+        # Case-insensitive match
         for key in sorted(result_map.keys()):  # 🔧 添加sorted()
             if key.lower() == library_name.lower():
                 return result_map[key]

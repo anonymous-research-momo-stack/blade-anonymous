@@ -586,14 +586,14 @@ from loguru import logger
 
 class StringFilter:
     def __init__(self,
-                 max_copyright: int = 15,  # 版权信息最大数量
-                 max_paths: int = 20,  # 路径URL最大数量
-                 max_function_prefixes: int = 15,  # 函数前缀最大数量
-                 max_logs: int = 10,  # 日志信息最大数量
-                 max_component_strings: int = 25,  # 包含组件名的字符串最大数量
-                 max_versions: int = 8,  # 版本信息最大数量
-                 max_string_length: int = 200,  # 字符串最大长度
-                 max_matches_per_component: int = 10,  # 每个组件最大匹配数量
+                 max_copyright: int = 15,  # Maximum number of copyright/license strings
+                 max_paths: int = 20,  # Maximum number of path/URL strings
+                 max_function_prefixes: int = 15,  # Maximum number of function prefixes
+                 max_logs: int = 10,  # Maximum number of log strings
+                 max_component_strings: int = 25,  # Maximum number of strings containing component names
+                 max_versions: int = 8,  # Maximum number of version strings
+                 max_string_length: int = 200,  # Maximum string length
+                 max_matches_per_component: int = 10,  # Maximum matches per component
                  debug: bool = False):
 
         self.max_copyright = max_copyright
@@ -606,59 +606,59 @@ class StringFilter:
         self.max_matches_per_component = max_matches_per_component
         self.debug = debug
 
-        # 1. 宽泛的版权/许可证模式 - 宁可多筛选不遗漏
+        # 1. Broad copyright/license patterns - prefer over-inclusion to avoid missing items
         self.copyright_patterns = [
-            r'(?i)copyright',  # 任何包含copyright的
-            r'(?i)©',  # 版权符号
-            r'(?i)\(c\)',  # (c) 版权标记
-            r'(?i)license',  # 任何包含license的
-            r'(?i)licensed',  # 许可相关
-            r'(?i)permission',  # 许可授权
-            r'(?i)redistribution',  # 重新分发
-            r'(?i)all rights reserved',  # 版权保留
-            r'(?i)author',  # 作者信息
-            r'(?i)maintainer',  # 维护者
-            r'(?i)contributor',  # 贡献者
-            r'(?i)written by',  # 编写者
-            r'(?i)created by',  # 创建者
-            r'(?i)developed by',  # 开发者
-            r'(?i)foundation',  # 基金会
-            r'(?i)project',  # 项目
-            r'(?i)software',  # 软件
-            r'(?i)library',  # 库
-            r'(?i)framework',  # 框架
-            r'(?i)toolkit',  # 工具包
+            r'(?i)copyright',  # any occurrence of "copyright"
+            r'(?i)©',  # copyright symbol
+            r'(?i)\(c\)',  # (c) copyright mark
+            r'(?i)license',  # any occurrence of "license"
+            r'(?i)licensed',  # licensing related
+            r'(?i)permission',  # permission/license grant
+            r'(?i)redistribution',  # redistribution
+            r'(?i)all rights reserved',  # all rights reserved
+            r'(?i)author',  # author info
+            r'(?i)maintainer',  # maintainer
+            r'(?i)contributor',  # contributor
+            r'(?i)written by',  # written by
+            r'(?i)created by',  # created by
+            r'(?i)developed by',  # developed by
+            r'(?i)foundation',  # foundation
+            r'(?i)project',  # project
+            r'(?i)software',  # software
+            r'(?i)library',  # library
+            r'(?i)framework',  # framework
+            r'(?i)toolkit',  # toolkit
         ]
 
-        # 2. 路径/URL模式 - 重点关注可能包含组件信息的路径
+        # 2. Path/URL patterns - focus on paths likely to contain component info
         self.path_patterns = [
-            # 源码相关路径 - 最有价值
+            # Source code related paths - most valuable
             r'/[^/\s]*(?:src|source|include|lib|libs|library|libraries)/[^\s]*',
             r'[^/\s]+/(?:src|source|include|lib|libs)/[^/\s]+',
 
-            # 仓库URL - 非常有价值
+            # Repository URLs - highly valuable
             r'https?://(?:github|gitlab|bitbucket|sourceforge)\.(?:com|org)/[^\s]+',
             r'git://[^\s]+',
             r'svn://[^\s]+',
 
-            # 包含可能的库名的路径
+            # Paths that may contain library names
             r'/[^/\s]*(?:lib\w+|[a-z]+lib)/[^\s]*',
             r'/usr/(?:lib|include|share)/[^/\s]+/[^\s]*',
             r'/opt/[^/\s]+/[^\s]*',
 
-            # 构建和安装路径
+            # Build and installation paths
             r'/[^/\s]*(?:build|install|cmake|configure)/[^\s]*',
-            r'\.\./[^\s]+',  # 相对路径
+            r'\.\./[^\s]+',  # relative path
 
-            # Windows路径
+            # Windows paths
             r'[A-Z]:\\[^\s]*(?:lib|include|src|source)[^\s]*',
 
-            # 其他可能有价值的路径
-            r'[^/\s]+\.(?:so|a|dll|dylib)(?:\.[0-9]+)*',  # 库文件
-            r'/[^/\s]*\w+[^/\s]*/[^/\s]*\.(?:h|hpp|c|cpp|py|js)[^\s]*',  # 源文件
+            # Other potentially valuable paths
+            r'[^/\s]+\.(?:so|a|dll|dylib)(?:\.[0-9]+)*',  # library file
+            r'/[^/\s]*\w+[^/\s]*/[^/\s]*\.(?:h|hpp|c|cpp|py|js)[^\s]*',  # source file
         ]
 
-        # 3. 版本信息模式 - 更精确
+        # 3. Version info patterns - more precise
         self.version_patterns = [
             r'(?i)version\s+v?(\d+(?:\.\d+){1,3}(?:[._-](?:alpha|beta|rc|dev|pre)\d*)?)',
             r'(?i)v(\d+(?:\.\d+){1,3}(?:[._-](?:alpha|beta|rc|dev|pre)\d*)?)',
@@ -669,30 +669,30 @@ class StringFilter:
             r'(\d{4}[-./]\d{1,2}[-./]\d{1,2})',  # 日期格式
         ]
 
-        # 4. 日志关键词
+        # 4. Log keywords
         self.log_keywords = [
             'error', 'warning', 'debug', 'info', 'log', 'failed', 'success',
             'initialize', 'init', 'startup', 'shutdown', 'config', 'loading',
             'unable to', 'cannot', 'failed to', 'successfully'
         ]
 
-        # 5. 已知组件名称列表 - 设置为空列表，通过set_known_components方法设置
+        # 5. Known component names list - set via set_known_components
         self.known_component_names = []
 
-        # 预编译正则表达式以提高性能
+        # Precompile regex patterns for performance
         self.component_patterns = {}
         self.component_lib_patterns = {}
 
         self._compile_patterns()
 
     def _compile_patterns(self):
-        """预编译正则表达式以提高性能"""
+        """Precompile regex patterns for performance"""
         self.copyright_compiled_patterns = [re.compile(pattern) for pattern in self.copyright_patterns]
         self.path_compiled_patterns = [re.compile(pattern, re.IGNORECASE) for pattern in self.path_patterns]
         self.version_compiled_patterns = [re.compile(pattern, re.IGNORECASE) for pattern in self.version_patterns]
 
     def _prepare_component_patterns(self):
-        """预处理组件名，创建高效的匹配结构"""
+        """Preprocess component names and create efficient matching structures"""
         if not self.known_component_names:
             self.component_patterns = {}
             self.component_lib_patterns = {}
@@ -701,33 +701,33 @@ class StringFilter:
         self.component_patterns = {}
         self.component_lib_patterns = {}
 
-        # 定义分隔符模式：空格、下划线、点、减号、斜杠、管道符等
-        # (?:^|[\s._\-/|\\:;,()[\]{}@#$%^&*+=<>?!~`"']) 表示开头或分隔符
-        # (?=[\s._\-/|\\:;,()[\]{}@#$%^&*+=<>?!~`"']|$) 表示后面跟分隔符或结尾
+        # Define separator pattern: spaces, underscores, dots, dashes, slashes, pipes, etc.
+        # (?:^|[\s._\-/|\\:;,()[\]{}@#$%^&*+=<>?!~`"']) means start or a separator
+        # (?=[\s._\-/|\\:;,()[\]{}@#$%^&*+=<>?!~`"']|$) means followed by a separator or end
         separator_pattern = r'[\s._\-/|\\:;,()[\]{}@#$%^&*+=<>?!~`"\']'
 
         for component in self.known_component_names:
             component_lower = component.lower()
             try:
-                # 创建独立词匹配模式
-                # 1. 完整的独立词匹配
+                # Create standalone word matching patterns
+                # 1. Full standalone word match
                 word_pattern = rf'(?:^|{separator_pattern})({re.escape(component_lower)})(?={separator_pattern}|$)'
                 self.component_patterns[component] = re.compile(word_pattern, re.IGNORECASE)
 
-                # 2. lib前缀匹配（也要求独立）
+                # 2. "lib" prefix match (also standalone)
                 lib_pattern = rf'(?:^|{separator_pattern})(lib{re.escape(component_lower)})(?={separator_pattern}|$)'
                 self.component_lib_patterns[component] = re.compile(lib_pattern, re.IGNORECASE)
 
             except re.error as e:
-                # 如果组件名包含特殊字符导致正则编译失败，跳过
+                # Skip if regex compilation fails due to special characters
                 if self.debug:
                     logger.warning(f"Failed to compile pattern for component '{component}': {e}")
                 continue
 
     def _is_component_match(self, component: str, string: str) -> bool:
         """
-        检查组件名是否在字符串中作为独立词出现
-        支持各种分隔符：空格、下划线、点、减号、斜杠、管道符等
+        Check whether the component name appears as a standalone word in the string.
+        Supports various separators: spaces, underscores, dots, dashes, slashes, pipes, etc.
         """
         if component not in self.component_patterns and component not in self.component_lib_patterns:
             return False
@@ -745,11 +745,11 @@ class StringFilter:
         return False
 
     def _truncate_string(self, s: str) -> str:
-        """截断过长的字符串"""
+        """Truncate overly long strings"""
         return s[:self.max_string_length] if len(s) > self.max_string_length else s
 
     def _debug_print(self, category: str, items: List[str]):
-        """调试输出"""
+        """Debug print helper"""
         if self.debug:
             logger.info(f"\n=== {category} ===")
             for i, item in enumerate(items[:5], 1):
@@ -759,7 +759,7 @@ class StringFilter:
             logger.info(f"Total: {len(items)}")
 
     def _debug_print_component_results(self, component_results: Dict[str, List[str]]):
-        """调试输出组件匹配结果"""
+        """Debug print for component match results"""
         if not self.debug:
             return
 
@@ -811,7 +811,7 @@ class StringFilter:
         return results[:self.max_copyright]
 
     def extract_paths_urls(self, strings: List[str]) -> List[str]:
-        """筛选路径和URL，重点关注包含组件信息的"""
+        """Filter paths and URLs, focusing on ones containing component information"""
         results = []
         seen = set()
 
@@ -828,28 +828,28 @@ class StringFilter:
                         seen.add(truncated)
                     break
 
-        # 优先级排序：仓库URL > 源码路径 > 库路径 > 其他
+        # Priority sorting: repository URL > source path > library path > others
         def path_priority(s):
             score = 0
             s_lower = s.lower()
 
-            # 仓库URL最高优先级
+            # Repository URLs have the highest priority
             if any(repo in s_lower for repo in ['github', 'gitlab', 'bitbucket', 'sourceforge']):
                 score += 20
 
-            # 源码路径高优先级
+            # Source code paths have high priority
             if any(src in s_lower for src in ['src/', 'source/', 'include/']):
                 score += 15
 
-            # 库路径中等优先级
+            # Library paths have medium priority
             if any(lib in s_lower for lib in ['lib/', 'libs/', 'library/']):
                 score += 10
 
-            # 包含库文件扩展名
+            # Contains library file extension
             if re.search(r'\.(so|a|dll|dylib)', s_lower):
                 score += 8
 
-            # 长度适中的优先
+            # Medium length preferred
             if 20 <= len(s) <= 100:
                 score += 5
 
@@ -861,53 +861,53 @@ class StringFilter:
         return results[:self.max_paths]
 
     def extract_function_prefixes(self, strings: List[str]) -> List[str]:
-        """分析函数前缀并统计"""
+        """Analyze and count function prefixes"""
         function_names = []
 
-        # 提取可能的函数名
+        # Extract potential function names
         for string in strings:
-            # 简单函数名：字母开头，包含字母数字下划线，长度合适
+            # Simple function names: start with a letter, alnum/underscore, reasonable length
             if (re.match(r'^[a-zA-Z_][a-zA-Z0-9_]*$', string) and
                     3 <= len(string) <= 50 and
-                    not string.isupper()):  # 排除全大写的常量
+                    not string.isupper()):  # exclude all-uppercase constants
                 function_names.append(string)
 
-        # 提取前缀
+        # Extract prefixes
         prefixes = []
         for func in function_names:
             if '_' in func:
-                # 下划线分隔的前缀
+                # Prefix separated by underscore
                 prefix = func.split('_')[0]
                 if len(prefix) >= 2:
                     prefixes.append(prefix)
             elif len(func) > 4:
-                # 驼峰命名的前缀（简单处理）
+                # CamelCase prefix (simple handling)
                 match = re.match(r'^[a-z]+', func)
                 if match:
                     prefixes.append(match.group())
 
-        # 统计前缀频率
+        # Count prefix frequency
         prefix_counts = Counter(prefixes)
 
-        # 生成前缀统计结果
+        # Generate prefix statistics result
         prefix_results = []
         for prefix, count in prefix_counts.most_common():
-            if count >= 2:  # 至少出现2次的前缀才有意义
+            if count >= 2:  # Prefix must appear at least twice to be meaningful
                 prefix_results.append(f"{prefix} (count: {count})")
 
         self._debug_print("FUNCTION PREFIXES", prefix_results[:self.max_function_prefixes])
         return prefix_results[:self.max_function_prefixes]
 
     def extract_log_messages(self, strings: List[str]) -> List[str]:
-        """提取日志消息"""
+        """Extract log messages"""
         candidates = []
 
         for string in strings:
-            # 长度过滤
+            # Length filtering
             if not (15 <= len(string) <= self.max_string_length):
                 continue
 
-            # 检查日志特征
+            # Check log characteristics
             string_lower = string.lower()
             has_log_keyword = any(keyword in string_lower for keyword in self.log_keywords)
             has_format_specifier = bool(re.search(r'%[sdxofg]', string))
@@ -916,7 +916,7 @@ class StringFilter:
             if has_log_keyword or has_format_specifier or looks_like_message:
                 candidates.append(string)
 
-        # 按相关性排序
+        # Sort by relevance
         def log_relevance(s):
             score = 0
             s_lower = s.lower()
@@ -929,7 +929,7 @@ class StringFilter:
 
         candidates.sort(key=lambda s: (log_relevance(s), s), reverse=True)
 
-        # 去重
+        # De-duplicate
         unique_candidates = []
         seen = set()
         for candidate in candidates:
@@ -941,7 +941,7 @@ class StringFilter:
         return unique_candidates[:self.max_logs]
 
     def extract_version_info(self, strings: List[str]) -> List[str]:
-        """提取版本信息"""
+        """Extract version information"""
         results = []
         seen = set()
 
@@ -949,7 +949,7 @@ class StringFilter:
             if len(string) > self.max_string_length:
                 continue
 
-            # 使用预编译的模式
+            # Use precompiled patterns
             for pattern in self.version_compiled_patterns:
                 if pattern.search(string):
                     truncated = self._truncate_string(string)
@@ -964,18 +964,18 @@ class StringFilter:
         return results[:self.max_versions]
 
     def extract_component_name_strings(self, strings: List[str]) -> Dict[str, List[str]]:
-        """提取包含已知组件名称的字符串，返回按组件名组织的字典"""
+        """Extract strings containing known component names, return a dict keyed by component"""
         if not self.known_component_names:
             return {}
 
-        # 预处理字符串
+        # Preprocess strings
         processed_strings = []
         for string in strings:
             if len(string) <= self.max_string_length:
                 truncated = self._truncate_string(string)
                 processed_strings.append(truncated)
 
-        # 第一阶段：快速过滤 - 简单的包含匹配
+        # Phase 1: Fast filtering - simple containment check
         candidate_components = []
         seen_components = set()
         all_strings_combined = ' '.join(processed_strings).lower()
@@ -983,9 +983,9 @@ class StringFilter:
         if self.debug:
             logger.info(f"Phase 1: Fast filtering from {len(self.known_component_names)} components...")
 
-        for component in sorted(self.known_component_names):  # 排序确保确定性
+        for component in sorted(self.known_component_names):  # sorted for determinism
             component_lower = component.lower()
-            # 简单的包含检查
+            # Simple containment check
             if (component_lower in all_strings_combined or
                     f"lib{component_lower}" in all_strings_combined):
                 if component not in seen_components:
@@ -995,7 +995,7 @@ class StringFilter:
         if self.debug:
             logger.info(f"Phase 1: Filtered down to {len(candidate_components)} candidate components")
 
-        # 第二阶段：精确匹配 - 只对候选组件进行独立词匹配
+        # Phase 2: Precise matching - standalone word matching for candidate components
         component_results = {component: [] for component in candidate_components}
         string_to_components = {}
 
@@ -1004,25 +1004,25 @@ class StringFilter:
 
         for component in candidate_components:
             for original_string in processed_strings:
-                # 使用精确的独立词匹配
+                # Use precise standalone word matching
                 if self._is_component_match(component, original_string):
                     component_results[component].append(original_string)
                     if original_string not in string_to_components:
                         string_to_components[original_string] = []
                     string_to_components[original_string].append(component)
 
-        # 移除没有匹配的组件
+        # Remove components without matches
         component_results = {k: v for k, v in component_results.items() if v}
 
-        # 对每个组件的匹配结果去重、排序并限制数量
-        for component in sorted(component_results.keys()):  # 排序确保确定性
-            # 去重
+        # For each component, de-duplicate, sort, and limit the number of matches
+        for component in sorted(component_results.keys()):  # sorted for determinism
+            # De-duplicate
             unique_matches = list(dict.fromkeys(component_results[component]))
-            # 排序
+            # Sort
             component_results[component] = self._sort_component_matches(
                 unique_matches, string_to_components
             )
-            # 限制每个组件的匹配数量
+            # Limit the number of matches per component
             component_results[component] = component_results[component][:self.max_matches_per_component]
 
         if self.debug:
@@ -1045,11 +1045,11 @@ class StringFilter:
             if any(kw in s_lower for kw in ['copyright', 'version', 'license']):
                 score += 15
 
-            # 路径字符串优先
+            # Prefer path-like strings
             if '/' in s or '\\' in s or 'http' in s_lower:
                 score += 10
 
-            # 中等长度优先
+            # Prefer medium length
             if 10 <= len(s) <= 80:
                 score += 5
 
@@ -1058,14 +1058,14 @@ class StringFilter:
         return sorted(matches, key=lambda s: (priority_score(s), s), reverse=True)
 
     def set_known_components(self, component_names: List[str]):
-        """设置已知组件名称列表"""
-        self.known_component_names = sorted(component_names)  # 排序确保确定性
+        """Set known component names list"""
+        self.known_component_names = sorted(component_names)  # sorted for determinism
         self._prepare_component_patterns()
         if self.debug:
             logger.info(f"Set {len(component_names)} known component names")
 
     def filter_strings(self, strings: List[str]) -> Dict[str, any]:
-        """主要的字符串过滤方法"""
+        """Main string filtering method"""
         if self.debug:
             logger.info(f"Processing {len(strings)} strings...")
 
@@ -1075,7 +1075,7 @@ class StringFilter:
             'function_prefixes': self.extract_function_prefixes(strings),
             'log_messages': self.extract_log_messages(strings),
             'version_info': self.extract_version_info(strings),
-            'component_matches': self.extract_component_name_strings(strings),  # 现在是字典格式
+            'component_matches': self.extract_component_name_strings(strings),  # now returns a dict
         }
 
         if self.debug:
@@ -1087,40 +1087,40 @@ class StringFilter:
         return result
 
 
-# 使用示例
+# Usage example
 if __name__ == "__main__":
-    # 创建过滤器实例
+    # Create filter instance
     filter_instance = StringFilter(debug=True)
 
-    # 设置已知组件（示例）
+    # Set known components (example)
     known_components = ['openssl', 'zlib', 'curl', 'boost', 'opencv', 'ssl', 'json']
     filter_instance.set_known_components(known_components)
 
-    # 测试字符串 - 包含各种情况
+    # Test strings - include various cases
     test_strings = [
-        "Copyright 2023 OpenSSL Foundation",  # 应该匹配 openssl
-        "/usr/lib/libssl.so.1.1",  # 应该匹配 ssl
-        "https://github.com/openssl/openssl",  # 应该匹配 openssl
+        "Copyright 2023 OpenSSL Foundation",  # should match openssl
+        "/usr/lib/libssl.so.1.1",  # should match ssl
+        "https://github.com/openssl/openssl",  # should match openssl
         "version 1.1.1",
-        "ssl_init_library",  # 应该匹配 ssl
-        "ssl-connect-failed",  # 应该匹配 ssl
+        "ssl_init_library",  # should match ssl
+        "ssl-connect-failed",  # should match ssl
         "ERROR: unable to load certificate",
-        "zlib compression library",  # 应该匹配 zlib
-        "boost::algorithm::split",  # 应该匹配 boost
-        "opencv_core",  # 应该匹配 opencv
-        "opensslconfig",  # 不应该匹配 openssl（不是独立词）
-        "lib/openssl/include",  # 应该匹配 openssl
-        "parse_json_data",  # 应该匹配 json
-        "jsonparser",  # 不应该匹配 json（不是独立词）
-        "config.json",  # 应该匹配 json
-        "SSL_CTX_new",  # 应该匹配 ssl（忽略大小写）
-        "OPENSSL_VERSION",  # 应该匹配 openssl（忽略大小写）
+        "zlib compression library",  # should match zlib
+        "boost::algorithm::split",  # should match boost
+        "opencv_core",  # should match opencv
+        "opensslconfig",  # should NOT match openssl (not a standalone word)
+        "lib/openssl/include",  # should match openssl
+        "parse_json_data",  # should match json
+        "jsonparser",  # should NOT match json (not a standalone word)
+        "config.json",  # should match json
+        "SSL_CTX_new",  # should match ssl (case-insensitive)
+        "OPENSSL_VERSION",  # should match openssl (case-insensitive)
     ]
 
-    # 执行过滤
+    # Execute filtering
     results = filter_instance.filter_strings(test_strings)
 
-    # 输出结果
+    # Output results
     print("\n=== FINAL RESULTS ===")
     for category, items in results.items():
         if category == 'component_matches':

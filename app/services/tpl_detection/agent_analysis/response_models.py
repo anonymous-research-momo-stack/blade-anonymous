@@ -124,7 +124,7 @@ class TPLAnalysisResult(BaseModel):
 
 # validator
 class LibraryValidationResult(BaseModel):
-    """个体库验证结果"""
+    """Individual library validation result"""
     library_name: str = Field(description="Library name exactly as provided")
     is_reasonable: bool = Field(description="Whether this library could reasonably be compiled into the binary")
     reasoning: str = Field(description="Professional multi-dimensional analysis explaining the decision")
@@ -155,12 +155,12 @@ class LibraryValidationResult(BaseModel):
 
 # validator
 class IndividualValidationResults(BaseModel):
-    """第一步个体验证结果"""
+    """Step 1 individual validation results"""
     results: List[LibraryValidationResult] = Field(description="Individual validation results for all libraries")
 
 # validator
 class RedundancyAnalysisResult(BaseModel):
-    """冗余分析结果"""
+    """Redundancy analysis result"""
     library_name: str = Field(description="Library name exactly as provided")
     should_keep: bool = Field(description="Whether this library should be kept")
     reasoning: str = Field(description="Professional analysis explaining why keep or remove")
@@ -188,7 +188,7 @@ class RedundancyAnalysisResult(BaseModel):
 
 # validator
 class RedundancyAnalysisResults(BaseModel):
-    """第二步冗余分析结果"""
+    """Step 2 redundancy analysis results"""
     results: List[RedundancyAnalysisResult] = Field(
         description="Redundancy analysis results for all reasonable libraries")
 
