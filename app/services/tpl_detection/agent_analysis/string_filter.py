@@ -666,7 +666,7 @@ class StringFilter:
             r'(?i)build\s+(\d+)',
             r'(?i)revision\s+(\d+)',
             r'(?i)commit\s+([a-f0-9]{7,})',
-            r'(\d{4}[-./]\d{1,2}[-./]\d{1,2})',  # 日期格式
+            r'(\d{4}[-./]\d{1,2}[-./]\d{1,2})',  # date format
         ]
 
         # 4. Log keywords
@@ -732,12 +732,12 @@ class StringFilter:
         if component not in self.component_patterns and component not in self.component_lib_patterns:
             return False
 
-        # 先尝试完整词匹配
+        # First try full word match
         if component in self.component_patterns:
             if self.component_patterns[component].search(string):
                 return True
 
-        # 再尝试lib前缀匹配
+        # Then try 'lib' prefix match
         if component in self.component_lib_patterns:
             if self.component_lib_patterns[component].search(string):
                 return True
@@ -767,25 +767,25 @@ class StringFilter:
         total_matches = sum(len(matches) for matches in component_results.values())
         logger.info(f"Found matches for {len(component_results)} components, total {total_matches} strings")
 
-        # 显示前几个有匹配的组件
+        # Show the first few components with matches
         for i, (component, matches) in enumerate(list(component_results.items())[:5]):
             logger.info(f"{i + 1}. {component} ({len(matches)} matches):")
-            for j, match in enumerate(matches[:3]):  # 每个组件显示前3个匹配
+            for j, match in enumerate(matches[:3]):  # show first 3 matches per component
                 logger.info(f"   - {match}")
             if len(matches) > 3:
                 logger.info(f"   ... and {len(matches) - 3} more")
 
     def extract_copyright_license(self, strings: List[str]) -> List[str]:
-        """宽泛筛选版权许可信息"""
+        """Broadly filter copyright and license information"""
         results = []
         seen = set()
 
         for string in strings:
-            # 基本长度过滤
+            # Basic length filtering
             if not (5 <= len(string) <= self.max_string_length * 2):
                 continue
 
-            # 使用预编译的模式
+            # Use precompiled patterns
             for pattern in self.copyright_compiled_patterns:
                 if pattern.search(string):
                     truncated = self._truncate_string(string)
@@ -794,12 +794,12 @@ class StringFilter:
                         seen.add(truncated)
                     break
 
-        # 简单的优先级排序：包含年份、公司名等的优先
+        # Simple priority: prefer those with year, organization, etc.
         def priority_score(s):
             score = 0
-            if re.search(r'(?:19|20)\d{2}', s):  # 包含年份
+            if re.search(r'(?:19|20)\d{2}', s):  # contains year
                 score += 10
-            if re.search(r'(?i)(?:inc|ltd|corp|foundation|project)', s):  # 包含组织
+            if re.search(r'(?i)(?:inc|ltd|corp|foundation|project)', s):  # contains organization
                 score += 5
             if 'copyright' in s.lower():
                 score += 3
@@ -819,7 +819,7 @@ class StringFilter:
             if not (5 <= len(string) <= self.max_string_length * 2):
                 continue
 
-            # 使用预编译的模式
+            # Use precompiled patterns
             for pattern in self.path_compiled_patterns:
                 if pattern.search(string):
                     truncated = self._truncate_string(string)
@@ -1031,16 +1031,16 @@ class StringFilter:
         return component_results
 
     def _sort_component_matches(self, matches: List[str], string_to_components: Dict[str, List[str]]) -> List[str]:
-        """对组件匹配结果排序"""
+        """Sort component match results"""
 
         def priority_score(s):
             score = 0
             matched_comps = string_to_components.get(s, [])
 
-            # 匹配的组件越多，优先级越高
+            # More matched components => higher priority
             score += len(matched_comps) * 10
 
-            # 包含版权、版本信息的优先
+            # Prefer strings containing copyright or version info
             s_lower = s.lower()
             if any(kw in s_lower for kw in ['copyright', 'version', 'license']):
                 score += 15
