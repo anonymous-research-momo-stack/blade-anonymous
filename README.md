@@ -35,7 +35,7 @@ docker exec -i bsca_data_1_0_5 psql -U tpl_data -d tpl_data < tpl_data.sql
 
 ## Evaluation on Benchmark
 ### 1. Download Benchmark metafile
-Click [here](https://drive.google.com/file/d/1JHk3y7g2Yy8X1F4v1Z4gYk9bX4e8t1nK/view?usp=sharing) to download the benchmark.
+Click [here](https://drive.google.com/file/d/1yK56oShgH5yRLDy2YsTuAjMHJZCS1dB2/view?usp=sharing) to download the benchmark meta file.
 
 ### 2. Download the Test Cases
 Click [here](https://drive.google.com/file/d/1_L5lwdNImlOnIKq8ExhktTkvYfrjU7aK/view?usp=drive_link) to download the benchmark (~600MB).
