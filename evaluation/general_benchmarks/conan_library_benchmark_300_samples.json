@@ -1,4 +1,17 @@
-[
+{
+    "name": "Benchmark",
+    "version": "20250915",
+    "summary": {
+        "test_case_num": 3489,
+        "covered_library_num": 995
+    },
+    "notes": [
+        {
+            "message": "This benchmark contains 300 samples of the whole benchmark, and the full one will be open-source after the paper is accepted.",
+            "update_at": "2025-09-15 11:30:02"
+        }
+    ],
+    "test_cases": [
     {
         "test_binary": {
             "original_name": "libnsimd_cpu.so",
@@ -7046,3 +7059,5 @@
         ]
     }
 ]
+
+}
